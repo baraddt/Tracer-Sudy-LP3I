@@ -1,0 +1,63 @@
+* {
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-success {
+  background-color: #0AB39C !important;
+  border-color: #0AB39C !important;
+}
+
+.btn-success:hover {
+  background-color: #089E8A !important;
+  /* Warna hover */
+  border-color: #089E8A !important;
+}
+
+.btn-primary {
+  background-color: #00426D !important;
+  border-color: #00426D !important;
+}
+
+.btn-primary:hover {
+  background-color: #015994 !important;
+  border-color: #015994 !important;
+}
+
+.btn-secondary {
+  background-color: #A1A8AA !important;
+  border-color: #A1A8AA !important;
+}
+
+.btn-secondary:hover {
+  background-color: #707172 !important;
+  border-color: #707172 !important;
+}
+
+.custom-bg {
+  background-color: #f3f3f9 !important; /* Ganti dengan warna yang diinginkan */
+}
+
+.text-primary {
+  color: #00426D !important;
+}
+
+.body {
+  background-color: #f3f3f9;
+}
+
+.profile-dropdown .bi-caret-down-fill {
+  transition: transform 0.3s;
+}
+
+.profile-dropdown .rotate {
+  transform: rotate(180deg);
+}
+
+ul.dropdown-menu {
+  min-width: 200px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-dropdown {
+  background-color: #f3f3f9 !important;
+}
