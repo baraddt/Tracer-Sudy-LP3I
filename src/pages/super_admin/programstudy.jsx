@@ -123,10 +123,10 @@ export default function ProgramList() {
                     </p>
                 </div>
                 <div className="mt-5">
-                    <Link to="/kampus">
+                    <Link to="/super_admin/kampus">
                         <button className="me-2 border rounded bg-dark bg-opacity-50 p-2 text-light" type="button">Overview</button>
                     </Link>
-                    <Link to="/psdku">
+                    <Link to="/super_admin/psdku">
                         <button className="me-2 border rounded bg-dark bg-opacity-50 p-2 text-light" type="button">PSDKU</button>
                     </Link>
                     <button className="border rounded bg-secondary bg-opacity-50 p-2 text-light" type="button">Program Study</button>

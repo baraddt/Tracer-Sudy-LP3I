@@ -77,12 +77,12 @@ export default function Navbar() {
               </a>
               <ul className="dropdown-menu" aria-labelledby="arsipDropdown">
                 <li>
-                  <Link className="dropdown-item" to="./super_admin/arsip">
+                  <Link className="dropdown-item" to="./super_admin/arsiptracer">
                     <i className="bi bi-journal-text"></i> Tracer Study
                   </Link>
                 </li>
                 <li>
-                  <Link className="dropdown-item" to="./super_admin/arsip">
+                  <Link className="dropdown-item" to="./super_admin/arsippengaduan">
                     <i className="bi bi-chat-left-dots"></i> Pengaduan
                   </Link>
                 </li>

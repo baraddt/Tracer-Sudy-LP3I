@@ -32,12 +32,13 @@ export default function Dashboard() {
 
         backgroundColor: 'rgba(0, 191, 165, 0.6)',
         borderRadius: 5,
-        barPercentage: 0.4,
+        barPercentage: 0.2,
         label: 'Jumlah Lulusan',
       },
       {
         type: 'line',
         data: [79, 60, 35, 45, 60, 76],
+        // data: [79],
         backgroundColor: '#00426D',
         borderColor: '#00426D',
         borderWidth: 2,
@@ -48,6 +49,7 @@ export default function Dashboard() {
       {
         type: 'line',
         data: [20, 23, 25, 30, 40, 30],
+        // data: [20],
         backgroundColor: '#E80000',
         borderColor: '#E80000',
         borderWidth: 2,

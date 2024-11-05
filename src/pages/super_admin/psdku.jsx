@@ -86,7 +86,7 @@ export default function Psdku() {
         setShowModalEdit(false);
     };
 
-    
+
     return (
         <div className="container mt-4">
             {/* Header Section */}
@@ -125,7 +125,7 @@ export default function Psdku() {
                     </p>
                 </div>
                 <div className="mt-5">
-                    <Link to="/kampus">
+                    <Link to="/super_admin/kampus">
                         <button className="me-2 border rounded p-2 bg-dark bg-opacity-50 text-light" type="button">
                             Overview
                         </button>
@@ -133,7 +133,7 @@ export default function Psdku() {
                     <button className="me-2 border rounded bg-secondary bg-opacity-50 p-2 text-light">
                         PSDKU
                     </button>
-                    <Link to="/programstudy">
+                    <Link to="/super_admin/programstudy">
                         <button className="border rounded p-2 bg-dark bg-opacity-50 text-light" type="button">
                             Program Study
                         </button>

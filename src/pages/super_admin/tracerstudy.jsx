@@ -1,14 +1,16 @@
+import { Link } from 'react-router-dom'
+
 export default function () {
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h1 className="text-black mb-4 fw-semibold">Tracer Study</h1>
-
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
-                    <button className="btn btn-success mb-2" onClick={() => setShowModal(true)}>
-                        <i className="bi bi-plus"></i>Tambah
-                    </button>
+                    <Link to='/super_admin/tracerstudyadd'>
+                        <button className="btn btn-success mb-2">
+                            <i className="bi bi-plus"></i>Tambah
+                        </button>
+                    </Link>
                     <button className="btn btn-primary"><i className="bi bi-filter"></i> Filter</button>
                 </div>
 
@@ -20,12 +22,12 @@ export default function () {
                         placeholder="Cari Kegiatan Yang Pernah Di Lakukan"
                     />
                     <input
-                        type="text"
+                        type="date"
                         className="form-control me-2"
                         placeholder="Pilih Tanggal Mulai"
                     />
                     <input
-                        type="text"
+                        type="date"
                         className="form-control me-2"
                         placeholder="Pilih Tanggal Berakhir"
                     />
@@ -33,8 +35,93 @@ export default function () {
                         <i className="bi bi-search me-2"></i> Cari
                     </button>
                 </div>
-                <div>
-                    
+            </div>
+            <div className="container mt-4">
+                <div className="row rounded bg-white p-3 align-items-center">
+                    <table className="table mt-4">
+                        <thead>
+                            <tr>
+                                <th className="text-dark bg-secondary bg-opacity-50">#ID</th>
+                                <th className="text-dark bg-secondary bg-opacity-50">Nama Kegiatan</th>
+                                <th className="text-dark bg-secondary bg-opacity-50">Tanggal Mulai</th>
+                                <th className="text-dark bg-secondary bg-opacity-50">Tanggal Berakhir</th>
+                                <th className="text-dark bg-secondary bg-opacity-50 text-center">Status</th>
+                                <th className="text-dark bg-secondary bg-opacity-50 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    #TR001
+                                </td>
+                                <td>
+                                    Analisis Kesuksesan Dengan Dunia Kerja
+                                </td>
+                                <td>
+                                    14 Oktober 2024
+                                </td>
+                                <td>
+                                    24 Desember 2024
+                                </td>
+                                <td className="text-center">
+                                    <span className="border rounded bg-primary bg-opacity-25 text-center p-1" style={{ fontSize: '13px' }}>Berlangsung</span>
+                                </td>
+                                <div className="text-center">
+                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-eye-fill text-success"></i></button>
+                                    <button className="me-2 border-0 bg-transparent">
+                                        <i className="bi bi-pencil-fill text-primary"></i>
+                                    </button>
+
+                                    <button className="border border-0 bg-transparent"><i class="bi bi-trash-fill text-danger"></i></button>
+                                </div>
+                            </tr>
+                            <tr>
+                                <td>
+                                    #TR002
+                                </td>
+                                <td>
+                                    Analisis Kesuksesan Dengan Dunia Lain
+                                </td>
+                                <td>
+                                    14 Oktober 2024
+                                </td>
+                                <td>
+                                    24 Desember 2024
+                                </td>
+                                <td className="text-center text-success">
+                                    <span className="border rounded bg-success bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Selesai</span>
+                                </td>
+                                <div className="text-center">
+                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-file-earmark-pdf-fill text-danger"></i></button>
+                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-eye-fill text-success"></i></button>
+                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-pencil-fill text-primary"></i></button>
+                                    <button className="border-0 bg-transparent"><i class="bi bi-trash-fill text-danger"></i></button>
+                                </div>
+                            </tr>
+                            <tr>
+                                <td>
+                                    #TR003
+                                </td>
+                                <td>
+                                    Analisis Kesuksesan Dengan Dunia Lain
+                                </td>
+                                <td>
+                                    14 Oktober 2024
+                                </td>
+                                <td>
+                                    24 Desember 2024
+                                </td>
+                                <td className="text-center text-secondary">
+                                    <span className="border rounded bg-secondary bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Draft</span>
+                                </td>
+                                <div className="text-center">
+                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-eye-fill text-success"></i></button>
+                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-pencil-fill text-primary"></i></button>
+                                    <button className="border-0 bg-transparent"><i class="bi bi-trash-fill text-danger"></i></button>
+                                </div>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
