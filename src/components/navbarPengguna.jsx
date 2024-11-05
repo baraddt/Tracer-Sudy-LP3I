@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AuthService from '../services/AuthService';
 
 export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -9,7 +7,6 @@ export default function Navbar() {
   const toggleProfileDropdown = () => {
     setIsProfileOpen(!isProfileOpen);
   };
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     AuthService.logout(); // Memanggil fungsi logout
@@ -42,55 +39,23 @@ export default function Navbar() {
           {/* Wrapper dengan center alignment untuk menu utama */}
           <ul className="navbar-nav">
             <li className="nav-item">
-              <Link className="nav-link" to="./super_admin/dashboard" style={{ color: '#00426D' }}>
+              <Link className="nav-link" to="./pengguna/dashboard" style={{ color: '#00426D' }}>
                 <i className="bi bi-border-style"></i> Dashboard
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="./super_admin/tracerstudy" style={{ color: '#00426D' }}>
+              <Link className="nav-link" to="#" style={{ color: '#00426D' }}>
                 <i className="bi bi-clipboard"></i> Tracer Study
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="./super_admin/kampus" style={{ color: '#00426D' }}>
+              <Link className="nav-link" to="#" style={{ color: '#00426D' }}>
                 <i className="bi bi-building"></i> Kampus
               </Link>
             </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="./super_admin/user" style={{ color: '#00426D' }}>
-                <i className="bi bi-person"></i> Pengguna
-              </Link>
-            </li>
-
-            {/* Dropdown Arsip */}
-            <li className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                style={{ color: '#00426D' }}
-                href="#"
-                id="arsipDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i className="bi bi-archive"></i> Arsip
-              </a>
-              <ul className="dropdown-menu" aria-labelledby="arsipDropdown">
-                <li>
-                  <Link className="dropdown-item" to="./super_admin/arsip">
-                    <i className="bi bi-journal-text"></i> Tracer Study
-                  </Link>
-                </li>
-                <li>
-                  <Link className="dropdown-item" to="./super_admin/arsip">
-                    <i className="bi bi-chat-left-dots"></i> Pengaduan
-                  </Link>
-                </li>
-              </ul>
-            </li>
 
             <li className="nav-item">
-              <Link className="nav-link" to="./super_admin/pusatbantuan" style={{ color: '#00426D' }}>
+              <Link className="nav-link" to="#" style={{ color: '#00426D' }}>
                 <i className="bi bi-question-circle"></i> Pusat Bantuan
               </Link>
             </li>
@@ -107,8 +72,8 @@ export default function Navbar() {
             className="rounded-circle me-2 p-2"
           />
           <div className="d-flex flex-column">
-            <span className="fw-semibold" style={{ color: '#00426D' }}>Mario DB</span>
-            <small className="text-muted">Super Admin</small>
+            <span className="fw-semibold" style={{ color: '#00426D' }}>Atep Riandi Pahmi</span>
+            <small className="text-muted">Mahasiswa</small>
           </div>
           <i className={`ms-2 bi bi-caret-down-fill ${isProfileOpen ? 'rotate' : ''}`}></i>
 
@@ -125,7 +90,7 @@ export default function Navbar() {
               }}
             >
               <li>
-                <Link className="dropdown-item text-success" to="/super_admin/profile">
+                <Link className="dropdown-item text-success" to="#">
                   <i className="bi bi-person"></i> Akun
                 </Link>
               </li>
@@ -133,12 +98,13 @@ export default function Navbar() {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <Link className="dropdown-item text-danger" to="/" onClick={handleLogout}>
+                <Link className="dropdown-item text-danger" onClick={handleLogout}>
                   <i className="bi bi-box-arrow-right"></i> Logout
                 </Link>
               </li>
             </ul>
           )}
+
         </div>
       </div>
     </nav>

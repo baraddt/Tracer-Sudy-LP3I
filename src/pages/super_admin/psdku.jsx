@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios'
 
 export default function Psdku() {
     const [psdkuList, setPsdkuList] = useState([]); // State untuk menyimpan data PSDKU
@@ -15,21 +16,32 @@ export default function Psdku() {
     const [showModalEdit, setShowModalEdit] = useState(false);
     const [showModalPreview, setShowModalPreview] = useState(false); // State untuk kontrol modal
 
-    // Data dummy untuk PSDKU
-    const dummyPsdku = [
-        { kodePt: '450052', psdku: 'Politeknik LP3I Bandung', akreditasi: 'Baik Sekali', status: 'Aktif' },
-        { kodePt: '450053', psdku: 'Politeknik LP3I Tasikmalaya', akreditasi: 'Baik Sekali', status: 'Aktif' },
-        { kodePt: '450054', psdku: 'Politeknik LP3I Cirebon', akreditasi: 'Baik Sekali', status: 'Non-Aktif' },
-    ];
-
-    // Simulasi pengambilan data
-    const fetchPsdku = () => {
-        setPsdkuList(dummyPsdku);
+    // Fungsi untuk mengambil data dari API
+    const fetchData = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/kampus/all');
+            setPsdkuList(response.data.data); // Pastikan untuk mengupdate psdkuList dengan response.data.data
+        } catch (error) {
+            console.error("Error fetching data:", error.message);
+        }
     };
 
     useEffect(() => {
-        fetchPsdku(); // Ambil data saat komponen pertama kali dirender
+        fetchData();
     }, []);
+
+    // fungsi untuk menambah data ke API
+    const addPsdku = async () => {
+        try {
+            const response = await axios.post('http://192.168.18.176:5000/kampus/add', newPsdku);
+            setPsdkuList((prevList) => [...prevList, response.data]); // Update the local list with the new data
+            setNewPsdku({ kodePt: '', psdku: '', akreditasi: '', status: '' }); // Reset form
+            setShowModal(false); // Tutup modal
+        } catch (error) {
+            console.error("Error adding PSDKU:", error.message);
+            setError("Failed to add PSDKU. Please try again."); // Handle error
+        }
+    };
 
     // Fungsi untuk menangani perubahan input form
     const handleInputChange = (e) => {
@@ -43,16 +55,7 @@ export default function Psdku() {
     // Fungsi untuk menangani pengiriman form
     const handleSubmit = (e) => {
         e.preventDefault();
-        try {
-            setPsdkuList((prevList) => [
-                ...prevList,
-                { ...newPsdku, _id: (prevList.length + 1).toString() },
-            ]);
-            setNewPsdku({ kodePt: '', psdku: '', akreditasi: '', status: '' }); // Reset form
-            setShowModal(false); // Tutup modal
-        } catch (error) {
-            setError(error.message);
-        }
+        addPsdku(); // Call the add function instead of updating the list directly
     };
 
     const openEditModal = (psdku) => {
@@ -83,6 +86,7 @@ export default function Psdku() {
         setShowModalEdit(false);
     };
 
+    
     return (
         <div className="container mt-4">
             {/* Header Section */}
@@ -99,9 +103,9 @@ export default function Psdku() {
             >
                 <div className="col-md-3 text-center">
                     <img
-                        src="/profile.jpg"
+                        src="/logo-lp3i.png"
                         alt="Profile"
-                        className="img-fluid rounded-circle"
+                        className="img-fluid rounded"
                         width="150"
                         height="150"
                     />
@@ -160,15 +164,14 @@ export default function Psdku() {
                         <tbody>
                             {psdkuList.length > 0 ? (
                                 psdkuList.map((psdku, index) => (
-                                    <tr key={index}>
+                                    <tr key={psdku._id}>
                                         <td>{index + 1}</td>
-                                        <td>{psdku.kodePt}</td>
+                                        <td>{psdku.kode_pt}</td>
                                         <td>{psdku.psdku || 'N/A'}</td>
-                                        <td className='text-center'>{psdku.akreditasi || 'N/A'}</td>
+                                        <td className='text-center'>{psdku.akreditasi.akreditasi || 'N/A'}</td>
                                         <td className={`text-center ${psdku.status === 'Aktif' ? 'text-success' : 'text-danger'}`}>
                                             {psdku.status || 'N/A'}
                                         </td>
-
                                         <td className='text-center'>
                                             <button className="btn btn-primary btn-sm me-2" onClick={() => openPreviewModal(psdku)}>
                                                 <i className="bi bi-eye"></i>

@@ -36,9 +36,9 @@ const Footer = () => {
 
                     {/* Kolom Tengah: Teks Navigasi */}
                     <div className="col-md-4 text-center">
-                        <p className="mb-1">Telusuri</p>
-                        <p className="mb-1">Tentang Politeknik LP3I</p>
-                        <p className="mb-1">Program Study</p>
+                        <p className="mb-1" style={{ color : '#00426D'}}>Telusuri</p>
+                        <p className="mb-1" style={{ color : '#00426D'}}>Tentang Politeknik LP3I</p>
+                        <p className="mb-1" style={{ color : '#00426D'}}>Program Study</p>
                     </div>
 
                     {/* Kolom Kanan: Kosong atau Konten Tambahan */}

@@ -17,30 +17,30 @@ export default function User() {
 
     // Data dummy untuk pengguna
     const dummyUsers = [
-        {
-            _id: '1',
-            nama: 'John Doe',
-            jabatan: 'Developer',
-            pendidikan: 'S1 Informatika',
-            email: 'john@example.com',
-            status: 'Aktif',
-        },
-        {
-            _id: '2',
-            nama: 'Jane Smith',
-            jabatan: 'Designer',
-            pendidikan: 'S1 Desain Grafis',
-            email: 'jane@example.com',
-            status: 'Aktif',
-        },
-        {
-            _id: '3',
-            nama: 'Michael Brown',
-            jabatan: 'Project Manager',
-            pendidikan: 'S2 Manajemen',
-            email: 'michael@example.com',
-            status: 'Non-Aktif',
-        },
+        // {
+        //     _id: '1',
+        //     nama: 'John Doe',
+        //     jabatan: 'Developer',
+        //     pendidikan: 'S1 Informatika',
+        //     email: 'john@example.com',
+        //     status: 'Aktif',
+        // },
+        // {
+        //     _id: '2',
+        //     nama: 'Jane Smith',
+        //     jabatan: 'Designer',
+        //     pendidikan: 'S1 Desain Grafis',
+        //     email: 'jane@example.com',
+        //     status: 'Aktif',
+        // },
+        // {
+        //     _id: '3',
+        //     nama: 'Michael Brown',
+        //     jabatan: 'Project Manager',
+        //     pendidikan: 'S2 Manajemen',
+        //     email: 'michael@example.com',
+        //     status: 'Non-Aktif',
+        // },
         // Tambahkan lebih banyak pengguna jika perlu
     ];
 

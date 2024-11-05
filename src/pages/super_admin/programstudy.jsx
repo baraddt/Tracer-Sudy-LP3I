@@ -17,9 +17,9 @@ export default function ProgramList() {
     const [showModalPreview, setShowModalPreview] = useState(false);
 
     const dummyProgram = [
-        { kodePs: '450052', programStudy: 'Administrasi Bisnis', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
-        { kodePs: '450053', programStudy: 'Manajemen Informatika', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
-        { kodePs: '450054', programStudy: 'Teknik Otomotif', jenjang: 'D2', akreditasi: 'Baik Sekali', status: 'Non-Aktif' },
+        // { kodePs: '450052', programStudy: 'Administrasi Bisnis', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
+        // { kodePs: '450053', programStudy: 'Manajemen Informatika', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
+        // { kodePs: '450054', programStudy: 'Teknik Otomotif', jenjang: 'D2', akreditasi: 'Baik Sekali', status: 'Non-Aktif' },
     ];
 
     const fetchProgram = () => {
@@ -95,9 +95,9 @@ export default function ProgramList() {
             >
                 <div className="col-md-3 text-center">
                     <img
-                        src="/profile.jpg"
+                        src="/logo-lp3i.png"
                         alt="Profile"
-                        className="img-fluid rounded-circle"
+                        className="img-fluid rounded"
                         width="150"
                         height="150"
                     />

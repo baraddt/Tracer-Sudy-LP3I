@@ -47,7 +47,7 @@ export default function () {
                 <div className="mt-5">
 
                     <button className="me-2 border rounded bg-secondary bg-opacity-50 p-2 text-light" type="button">Overview</button>
-                    <Link to="/psdku">
+                    <Link to="/super_admin/psdku">
                         <button
                             className="me-2 border rounded bg-dark bg-opacity-50 p-2 text-light"
                             type="button"
@@ -55,7 +55,7 @@ export default function () {
                             PSDKU
                         </button>
                     </Link>
-                    <Link to="/programstudy" className='me-5'>
+                    <Link to="/super_admin/programstudy" className='me-5'>
                         <button className="border rounded p-2  bg-dark bg-opacity-50 text-light" type="button">Program Study</button>
                     </Link>
                     <Link to="/kampusedit">
@@ -101,9 +101,9 @@ export default function () {
                     {/* About di Kanan */}
                     <div className="bg-light p-2 rounded" style={{ flex: 2 }}>
                         <h4 className="mt-2">About</h4>
-                        <h6
-                            className="text-secondary"
-                            style={{ lineHeight: "1.6", marginBottom: "1rem" }}
+                        <p
+                            className="fw-normal text-secondary"
+                            style={{ lineHeight: "1.6", marginBottom: "1rem", fontSize: '13px'}}
                         >
                             Politeknik LP3I merupakan perguruan tinggi vokasi yang fokus mencetak lulusan siap kerja.
                             Sejak berdiri pada tahun 1989, LP3I berkomitmen menghubungkan dunia pendidikan dengan industri.
@@ -120,7 +120,7 @@ export default function () {
                             Selain itu, LP3I menekankan pengembangan soft skills seperti komunikasi dan etika profesional.
                             Kompetensi ini sangat penting bagi mahasiswa agar siap bersaing di lingkungan kerja yang dinamis.
                             Dengan demikian, lulusan LP3I memiliki daya saing yang tinggi di pasar tenaga kerja.
-                        </h6>
+                        </p>
 
                     </div>
                 </div>

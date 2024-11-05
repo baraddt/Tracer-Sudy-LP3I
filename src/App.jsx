@@ -1,42 +1,54 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Login from './pages/login';
-import ForgotPassword from './pages/forgot-password';
-import Dashboard from './Pages/Dashboard';
-import Tracer from './pages/tracerstudy';
-import Kampus from './pages/kampus';
-import KampusEdit from './pages/kampusedit';
-import User from './pages/user';
-import Arsip from './pages/arsip';
-import PusatBantuan from './pages/pusatbantuan';
-import Profile from './pages/profile';
-import Programstudy from './pages/programstudy';
-import Psdku from './pages/psdku';
+import Login from './components/login';
+import ForgotPassword from './pages/super_admin/forgot-password';
+import Dashboard from './pages/super_admin/dashboard';
+import Tracer from './pages/super_admin/tracerstudy';
+import Kampus from './pages/super_admin/kampus';
+import KampusEdit from './pages/super_admin/kampusedit';
+import User from './pages/super_admin/user';
+import Arsip from './pages/super_admin/arsip';
+import PusatBantuan from './pages/super_admin/pusatbantuan';
+import Profile from './pages/super_admin/profile';
+import Programstudy from './pages/super_admin/programstudy';
+import Psdku from './pages/super_admin/psdku';
+import DashboardPengguna from './pages/pengguna/dashboard';
 import Navbar from './components/navbar';
+import NavbarPengguna from './components/navbarPengguna';
 import Footer from './components/footer';
 
 function AppContent() {
   const location = useLocation();
   const isAuthPage = location.pathname === '/' || location.pathname === '/forgot-password';
+  const isSuperAdminPage = location.pathname.startsWith('/super_admin');
+  const isPenggunaPage = location.pathname.startsWith('/pengguna');
 
   return (
     <>
-      {/* Hanya tampilkan Navbar dan Footer jika bukan halaman login/forgot-password */}
-      {!isAuthPage && <Navbar />}
+      {/* Menampilkan Navbar yang berbeda berdasarkan halaman */}
+      {!isAuthPage && isSuperAdminPage && <Navbar />}
+      {!isAuthPage && isPenggunaPage && <NavbarPengguna />}
+
       <Routes>
+        {/* Route Super Admin */}
         <Route path="/" element={<Login />} /> {/* Halaman login di URL default */}
-        <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Route untuk halaman lupa password */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tracerstudy" element={<Tracer />} />
-        <Route path="/kampus" element={<Kampus />} />
-        <Route path="/kampusedit" element={<KampusEdit />} />
-        <Route path="/user" element={<User />} />
-        <Route path="/arsip" element={<Arsip />} />
-        <Route path="/pusatbantuan" element={<PusatBantuan />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/psdku" element={<Psdku />} />
-        <Route path="/programstudy" element={<Programstudy />} />
+        <Route path="/super_admin/forgot-password" element={<ForgotPassword />} /> {/* Route untuk halaman lupa password */}
+        <Route path="/super_admin/dashboard" element={<Dashboard />} />
+        <Route path="/super_admin/tracerstudy" element={<Tracer />} />
+        <Route path="/super_admin/kampus" element={<Kampus />} />
+        <Route path="/super_admin/kampusedit" element={<KampusEdit />} />
+        <Route path="/super_admin/user" element={<User />} />
+        <Route path="/super_admin/arsip" element={<Arsip />} />
+        <Route path="/super_admin/pusatbantuan" element={<PusatBantuan />} />
+        <Route path="/super_admin/profile" element={<Profile />} />
+        <Route path="/super_admin/psdku" element={<Psdku />} />
+        <Route path="/super_admin/programstudy" element={<Programstudy />} />
+
+        {/* Route Pengguna */}
+        <Route path="/pengguna/dashboard" element={<DashboardPengguna />} />
       </Routes>
-      {!isAuthPage && <Footer />} {/* Hanya tampilkan Footer jika bukan halaman login/forgot-password */}
+      
+      {/* Hanya tampilkan Footer jika bukan halaman login/forgot-password */}
+      {!isAuthPage && <Footer />}
     </>
   );
 }

@@ -1,7 +1,7 @@
 export default function () {
     return (
         <div>
-            <h1>Tracer Study</h1>
+            <h1>Ini Dashboard Admin</h1>
         </div>
     )
 }
