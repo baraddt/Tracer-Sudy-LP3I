@@ -27,40 +27,41 @@ export default function () {
                         style={{ flex: 1 }} // Mengatur proporsi ukuran Info
                     >
                         <div className="me-5">
-                            <h4>Info</h4>
                             <div className='ms-6'>
                                 <img src="/photo-profil.jpg" className='rounded-circle' alt="" width='150px' height='auto' />
-                            </div>
-                            <div className='d-flex'>
-                                <div className="me-5">
-                                    <h6 className="mt-4">Kode PT</h6>
-                                    <h6 className="mt-4">Status</h6>
-                                    <h6 className="mt-4">Akreditasi</h6>
-                                    <h6 className="mt-4">Tanggal Berdiri</h6>
-                                    <h6 className="mt-4">No SK.Pendirian</h6>
-                                    <h6 className="mt-4">Tgl Sk.Pendirian</h6>
-                                    <h6 className="mt-4">Kontak</h6>
-                                    <h6 className="mt-4">Alamat</h6>
-                                </div>
-                                <div className="text-secondary mt-5">
-                                    <h6 className="mt-sm-5">045052</h6>
-                                    <h6 className="mt-4">Aktif</h6>
-                                    <h6 className="mt-4">Baik Sekali</h6>
-                                    <h6 className="mt-4">30 April 2019</h6>
-                                    <h6 className="mt-4">318/KPT/I/2019</h6>
-                                    <h6 className="mt-4">30 April 2019</h6>
-                                    <h6 className="mt-4">(020) 2560482</h6>
-                                    <h6 className="mt-4">
-                                        Jl. Pahlawan No.59, Sukaluyu, <br />
-                                        Kec. Cibeunying Kaler, <br /> Kota Bandung, Jawa Barat 40123
-                                    </h6>
-                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* About di Kanan */}
                     <div className="bg-light p-2 rounded" style={{ flex: 2 }}>
+                        <h4>Info</h4>
+                        <div className='d-flex justify-content-between'>
+                            <div className="me-5">
+                                <h6 className="mt-4">Kode PT</h6>
+                                <h6 className="mt-4">Status</h6>
+                                <h6 className="mt-4">Akreditasi</h6>
+                                <h6 className="mt-4">Tanggal Berdiri</h6>
+                                <h6 className="mt-4">No SK.Pendirian</h6>
+                                <h6 className="mt-4">Tgl Sk.Pendirian</h6>
+                                <h6 className="mt-4">Kontak</h6>
+                                <h6 className="mt-4">Alamat</h6>
+                            </div>
+                            <div className="text-secondary mt-2">
+                                <h6 className="mt-4">045052</h6>
+                                <h6 className="mt-4">Aktif</h6>
+                                <h6 className="mt-4">Baik Sekali</h6>
+                                <h6 className="mt-4">30 April 2019</h6>
+                                <h6 className="mt-4">318/KPT/I/2019</h6>
+                                <h6 className="mt-4">30 April 2019</h6>
+                                <h6 className="mt-4">(020) 2560482</h6>
+                                <h6 className="mt-4">
+                                    Jl. Pahlawan No.59, Sukaluyu, <br />
+                                    Kec. Cibeunying Kaler, <br /> Kota Bandung, Jawa Barat 40123
+                                </h6>
+                            </div>
+                        </div>
+
                         <h4 className="mt-2">About</h4>
                         <h6
                             className="text-secondary"

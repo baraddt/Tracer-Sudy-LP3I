@@ -8,6 +8,8 @@ import TracerGolongan from './pages/super_admin/tracerstudy-golongan-kegiatan';
 import TracerBankSoal from './pages/super_admin/tracerstudy-bank-soal';
 import TracerVerifikasi from './pages/super_admin/tracerstudy-verifikasi-akhir';
 import TracerPreview from './pages/super_admin/tracerstudy-preview';
+import TracerPreviewKuesioner from './pages/super_admin/tracerstudy-preview-kuesioner';
+import TracerPreviewResponden from './pages/super_admin/tracerstudy-preview-responden';
 import Kampus from './pages/super_admin/kampus';
 import KampusEdit from './pages/super_admin/kampusedit';
 import User from './pages/super_admin/user';
@@ -45,6 +47,8 @@ function AppContent() {
         <Route path="/super_admin/tracerstudy-bank-soal" element={<TracerBankSoal />} />
         <Route path="/super_admin/tracerstudy-verifikasi-akhir" element={<TracerVerifikasi />} />
         <Route path="/super_admin/tracerstudy-preview" element={<TracerPreview />} />
+        <Route path="/super_admin/tracerstudy-preview-kuesioner" element={<TracerPreviewKuesioner />} />
+        <Route path="/super_admin/tracerstudy-preview-responden" element={<TracerPreviewResponden />} />
         <Route path="/super_admin/kampus" element={<Kampus />} />
         <Route path="/super_admin/kampusedit" element={<KampusEdit />} />
         <Route path="/super_admin/user" element={<User />} />

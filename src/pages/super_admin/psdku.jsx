@@ -6,11 +6,18 @@ export default function Psdku() {
     const [psdkuList, setPsdkuList] = useState([]); // State untuk menyimpan data PSDKU
     const [error, setError] = useState(null); // State untuk menangani error
     const [newPsdku, setNewPsdku] = useState({
-        kodePt: '',
+        kode_pt: '',
+        tanggal_berdiri: '',
+        tanggal_sk: '',
+        pengguna: '',
+        alamat: '',
         psdku: '',
         akreditasi: '',
-        status: '',
+        // status: '',
     });
+
+    const [akreditasiOptions, setAkreditasiOptions] = useState([]); // State untuk menyimpan opsi akreditasi
+    const [penggunaOptions, setPenggunaOptions] = useState([]); // State untuk menyimpan opsi pengguna
     const [editPsdku, setEditPsdku] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showModalEdit, setShowModalEdit] = useState(false);
@@ -30,18 +37,68 @@ export default function Psdku() {
         fetchData();
     }, []);
 
+    // Fungsi untuk mengambil data akreditasi dari API
+    const fetchAkreditasi = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
+            setAkreditasiOptions(response.data.data || []); // Simpan data akreditasi
+
+        } catch (error) {
+            console.error("Error fetching akreditasi data:", error.message);
+        }
+    };
+
+    // Fungsi untuk mengambil data akreditasi dari API
+    const fetchPengguna = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/users/all');
+            setPenggunaOptions(response.data.data); // Simpan data akreditasi
+
+        } catch (error) {
+            console.error("Error fetching akreditasi data:", error.message);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+        fetchAkreditasi(); 
+        fetchPengguna(); // Panggil fungsi fetchAkreditasi saat komponen dimuat
+    }, []);
+
     // fungsi untuk menambah data ke API
     const addPsdku = async () => {
         try {
             const response = await axios.post('http://192.168.18.176:5000/kampus/add', newPsdku);
             setPsdkuList((prevList) => [...prevList, response.data]); // Update the local list with the new data
-            setNewPsdku({ kodePt: '', psdku: '', akreditasi: '', status: '' }); // Reset form
+
+            fetchData();
+            setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', pengguna: '', akreditasi: '' }); // Reset form
             setShowModal(false); // Tutup modal
+
         } catch (error) {
+            console.log("Response data:", error.response.data);
             console.error("Error adding PSDKU:", error.message);
             setError("Failed to add PSDKU. Please try again."); // Handle error
         }
     };
+
+    // Fungsi untuk mengirimkan data yang telah diedit ke API
+    const handleEditSubmit = async (event) => {
+        event.preventDefault();
+        try {
+            const response = await axios.put(
+                `http://192.168.18.176:5000/kampus/edit/${editPsdku._id}`,
+                editPsdku
+            );
+            console.log('Psdku updated successfully:', response.data);
+        } catch (error) {
+            console.error('Error updating PSDKU:', error);
+            setError(error.response?.data?.message || 'An error occurred');
+        }
+    };
+    
+    
+
 
     // Fungsi untuk menangani perubahan input form
     const handleInputChange = (e) => {
@@ -59,9 +116,11 @@ export default function Psdku() {
     };
 
     const openEditModal = (psdku) => {
+        console.log('Data yang dipilih untuk diedit:', psdku);
         setEditPsdku(psdku);
         setShowModalEdit(true);
     };
+    
 
     const openPreviewModal = (psdku) => {
         setEditPsdku(psdku);
@@ -75,17 +134,6 @@ export default function Psdku() {
             [name]: value,
         }));
     };
-
-    const handleEditSubmit = (e) => {
-        e.preventDefault();
-        setPsdkuList((prevList) =>
-            prevList.map((psdku) =>
-                psdku.kodePt === editPsdku.kodePt ? editPsdku : psdku
-            )
-        );
-        setShowModalEdit(false);
-    };
-
 
     return (
         <div className="container mt-4">
@@ -168,7 +216,7 @@ export default function Psdku() {
                                         <td>{index + 1}</td>
                                         <td>{psdku.kode_pt}</td>
                                         <td>{psdku.psdku || 'N/A'}</td>
-                                        <td className='text-center'>{psdku.akreditasi.akreditasi || 'N/A'}</td>
+                                        <td className='text-center'>{psdku.akreditasi?.akreditasi || 'N/A'}</td>
                                         <td className={`text-center ${psdku.status === 'Aktif' ? 'text-success' : 'text-danger'}`}>
                                             {psdku.status || 'N/A'}
                                         </td>
@@ -210,11 +258,38 @@ export default function Psdku() {
                                 <form onSubmit={handleSubmit}>
                                     <input
                                         type="text"
-                                        name="kodePt"
-                                        value={newPsdku.kodePt}
+                                        name="kode_pt"
+                                        value={newPsdku.kode_pt}
                                         onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="Kode PT"
+                                        required
+                                    />
+                                    <input
+                                        type="date"
+                                        name="tanggal_berdiri"
+                                        value={newPsdku.tanggal_berdiri}
+                                        onChange={handleInputChange}
+                                        className="form-control mb-2"
+                                        placeholder="Tanggal Berdiri"
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        name="tanggal_sk"
+                                        value={newPsdku.tanggal_sk}
+                                        onChange={handleInputChange}
+                                        className="form-control mb-2"
+                                        placeholder="Tanggal SK"
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        name="alamat"
+                                        value={newPsdku.alamat}
+                                        onChange={handleInputChange}
+                                        className="form-control mb-2"
+                                        placeholder="Alamat"
                                         required
                                     />
                                     <input
@@ -226,16 +301,35 @@ export default function Psdku() {
                                         placeholder="PSDKU"
                                         required
                                     />
-                                    <input
-                                        type="text"
+                                    <select
+                                        name="pengguna"
+                                        value={newPsdku.pengguna}
+                                        onChange={handleInputChange}
+                                        className="form-control mb-2"
+                                        required
+                                    >
+                                        <option value="">Pilih Pengguna</option>
+                                        {Array.isArray(penggunaOptions) && penggunaOptions.map((option) => (
+                                            <option key={option._id} value={option._id}>
+                                                {option.nama} {/* Menampilkan nama Pengguna */}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
                                         name="akreditasi"
                                         value={newPsdku.akreditasi}
                                         onChange={handleInputChange}
                                         className="form-control mb-2"
-                                        placeholder="Akreditasi"
                                         required
-                                    />
-                                    <select
+                                    >
+                                        <option value="">Pilih Akreditasi</option>
+                                        {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                            <option key={option._id} value={option._id}>
+                                                {option.akreditasi} {/* Menampilkan nama akreditasi */}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {/* <select
                                         name="status"
                                         value={newPsdku.status}
                                         onChange={handleInputChange}
@@ -245,7 +339,7 @@ export default function Psdku() {
                                         <option value="">Pilih Status</option>
                                         <option value="Aktif">Aktif</option>
                                         <option value="Non-Aktif">Non-Aktif</option>
-                                    </select>
+                                    </select> */}
                                     <button type="submit" className="btn btn-primary">Simpan</button>
                                 </form>
                             </div>
@@ -255,12 +349,17 @@ export default function Psdku() {
             )}
             {/* Edit Modal */}
             {showModalEdit && (
-                <div className="modal fade show d-block">
-                    <div className="modal-dialog">
+                <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog" aria-hidden="true">
+                    <div className="modal-dialog" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title">Edit PSDKU</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowModalEdit(false)}></button>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setShowModalEdit(false)}
+                                    aria-label="Close"
+                                ></button>
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleEditSubmit}>
@@ -268,11 +367,59 @@ export default function Psdku() {
                                         <label>Kode PT</label>
                                         <input
                                             type="text"
-                                            name="kodePt"
-                                            value={editPsdku.kodePt}
+                                            name="kode_pt"
+                                            value={editPsdku.kode_pt} // Mengambil nilai dari state
                                             onChange={handleEditChange}
                                             className="form-control"
                                             disabled
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Tanggal Berdiri</label>
+                                        <input
+                                            type="text"
+                                            name="tanggal_berdiri"
+                                            value={editPsdku.tanggal_berdiri}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Tanggal SK</label>
+                                        <input
+                                            type="text"
+                                            name="tanggal_sk"
+                                            value={editPsdku.tanggal_sk}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Pengguna</label>
+                                        <select
+                                            name="pengguna"
+                                            value={newPsdku.pengguna}  // Nilai pengguna yang dipilih
+                                            onChange={handleInputChange}  // Menangani perubahan pilihan
+                                            className="form-control mb-2"
+                                            required
+                                        >
+                                            {Array.isArray(penggunaOptions) && penggunaOptions.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.nama}  {/* Menampilkan nama pengguna */}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Alamat</label>
+                                        <input
+                                            type="text"
+                                            name="alamat"
+                                            value={editPsdku.alamat}
+                                            onChange={handleEditChange}
+                                            className="form-control"
                                         />
                                     </div>
                                     <div className="mb-2">
@@ -287,13 +434,19 @@ export default function Psdku() {
                                     </div>
                                     <div className="mb-2">
                                         <label>Akreditasi</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="akreditasi"
-                                            value={editPsdku.akreditasi}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                            value={newPsdku.akreditasi}  // Nilai pengguna yang dipilih
+                                            onChange={handleInputChange}  // Menangani perubahan pilihan
+                                            className="form-control mb-2"
+                                            required
+                                        >
+                                            {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.akreditasi}  {/* Menampilkan nama pengguna */}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="mb-2">
                                         <label>Status</label>
@@ -306,7 +459,7 @@ export default function Psdku() {
                                         >
                                             <option value="">Pilih Status</option>
                                             <option value="Aktif">Aktif</option>
-                                            <option value="Non-Aktif">Non-Aktif</option>
+                                            <option value="Non Aktif">Non-Aktif</option>
                                         </select>
                                     </div>
 
@@ -319,6 +472,8 @@ export default function Psdku() {
                     </div>
                 </div>
             )}
+
+
             {/* Modal Priview */}
             {showModalPreview && (
                 <div className="modal fade show d-block">

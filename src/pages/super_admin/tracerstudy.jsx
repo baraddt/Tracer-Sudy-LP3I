@@ -66,14 +66,14 @@ export default function () {
                                 <td className="text-center">
                                     <span className="border rounded bg-primary bg-opacity-25 text-center p-1" style={{ fontSize: '13px' }}>Berlangsung</span>
                                 </td>
-                                <div className="text-center">
-                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-eye-fill text-success"></i></button>
+                                <td className="text-center">
+                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
                                     <button className="me-2 border-0 bg-transparent">
                                         <i className="bi bi-pencil-fill text-primary"></i>
                                     </button>
 
-                                    <button className="border border-0 bg-transparent"><i class="bi bi-trash-fill text-danger"></i></button>
-                                </div>
+                                    <button className="border border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
@@ -91,12 +91,12 @@ export default function () {
                                 <td className="text-center text-success">
                                     <span className="border rounded bg-success bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Selesai</span>
                                 </td>
-                                <div className="text-center">
-                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-file-earmark-pdf-fill text-danger"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-pencil-fill text-primary"></i></button>
-                                    <button className="border-0 bg-transparent"><i class="bi bi-trash-fill text-danger"></i></button>
-                                </div>
+                                <td className="text-center">
+                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-file-earmark-pdf-fill text-danger"></i></button>
+                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
+                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-pencil-fill text-primary"></i></button>
+                                    <button className="border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
@@ -114,11 +114,11 @@ export default function () {
                                 <td className="text-center text-secondary">
                                     <span className="border rounded bg-secondary bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Draft</span>
                                 </td>
-                                <div className="text-center">
-                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i class="bi bi-pencil-fill text-primary"></i></button>
-                                    <button className="border-0 bg-transparent"><i class="bi bi-trash-fill text-danger"></i></button>
-                                </div>
+                                <td className="text-center">
+                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
+                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-pencil-fill text-primary"></i></button>
+                                    <button className="border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
