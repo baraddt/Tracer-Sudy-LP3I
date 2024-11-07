@@ -31,7 +31,6 @@ export default function () {
                             <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Tanggal Berakhir</th>
                             <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Skala Kegiatan</th>
                             <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Tahun Lulusan</th>
-                            <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Status</th>
                             <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Aksi</th>
                         </tr>
                     </thead>
@@ -43,7 +42,6 @@ export default function () {
                             <th className="text-center fw-normal">24 Desember 2024</th>
                             <th className="text-center fw-normal">Nasional</th>
                             <th className="text-center fw-normal">2019</th>
-                            <th className="text-center text-success fw-normal">Selesai</th>
                             <th className="text-center">
                                 <button className="border-0 bg-transparent"><i className="bi bi-file-earmark-pdf-fill text-danger"></i></button>
                                 <button className="border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
@@ -56,7 +54,6 @@ export default function () {
                             <th className="text-center fw-normal">24 Desember 2024</th>
                             <th className="text-center fw-normal">Nasional</th>
                             <th className="text-center fw-normal">2019</th>
-                            <th className="text-center text-success fw-normal">Selesai</th>
                             <th className="text-center">
                                 <button className="border-0 bg-transparent"><i className="bi bi-file-earmark-pdf-fill text-danger"></i></button>
                                 <button className="border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>

@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+
+// Import Bagian Super Admin
 import Login from './components/login';
 import ForgotPassword from './pages/super_admin/forgot-password';
 import Dashboard from './pages/super_admin/dashboard';
@@ -19,14 +21,21 @@ import PusatBantuan from './pages/super_admin/pusatbantuan';
 import Profile from './pages/super_admin/profile';
 import Programstudy from './pages/super_admin/programstudy';
 import Psdku from './pages/super_admin/psdku';
+
+// Import Bagian Pengguna
 import DashboardPengguna from './pages/pengguna/dashboard';
+import TracerStudy from './pages/pengguna/tracerstudy';
+import FormTracer from './pages/pengguna/formtracer';
+import InfoKampus from './pages/pengguna/kampus';
+import PusatBantuanPengguna from './pages/pengguna/pusatbantuan'
+import ProfilePengguna from './pages/pengguna/profile';
 import Navbar from './components/navbar';
 import NavbarPengguna from './components/navbarPengguna';
 import Footer from './components/footer';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/' || location.pathname === '/forgot-password';
+  const isAuthPage = location.pathname === '/' || location.pathname === '/forgot-password' || location.pathname === '/pengguna/formtracer';
   const isSuperAdminPage = location.pathname.startsWith('/super_admin');
   const isPenggunaPage = location.pathname.startsWith('/pengguna');
 
@@ -61,6 +70,11 @@ function AppContent() {
 
         {/* Route Pengguna */}
         <Route path="/pengguna/dashboard" element={<DashboardPengguna />} />
+        <Route path="/pengguna/tracerstudy" element={<TracerStudy />} />
+        <Route path="/pengguna/kampus" element={<InfoKampus />} />
+        <Route path="/pengguna/pusatbantuan" element={<PusatBantuanPengguna />} />
+        <Route path="/pengguna/profile" element={<ProfilePengguna />} />
+        <Route path="/pengguna/formtracer" element={<FormTracer />} />
       </Routes>
       
       {/* Hanya tampilkan Footer jika bukan halaman login/forgot-password */}

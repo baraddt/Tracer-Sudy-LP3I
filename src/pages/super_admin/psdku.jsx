@@ -221,14 +221,14 @@ export default function Psdku() {
                                             {psdku.status || 'N/A'}
                                         </td>
                                         <td className='text-center'>
-                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openPreviewModal(psdku)}>
-                                                <i className="bi bi-eye"></i>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openPreviewModal(psdku)}>
+                                                <i className="bi bi-eye-fill text-info"></i>
                                             </button>
-                                            <button className="btn btn-warning btn-sm me-2" onClick={() => openEditModal(psdku)}>
-                                                <i className="bi bi-pencil"></i>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(psdku)}>
+                                                <i className="bi bi-pencil-fill text-primary"></i>
                                             </button>
-                                            <button className="btn btn-danger btn-sm">
-                                                <i className="bi bi-trash"></i>
+                                            <button className="btn-sm border-0 bg-transparent">
+                                                <i className="bi bi-trash-fill text-danger"></i>
                                             </button>
                                         </td>
                                     </tr>

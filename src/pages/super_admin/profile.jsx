@@ -23,65 +23,60 @@ export default function () {
                 <div className="d-flex justify-content-between">
                     {/* Info di Kiri */}
                     <div
-                        className="d-flex justify-content-between align-items-center bg-light p-2 rounded me-3"
+                        className="align-items-center bg-light p-2 rounded me-3"
                         style={{ flex: 1 }} // Mengatur proporsi ukuran Info
                     >
+                        <h4>Info</h4>
                         <div className="me-5">
                             <div className='ms-6'>
                                 <img src="/photo-profil.jpg" className='rounded-circle' alt="" width='150px' height='auto' />
+                            </div>
+                        </div>
+                        <div className='d-flex justify-content-between'>
+                            <div className="me-5">
+                                <h6 className="mt-4">Nama</h6>
+                                <h6 className="mt-4">Role</h6>
+                                <h6 className="mt-4">Jabatan</h6>
+                                <h6 className="mt-4">Pendidikan</h6>
+                                <h6 className="mt-4">NIP</h6>
+                                <h6 className="mt-4">Email</h6>
+                            </div>
+                            <div className="text-secondary mt-2">
+                                <h6 className="mt-4">Atep</h6>
+                                <h6 className="mt-4">Super Admin</h6>
+                                <h6 className="mt-4">Rektor</h6>
+                                <h6 className="mt-4">Politeknik LP3I Tasikmalaya</h6>
+                                <h6 className="mt-4">203232281 1283</h6>
+                                <h6 className="mt-4">atep@gmail.com</h6>
                             </div>
                         </div>
                     </div>
 
                     {/* About di Kanan */}
                     <div className="bg-light p-2 rounded" style={{ flex: 2 }}>
-                        <h4>Info</h4>
-                        <div className='d-flex justify-content-between'>
-                            <div className="me-5">
-                                <h6 className="mt-4">Kode PT</h6>
-                                <h6 className="mt-4">Status</h6>
-                                <h6 className="mt-4">Akreditasi</h6>
-                                <h6 className="mt-4">Tanggal Berdiri</h6>
-                                <h6 className="mt-4">No SK.Pendirian</h6>
-                                <h6 className="mt-4">Tgl Sk.Pendirian</h6>
-                                <h6 className="mt-4">Kontak</h6>
-                                <h6 className="mt-4">Alamat</h6>
-                            </div>
-                            <div className="text-secondary mt-2">
-                                <h6 className="mt-4">045052</h6>
-                                <h6 className="mt-4">Aktif</h6>
-                                <h6 className="mt-4">Baik Sekali</h6>
-                                <h6 className="mt-4">30 April 2019</h6>
-                                <h6 className="mt-4">318/KPT/I/2019</h6>
-                                <h6 className="mt-4">30 April 2019</h6>
-                                <h6 className="mt-4">(020) 2560482</h6>
-                                <h6 className="mt-4">
-                                    Jl. Pahlawan No.59, Sukaluyu, <br />
-                                    Kec. Cibeunying Kaler, <br /> Kota Bandung, Jawa Barat 40123
-                                </h6>
-                            </div>
-                        </div>
-
                         <h4 className="mt-2">About</h4>
                         <h6
                             className="text-secondary"
-                            style={{ lineHeight: "1.6", marginBottom: "1rem" }}
+                            style={{ lineHeight: "1.6", marginBottom: "1rem", fontSize: '14px'}}
                         >
-                            Politeknik LP3I merupakan perguruan tinggi vokasi yang fokus mencetak lulusan siap kerja.
-                            Sejak berdiri pada tahun 1989, LP3I berkomitmen menghubungkan dunia pendidikan dengan industri.
-                            Kampus ini tersebar di berbagai kota besar di Indonesia, menawarkan program studi di bidang bisnis, teknologi, dan keuangan.
+                            Nama saya Atep, dan saya menjabat sebagai Rektor Kampus LP3I Tasikmalaya. 
+                            Saya memiliki dedikasi yang tinggi dalam bidang pendidikan dan berkomitmen 
+                            untuk meningkatkan kualitas pembelajaran di kampus kami. Dalam peran ini, 
+                            saya bertanggung jawab memastikan mahasiswa mendapatkan pendidikan yang relevan 
+                            dan berkualitas.
 
                             <br /><br />
 
-                            Keunggulan LP3I terletak pada pendekatan "Link and Match" antara teori dan praktik.
-                            Mahasiswa tidak hanya belajar di kelas tetapi juga mengikuti magang di perusahaan mitra.
-                            Hal ini memberi pengalaman langsung dan mempersiapkan mereka menghadapi kebutuhan dunia kerja.
+                            Sebagai pimpinan kampus, saya berusaha mempersiapkan mahasiswa untuk sukses, 
+                            baik dalam karier maupun kehidupan mereka. Melalui berbagai program dan pendekatan 
+                            yang inovatif, saya dan tim berfokus untuk memberikan lingkungan belajar yang mendukung 
+                            pengembangan keterampilan dan potensi mereka.
 
                             <br /><br />
 
-                            Selain itu, LP3I menekankan pengembangan soft skills seperti komunikasi dan etika profesional.
-                            Kompetensi ini sangat penting bagi mahasiswa agar siap bersaing di lingkungan kerja yang dinamis.
-                            Dengan demikian, lulusan LP3I memiliki daya saing yang tinggi di pasar tenaga kerja.
+                            Di luar pekerjaan, saya memiliki minat yang kuat dalam olahraga, terutama bermain 
+                            sepak bola, serta musik. Kedua hobi ini memberikan keseimbangan dan menyegarkan pikiran, 
+                            membantu saya tetap produktif dan bersemangat dalam menjalankan tugas sebagai rektor.
                         </h6>
 
                     </div>

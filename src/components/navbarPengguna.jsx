@@ -44,18 +44,18 @@ export default function Navbar() {
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="#" style={{ color: '#00426D' }}>
+              <Link className="nav-link" to="./pengguna/tracerstudy" style={{ color: '#00426D' }}>
                 <i className="bi bi-clipboard"></i> Tracer Study
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="#" style={{ color: '#00426D' }}>
+              <Link className="nav-link" to="./pengguna/kampus" style={{ color: '#00426D' }}>
                 <i className="bi bi-building"></i> Kampus
               </Link>
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link" to="#" style={{ color: '#00426D' }}>
+              <Link className="nav-link" to="./pengguna/pusatbantuan" style={{ color: '#00426D' }}>
                 <i className="bi bi-question-circle"></i> Pusat Bantuan
               </Link>
             </li>
@@ -90,7 +90,7 @@ export default function Navbar() {
               }}
             >
               <li>
-                <Link className="dropdown-item text-success" to="#">
+                <Link className="dropdown-item text-success" to="./pengguna/profile">
                   <i className="bi bi-person"></i> Akun
                 </Link>
               </li>
@@ -98,7 +98,7 @@ export default function Navbar() {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <Link className="dropdown-item text-danger" onClick={handleLogout}>
+                <Link className="dropdown-item text-danger" to='/'>
                   <i className="bi bi-box-arrow-right"></i> Logout
                 </Link>
               </li>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function User() {
-    const [users, setUsers] = useState([]); // State untuk menyimpan data pengguna
+    const [usersList, setUsersList] = useState([]); // State untuk menyimpan data pengguna
     const [error, setError] = useState(null); // State untuk menangani error
     const [newUser, setNewUser] = useState({ // State untuk menyimpan data pengguna baru
         nama: '',
@@ -12,44 +12,21 @@ export default function User() {
         status: '',
     });
     const [showModal, setShowModal] = useState(false); // State untuk mengatur tampilan modal
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    // const [currentPage, setCurrentPage] = useState(1);
+    // const itemsPerPage = 5;
 
-    // Data dummy untuk pengguna
-    const dummyUsers = [
-        // {
-        //     _id: '1',
-        //     nama: 'John Doe',
-        //     jabatan: 'Developer',
-        //     pendidikan: 'S1 Informatika',
-        //     email: 'john@example.com',
-        //     status: 'Aktif',
-        // },
-        // {
-        //     _id: '2',
-        //     nama: 'Jane Smith',
-        //     jabatan: 'Designer',
-        //     pendidikan: 'S1 Desain Grafis',
-        //     email: 'jane@example.com',
-        //     status: 'Aktif',
-        // },
-        // {
-        //     _id: '3',
-        //     nama: 'Michael Brown',
-        //     jabatan: 'Project Manager',
-        //     pendidikan: 'S2 Manajemen',
-        //     email: 'michael@example.com',
-        //     status: 'Non-Aktif',
-        // },
-        // Tambahkan lebih banyak pengguna jika perlu
-    ];
-
-    // Simulasi mengambil data pengguna
-    const fetchUsers = () => {
-        setUsers(dummyUsers);
+    // Fungsi API Memanggil Data User
+    const fetchUsers = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/users/all');
+            setUsersList(response.data.data);
+        } catch (error) {
+            console.error("Error fetching data:", error.message);
+        }
     };
 
-    // useEffect untuk memanggil data dummy saat komponen pertama kali dirender
+
+    // useEffect untuk memanggil data API saat komponen pertama kali dirender
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -82,9 +59,9 @@ export default function User() {
     };
 
     // Pagination
-    const totalPages = Math.ceil(users.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentItems = users.slice(startIndex, startIndex + itemsPerPage);
+    // const totalPages = Math.ceil(users.length / itemsPerPage);
+    // const startIndex = (currentPage - 1) * itemsPerPage;
+    // const usersList = users.slice(startIndex, startIndex + itemsPerPage);
 
     const goToPage = (page) => {
         if (page >= 1 && page <= totalPages) {
@@ -124,6 +101,7 @@ export default function User() {
                     <thead>
                         <tr>
                             <th className='bg-secondary bg-opacity-25 text-center' scope="col">#ID</th>
+                            <th className='bg-secondary bg-opacity-25' scope="col">Avatar</th>
                             <th className='bg-secondary bg-opacity-25' scope="col">Nama</th>
                             <th className='bg-secondary bg-opacity-25' scope="col">Jabatan</th>
                             <th className='bg-secondary bg-opacity-25' scope="col">Pendidikan</th>
@@ -133,17 +111,18 @@ export default function User() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentItems.length > 0 ? (
-                            currentItems.map((user, index) => (
-                                <tr key={user._id}>
-                                    <td>{`#U${startIndex + index + 201}`}</td>
-                                    <td>{user.nama}</td>
-                                    <td>{user.jabatan || 'N/A'}</td>
-                                    <td>{user.pendidikan || 'N/A'}</td>
-                                    <td>{user.email}</td>
-                                    <td className={`text-center ${user.status === 'Aktif' ? 'text-success' : 'text-danger'}`}>
-                                            {user.status || 'N/A'}
-                                        </td>
+                        {usersList.length > 0 ? (
+                            usersList.map((users, index) => (
+                                <tr key={users._id}>
+                                    <td>{`#U${index + 201}`}</td>
+                                    <td>{users.avatar}</td>
+                                    <td>{users.nama}</td>
+                                    <td>{users.jabatan || 'N/A'}</td>
+                                    <td>{users.pendidikan || 'N/A'}</td>
+                                    <td>{users.email}</td>
+                                    <td className={`text-center ${users.is_active ? 'text-success' : 'text-danger'}`}>
+                                        {users.is_active ? 'Aktif' : 'Tidak Aktif'}
+                                    </td>
                                     <td className='text-center'>
                                         <button className="btn btn-primary btn-sm me-2">
                                             <i className="bi bi-eye"></i>
@@ -166,7 +145,7 @@ export default function User() {
                 </table>
 
                 {/* Pagination */}
-                <nav>
+                {/* <nav>
                     <ul className="pagination justify-content-end">
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                             <button className="page-link" onClick={() => goToPage(currentPage - 1)}><i className="bi bi-chevron-left"></i></button>
@@ -182,7 +161,7 @@ export default function User() {
                             <button className="page-link" onClick={() => goToPage(currentPage + 1)}><i className="bi bi-chevron-right"></i></button>
                         </li>
                     </ul>
-                </nav>
+                </nav> */}
             </div>
 
             {/* Modal untuk menambah pengguna */}
