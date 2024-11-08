@@ -100,14 +100,14 @@ export default function Navbar() {
         {/* Profile dropdown tetap di kanan */}
         <div className="d-flex align-items-center profile-dropdown ms-auto" onClick={toggleProfileDropdown} style={{ cursor: 'pointer' }}>
           <img
-            src="/profile.jpg"
+            src="/photo-profil.jpg"
             alt="Profile"
             width="50"
             height="50"
             className="rounded-circle me-2 p-2"
           />
           <div className="d-flex flex-column">
-            <span className="fw-semibold" style={{ color: '#00426D' }}>Mario DB</span>
+            <span className="fw-semibold" style={{ color: '#00426D' }}>Atep Riandi</span>
             <small className="text-muted">Super Admin</small>
           </div>
           <i className={`ms-2 bi bi-caret-down-fill ${isProfileOpen ? 'rotate' : ''}`}></i>

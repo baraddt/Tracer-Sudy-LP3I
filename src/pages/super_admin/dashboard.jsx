@@ -12,13 +12,13 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
 
-    useEffect(() => {
-        // Periksa apakah token ada di localStorage
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/'); // Jika tidak ada token, redirect ke halaman login
-        }
-    }, [navigate]);
+  useEffect(() => {
+    // Periksa apakah token ada di localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/'); // Jika tidak ada token, redirect ke halaman login
+    }
+  }, [navigate]);
 
 
   const chartData = {
@@ -101,11 +101,12 @@ export default function Dashboard() {
       'Manajemen Informatika',
       'Administrasi Bisnis Internasional',
       'Bisnis Digital',
+      'Bisnis alah',
       'Logistik Negara'
     ],
     datasets: [
       {
-        data: [10, 20, 15, 25, 5, 10, 15],
+        data: [10, 20, 15, 25, 5, 10, 12, 15],
         backgroundColor: [
           '#00c49f',  // Administrasi Bisnis
           '#4f4fbc',  // Hubungan Masyarakat
@@ -113,6 +114,7 @@ export default function Dashboard() {
           '#ffc000',  // Manajemen Informatika
           '#ff6361',  // Administrasi Bisnis Internasional
           '#c2c2c2',  // Bisnis Digital
+          '#c3c3c3',  // Bisnis Digital
           '#3b3b3b'   // Logistik Negara
         ],
         hoverBackgroundColor: [
@@ -121,6 +123,7 @@ export default function Dashboard() {
           '#005f7f',
           '#ffc000',
           '#ff6361',
+          '#c2c2c2',
           '#c2c2c2',
           '#3b3b3b'
         ],
@@ -135,6 +138,7 @@ export default function Dashboard() {
       legend: {
         position: 'bottom',
         labels: {
+          paddingRight: 12,
           usePointStyle: true, // Mengubah label menjadi bulat
           pointStyle: 'circle', // Menentukan bentuk menjadi bulat
         },
@@ -171,9 +175,9 @@ export default function Dashboard() {
             <div className="d-flex align-items-center">
               <i className="bi bi-person display-6 me-3" style={{ fontSize: '2rem' }}></i>
               <div className="text-start">
-                <h6 className="mb-0">Total Responden</h6>
-                <p className="mb-0">192.28</p>
-                <h6 className="mb-0">Responden</h6>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Total Responden</h6>
+                <p className="mb-0">100</p>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Responden</h6>
               </div>
             </div>
           </div>
@@ -183,9 +187,9 @@ export default function Dashboard() {
             <div className="d-flex align-items-center">
               <i className="bi bi-briefcase display-6 me-3"></i>
               <div className="text-start">
-                <h6 className="mb-0">Total Responden</h6>
-                <p className="mb-0">192.28</p>
-                <h6 className="mb-0">Bekerja</h6>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Total Responden</h6>
+                <p className="mb-0">45</p>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Bekerja</h6>
               </div>
             </div>
           </div>
@@ -195,9 +199,9 @@ export default function Dashboard() {
             <div className="d-flex align-items-center">
               <i className="bi bi-person-workspace display-6 me-3" style={{ fontSize: '2rem' }}></i>
               <div className="text-start">
-                <h6 className="mb-0">Total Responden</h6>
-                <p className="mb-0">192.28</p>
-                <h6 className="mb-0">Wiraswasta</h6>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Total Responden</h6>
+                <p className="mb-0">45</p>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Wiraswasta</h6>
               </div>
             </div>
           </div>
@@ -207,21 +211,21 @@ export default function Dashboard() {
             <div className="d-flex align-items-center">
               <i className="bi bi-person-plus display-6 me-3" style={{ fontSize: '2rem' }}></i>
               <div className="text-start">
-                <h6 className="mb-0">Total Responden</h6>
-                <p className="mb-0">192.28</p>
-                <h6 className="mb-0">Mencari Kerja</h6>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Total Responden</h6>
+                <p className="mb-0">10</p>
+                <h6 className="mb-0" style={{ fontSize: '14px' }}>Mencari Kerja</h6>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="d-flex justify-content-between">
+      <div className="d-flex justify-content-center">
         {/* Info di Kiri */}
         <div
           className="d-flex bg-white p-2 rounded me-3 flex-column" // align-items-center untuk center horizontal
         >
-          <h5>Program Studi</h5>
-          <div style={{ display: 'flex', justifyContent: 'center', height: '100%' }}> {/* Wadah untuk diagram */}
+          <h6>Program Study</h6>
+          <div style={{ height: '100%', maxWidth: '300px' }}> {/* Wadah untuk diagram */}
             <Doughnut
               data={donugsData}
               options={options} // Menggunakan opsi yang telah disesuaikan
@@ -231,30 +235,31 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* About di Kanan */}
-        <div className="bg-white p-2 rounded" style={{ flex: 2 }}>
-          <h5 className="mt-2 text-start">Keselarasan Horizontal</h5>
+        {/* Grapik di Kanan */}
+        <div className="bg-white p-2 rounded" style={{ flex: 2, maxWidth: '800px', height: '100%' }}>
+          <h6 className="mt-2 text-start">Keselarasan Horizontal</h6>
           <h6 className="mt-2 text-end text-secondary text-opacity-75">Manajement Informatika <i className='bi bi-filter'></i></h6>
           <div className='d-flex justify-content-between align-items-center mt-2'>
             <div className='text-center ms-5'>
               <span>{dataValues.selaras}</span>
-              <h6>Selaras</h6>
+              <h6 style={{ fontSize: '15px' }}>Selaras</h6>
             </div>
             <div className='text-center'>
               <span>{dataValues.tidakSelaras}</span>
-              <h6>Tidak Selaras</h6>
+              <h6 style={{ fontSize: '15px' }}>Tidak Selaras</h6>
             </div>
             <div className='text-center me-5'>
               <span className='text-success'>{dataValues.jumlah}</span>
-              <h6>Jumlah</h6>
+              <h6 style={{ fontSize: '15px' }}>Jumlah</h6>
             </div>
           </div>
           <Bar data={chartData} options={chartOptions} />
         </div>
       </div>
+
       <div className="mt-4 m-auto row rounded bg-white p-3 align-items-center">
         <div className="d-flex justify-content-between">
-          <h4>Keselarasan Horizontal</h4>
+          <h4 style={{ fontSize: '20px' }}>Keselarasan Horizontal</h4>
           <button className='bi bi-printer bg-info bg-opacity-10 border p-2 rounded text-info'> Generate Report</button>
         </div>
 
@@ -267,29 +272,65 @@ export default function Dashboard() {
               <th colSpan="4" className='text-center fw-semibold'>Keselarasan Horizontal</th>
             </tr>
             <tr>
-              <th colSpan="2" className='text-center fw-semibold'>Selaras</th>
-              <th colSpan="2" className='text-center fw-semibold'>Tidak Selaras</th>
+              <th colSpan="2" className='text-center fw-semibold' style={{ fontSize: '14px' }}>Selaras</th>
+              <th colSpan="2" className='text-center fw-semibold' style={{ fontSize: '14px' }}>Tidak Selaras</th>
             </tr>
             <tr>
               <th colSpan="3"></th>
-              <th className="text-center fw-semibold">Jumlah</th>
-              <th className="text-center fw-semibold">Persentase</th>
-              <th className="text-center fw-semibold">Jumlah</th>
-              <th className="text-center fw-semibold">Persentase</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Jumlah</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Persentase</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Jumlah</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Persentase</th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td>2019</td>
+              <td>D3</td>
+              <td>Manajement Informatika</td>
+              <td className='text-center'>18</td>
+              <td className='text-center'>20%</td>
+              <td className='text-center'>20</td>
+              <td className='text-center'>40%</td>
+            </tr>
+            <tr>
+              <td>2019</td>
+              <td>D3</td>
+              <td>Administrasi Bisnis</td>
+              <td className='text-center'>18</td>
+              <td className='text-center'>20%</td>
+              <td className='text-center'>20</td>
+              <td className='text-center'>40%</td>
+            </tr>
+            <tr>
+              <td>2019</td>
+              <td>D3</td>
+              <td>Manajement Pemasaran</td>
+              <td className='text-center'>18</td>
+              <td className='text-center'>20%</td>
+              <td className='text-center'>20</td>
+              <td className='text-center'>40%</td>
+            </tr>
+            <tr>
+              <td>2019</td>
+              <td>D3</td>
+              <td>Manajement Keuangan Perbankan</td>
+              <td className='text-center'>18</td>
+              <td className='text-center'>20%</td>
+              <td className='text-center'>20</td>
+              <td className='text-center'>40%</td>
+            </tr>
+            {/* <tr>
               <td colSpan="8" className="text-center">
                 Tidak ada data Table Keselarasan Horizontal.
               </td>
-            </tr>
+            </tr> */}
           </tbody>
         </table>
       </div>
       <div className="mt-4 m-auto row rounded bg-white p-3 align-items-center">
         <div className="d-flex justify-content-between">
-          <h4>Keselarasan Vertical</h4>
+          <h4 style={{ fontSize: '20px' }}>Keselarasan Vertical</h4>
           <button className='bi bi-printer bg-info bg-opacity-10 border p-2 rounded text-info'> Generate Report</button>
         </div>
 
@@ -302,26 +343,70 @@ export default function Dashboard() {
               <th colSpan="6" className='text-center fw-semibold'>Keselarasan Vertical</th>
             </tr>
             <tr>
-              <th colSpan="2" className="text-center fw-semibold">Tinggi</th>
-              <th colSpan="2" className="text-center fw-semibold">Sama</th>
-              <th colSpan="2" className="text-center fw-semibold">Rendah</th>
+              <th colSpan="2" className="text-center fw-semibold" style={{ fontSize: '14px' }}>Tinggi</th>
+              <th colSpan="2" className="text-center fw-semibold" style={{ fontSize: '14px' }}>Sama</th>
+              <th colSpan="2" className="text-center fw-semibold" style={{ fontSize: '14px' }}>Rendah</th>
             </tr>
             <tr>
               <th colSpan="3"></th>
-              <th className="text-center fw-semibold">Jumlah</th>
-              <th className="text-center fw-semibold">Persentase</th>
-              <th className="text-center fw-semibold">Jumlah</th>
-              <th className="text-center fw-semibold">Persentase</th>
-              <th className="text-center fw-semibold">Jumlah</th>
-              <th className="text-center fw-semibold">Persentase</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Jumlah</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Persentase</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Jumlah</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Persentase</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Jumlah</th>
+              <th className="text-center fw-semibold" style={{ fontSize: '14px' }}>Persentase</th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td>2020</td>
+              <td>D3</td>
+              <td>Manajement Informatika</td>
+              <td className="text-center">120</td>
+              <td className="text-center">60%</td>
+              <td className="text-center">80</td>
+              <td className="text-center">40%</td>
+              <td className="text-center">50</td>
+              <td className="text-center">25%</td>
+            </tr>
+            <tr>
+              <td>2020</td>
+              <td>D3</td>
+              <td>Administrasi Bisnis</td>
+              <td className="text-center">120</td>
+              <td className="text-center">60%</td>
+              <td className="text-center">80</td>
+              <td className="text-center">40%</td>
+              <td className="text-center">50</td>
+              <td className="text-center">25%</td>
+            </tr>
+            <tr>
+              <td>2020</td>
+              <td>D3</td>
+              <td>Manajement Pemasaran</td>
+              <td className="text-center">120</td>
+              <td className="text-center">60%</td>
+              <td className="text-center">80</td>
+              <td className="text-center">40%</td>
+              <td className="text-center">50</td>
+              <td className="text-center">25%</td>
+            </tr>
+            <tr>
+              <td>2020</td>
+              <td>D3</td>
+              <td>Manajement Keuangan Perbangkan</td>
+              <td className="text-center">120</td>
+              <td className="text-center">60%</td>
+              <td className="text-center">80</td>
+              <td className="text-center">40%</td>
+              <td className="text-center">50</td>
+              <td className="text-center">25%</td>
+            </tr>
+            {/* <tr>
               <td colSpan="10" className="text-center">
                 Tidak ada data Table Keselarasan Vertical.
               </td>
-            </tr>
+            </tr> */}
           </tbody>
         </table>
       </div>

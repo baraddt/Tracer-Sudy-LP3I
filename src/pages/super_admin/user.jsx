@@ -6,10 +6,13 @@ export default function User() {
     const [error, setError] = useState(null); // State untuk menangani error
     const [newUser, setNewUser] = useState({ // State untuk menyimpan data pengguna baru
         nama: '',
+        avatar: '',
+        nip: '',
         jabatan: '',
         pendidikan: '',
         email: '',
-        status: '',
+        password: '',
+        roleId: '',
     });
     const [showModal, setShowModal] = useState(false); // State untuk mengatur tampilan modal
     // const [currentPage, setCurrentPage] = useState(1);
@@ -31,6 +34,22 @@ export default function User() {
         fetchUsers();
     }, []);
 
+    // fungsi menambah data menggunakan API
+    const addUser = async () => {
+        try {
+            const response = await axios.post('http://192.168.18.176:5000/users/adduser')
+            setUsersList((prevList) => [...prevList, response.data]);
+
+            // fetchData
+            setNewUser({ nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: '', });
+            setShowModal(false);
+        } catch (error) {
+            console.log("Response data:", error.response.data);
+            console.error("Error adding PSDKU:", error.message);
+            setError("Failed to add User, Try Again")
+        }
+    }
+
     // Fungsi untuk menangani perubahan pada form input
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -43,19 +62,7 @@ export default function User() {
     // Fungsi untuk menangani pengiriman form
     const handleSubmit = async (e) => {
         e.preventDefault(); // Mencegah reload halaman
-        try {
-            setUsers((prevUsers) => [...prevUsers, { ...newUser, _id: (prevUsers.length + 1).toString() }]);
-            setNewUser({ // Reset form input
-                nama: '',
-                jabatan: '',
-                pendidikan: '',
-                email: '',
-                status: '',
-            });
-            setShowModal(false); // Tutup modal setelah berhasil
-        } catch (error) {
-            setError(error.message); // Tangani error
-        }
+        addUser();
     };
 
     // Pagination
@@ -85,7 +92,7 @@ export default function User() {
                 {/* Form pencarian pengguna */}
                 <div className="d-flex mb-3 col-sm-4">
                     <input
-                        type="text"
+                        type="search"
                         className="form-control me-2"
                         placeholder="Cari User"
                     />
@@ -115,7 +122,7 @@ export default function User() {
                             usersList.map((users, index) => (
                                 <tr key={users._id}>
                                     <td>{`#U${index + 201}`}</td>
-                                    <td>{users.avatar}</td>
+                                    <td><img className='rounded-circle' src={users.avatar} alt="Avatar" width="50" height="50" /></td>
                                     <td>{users.nama}</td>
                                     <td>{users.jabatan || 'N/A'}</td>
                                     <td>{users.pendidikan || 'N/A'}</td>
@@ -124,14 +131,14 @@ export default function User() {
                                         {users.is_active ? 'Aktif' : 'Tidak Aktif'}
                                     </td>
                                     <td className='text-center'>
-                                        <button className="btn btn-primary btn-sm me-2">
-                                            <i className="bi bi-eye"></i>
+                                        <button className="btn-sm me-2 border-0 bg-transparent">
+                                            <i className="bi bi-eye-fill text-info"></i>
                                         </button>
-                                        <button className="btn btn-warning btn-sm me-2">
-                                            <i className="bi bi-pencil"></i>
+                                        <button className="btn-sm me-2 border-0 bg-transparent">
+                                            <i className="bi bi-pencil-fill text-primary"></i>
                                         </button>
-                                        <button className="btn btn-danger btn-sm">
-                                            <i className="bi bi-trash"></i>
+                                        <button className="btn-sm border-0 bg-transparent">
+                                            <i className="bi bi-trash-fill text-danger"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -184,6 +191,25 @@ export default function User() {
                                     required
                                 />
                                 <input
+                                    type="file"
+                                    accept="image/*"
+                                    name="avatar"
+                                    value={newUser.avatar}
+                                    onChange={handleInputChange}
+                                    className="form-control mb-2"
+                                    placeholder="avatar"
+                                    required
+                                />
+                                <input
+                                    type="number"
+                                    name="nip"
+                                    value={newUser.nip}
+                                    onChange={handleInputChange}
+                                    className="form-control mb-2"
+                                    placeholder="Nip"
+                                    required
+                                />
+                                <input
                                     type="text"
                                     name="jabatan"
                                     value={newUser.jabatan}
@@ -210,16 +236,25 @@ export default function User() {
                                     placeholder="Email"
                                     required
                                 />
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={newUser.password}
+                                    onChange={handleInputChange}
+                                    className="form-control mb-2"
+                                    placeholder="Password"
+                                    required
+                                />
                                 <select
-                                    name="status"
-                                    value={newUser.status}
+                                    name="roleId"
+                                    value={newUser.roleId}
                                     onChange={handleInputChange}
                                     className="form-control mb-2"
                                     required
                                 >
-                                    <option value="" disabled>Pilih Status</option>
-                                    <option value="Aktif">Aktif</option>
-                                    <option value="Non-Aktif">Non-Aktif</option>
+                                    <option value="" disabled>Pilih Role</option>
+                                    <option value="Super Admin">Super Admin</option>
+                                    <option value="Admin">Admin</option>
                                 </select>
 
                                 <button type="submit" className="btn btn-success">Tambah</button>

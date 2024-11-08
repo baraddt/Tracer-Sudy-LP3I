@@ -12,7 +12,7 @@ export default function () {
                 {/* Form pencarian pengguna */}
                 <div className="d-flex mb-3 col-sm-4">
                     <input
-                        type="text"
+                        type="search"
                         className="form-control me-2"
                         placeholder="Cari Pengaduan"
                     />

@@ -35,7 +35,7 @@ import Footer from './components/footer';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/' || location.pathname === '/forgot-password' || location.pathname === '/pengguna/formtracer';
+  const isAuthPage = location.pathname === '/' || location.pathname === '/super_admin/forgot-password' || location.pathname === '/pengguna/formtracer';
   const isSuperAdminPage = location.pathname.startsWith('/super_admin');
   const isPenggunaPage = location.pathname.startsWith('/pengguna');
 

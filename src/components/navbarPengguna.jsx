@@ -65,7 +65,7 @@ export default function Navbar() {
         {/* Profile dropdown tetap di kanan */}
         <div className="d-flex align-items-center profile-dropdown ms-auto" onClick={toggleProfileDropdown} style={{ cursor: 'pointer' }}>
           <img
-            src="/profile.jpg"
+            src="/photo-profil.jpg"
             alt="Profile"
             width="50"
             height="50"

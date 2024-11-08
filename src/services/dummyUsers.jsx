@@ -13,8 +13,8 @@ const dummyUsers = [
         token: 'dummy-superadmin-token',
     },
     {
-        username: 'user',
-        password: 'user123',
+        username: '202202133',
+        password: '202202133',
         role: 'pengguna',
         token: 'dummy-user-token',
     },

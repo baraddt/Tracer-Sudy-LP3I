@@ -12,7 +12,7 @@ export default function () {
                         <div className="row p-2 mt-2">
                             <span>Atep Riandi Pahmi</span>
                             <span>202202134</span>
-                            <span>Politeknik LP3I Tasik</span>
+                            <span>Politeknik LP3I Tasikmalaya</span>
                         </div>
                     </div>
 
@@ -30,7 +30,7 @@ export default function () {
                         <div className="text-secondary mt-5 col-6">
                             <h6 className="mt-sm-3">Manajement Informatika</h6>
                             <h6 className="mt-4">D3</h6>
-                            <h6 className="mt-4">Laki Laki 50%</h6>
+                            <h6 className="mt-4">Laki Laki</h6>
                             <h6 className="mt-4">atep@gmail.com</h6>
                             <h6 className="mt-4">********</h6>
                             <h6 className="mt-4">30 April 2019</h6>
@@ -61,6 +61,9 @@ export default function () {
                                 <label className="mt-1 text-secondary">Part Time</label>
                             </div>
                         </div>
+                    </div>
+                    <div className="text-end"> 
+                        <button className="mt-2 btn btn-success">Edit Profil</button>
                     </div>
                 </div>
             </div>
