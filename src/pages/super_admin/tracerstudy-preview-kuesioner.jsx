@@ -85,10 +85,6 @@ export default function () {
                                         <label>{option}</label>
                                     </li>
                                 ))}
-                                <div className='d-flex justify-content-end'>
-                                    <button className='border-0 bg-transparent'><i className='bi bi-pencil-fill'></i></button>
-                                    <button className='border-0 bg-transparent'><i className='bi bi-trash-fill'></i></button>
-                                </div>
                             </ul>
                         </div>
                     ))}

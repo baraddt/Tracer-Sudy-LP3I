@@ -101,7 +101,6 @@ export default function Dashboard() {
       'Manajemen Informatika',
       'Administrasi Bisnis Internasional',
       'Bisnis Digital',
-      'Bisnis alah',
       'Logistik Negara'
     ],
     datasets: [
@@ -114,7 +113,6 @@ export default function Dashboard() {
           '#ffc000',  // Manajemen Informatika
           '#ff6361',  // Administrasi Bisnis Internasional
           '#c2c2c2',  // Bisnis Digital
-          '#c3c3c3',  // Bisnis Digital
           '#3b3b3b'   // Logistik Negara
         ],
         hoverBackgroundColor: [
@@ -123,7 +121,6 @@ export default function Dashboard() {
           '#005f7f',
           '#ffc000',
           '#ff6361',
-          '#c2c2c2',
           '#c2c2c2',
           '#3b3b3b'
         ],
@@ -222,8 +219,7 @@ export default function Dashboard() {
       <div className="d-flex justify-content-center">
         {/* Info di Kiri */}
         <div
-          className="d-flex bg-white p-2 rounded me-3 flex-column" // align-items-center untuk center horizontal
-        >
+          className="d-flex bg-white p-2 rounded me-3 flex-column" style={{ width:'300px', height: '400px'}}>
           <h6>Program Study</h6>
           <div style={{ height: '100%', maxWidth: '300px' }}> {/* Wadah untuk diagram */}
             <Doughnut
