@@ -110,7 +110,11 @@ export default function () {
                         {/* About */}
                         <div className="form-group mb-4">
                             <label className="mb-1">About</label>
-                            <textarea className="form-control" rows="4" placeholder="Politeknik LP3I merupakan perguruan tinggi vokasi yang fokus mencetak lulusan siap kerja..."></textarea>
+                            <textarea className="form-control" rows="4">Politeknik LP3I merupakan perguruan tinggi vokasi yang fokus mencetak lulusan siap kerja. Sejak berdiri pada tahun 1989, LP3I berkomitmen menghubungkan dunia pendidikan dengan industri. Kampus ini tersebar di berbagai kota besar di Indonesia, menawarkan program studi di bidang bisnis, teknologi, dan keuangan.
+
+                                Keunggulan LP3I terletak pada pendekatan "Link and Match" antara teori dan praktik. Mahasiswa tidak hanya belajar di kelas tetapi juga mengikuti magang di perusahaan mitra. Hal ini memberi pengalaman langsung dan mempersiapkan mereka menghadapi kebutuhan dunia kerja.
+
+                                Selain itu, LP3I menekankan pengembangan soft skills seperti komunikasi dan etika profesional. Kompetensi ini sangat penting bagi mahasiswa agar siap bersaing di lingkungan kerja yang dinamis. Dengan demikian, lulusan LP3I memiliki daya saing yang tinggi di pasar tenaga kerja.</textarea>
                         </div>
 
                         {/* Buttons */}

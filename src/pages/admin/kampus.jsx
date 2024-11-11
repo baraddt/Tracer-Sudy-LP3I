@@ -47,20 +47,12 @@ export default function () {
                 <div className="mt-5 d-flex justify-content-between">
                     <div>
                         <button className="me-2 border rounded bg-secondary bg-opacity-50 p-2 text-light" type="button">Overview</button>
-                        <Link to="/super_admin/psdku">
-                            <button
-                                className="me-2 border rounded bg-dark bg-opacity-50 p-2 text-light"
-                                type="button"
-                            >
-                                PSDKU
-                            </button>
-                        </Link>
-                        <Link to="/super_admin/programstudy" className='me-5'>
+                        <Link to="/admin/programstudy" className='me-5'>
                             <button className="border rounded p-2  bg-dark bg-opacity-50 text-light" type="button">Program Study</button>
                         </Link>
                     </div>
                     <div>
-                        <Link to="/super_admin/kampusedit">
+                        <Link to="/admin/kampusedit">
                             <button className="ms-5 border rounded p-2 bg-success bg-opacity-75 text-light" type="button">Edit Informasi</button>
                         </Link>
                     </div>

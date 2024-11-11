@@ -259,8 +259,6 @@ export default function Psdku() {
                                     <input
                                         type="text"
                                         name="kode_pt"
-                                        value={newPsdku.kode_pt}
-                                        onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="Kode PT"
                                         required
@@ -268,8 +266,6 @@ export default function Psdku() {
                                     <input
                                         type="date"
                                         name="tanggal_berdiri"
-                                        value={newPsdku.tanggal_berdiri}
-                                        onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="Tanggal Berdiri"
                                         required
@@ -277,8 +273,6 @@ export default function Psdku() {
                                     <input
                                         type="text"
                                         name="tanggal_sk"
-                                        value={newPsdku.tanggal_sk}
-                                        onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="Tanggal SK"
                                         required
@@ -286,8 +280,6 @@ export default function Psdku() {
                                     <input
                                         type="text"
                                         name="alamat"
-                                        value={newPsdku.alamat}
-                                        onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="Alamat"
                                         required
@@ -295,16 +287,12 @@ export default function Psdku() {
                                     <input
                                         type="text"
                                         name="psdku"
-                                        value={newPsdku.psdku}
-                                        onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="PSDKU"
                                         required
                                     />
                                     <select
                                         name="pengguna"
-                                        value={newPsdku.pengguna}
-                                        onChange={handleInputChange}
                                         className="form-control mb-2"
                                         required
                                     >

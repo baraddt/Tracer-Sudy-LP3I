@@ -1,6 +1,4 @@
 import { Link } from 'react-router-dom';
-import "react-quill/dist/quill.snow.css";
-import ReactQuill from "react-quill";
 
 export default function () {
     return (

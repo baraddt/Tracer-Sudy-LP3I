@@ -1,15 +1,19 @@
 * {
   font-family: 'Poppins', sans-serif;
 }
+
 .mt-6 {
   margin-top: 9rem;
 }
+
 .mt-7 {
   margin-top: 11.5rem;
 }
+
 .ms-6 {
   margin-left: 8rem;
 }
+
 .me-6 {
   margin-right: 19rem;
 }
@@ -47,7 +51,8 @@
 }
 
 .custom-bg {
-  background-color: #f3f3f9 !important; /* Ganti dengan warna yang diinginkan */
+  background-color: #f3f3f9 !important;
+  /* Ganti dengan warna yang diinginkan */
 }
 
 
@@ -75,13 +80,48 @@ ul.dropdown-menu {
 .profile-dropdown {
   background-color: #f3f3f9 !important;
 }
+
 /* styles.css atau file CSS terkait */
 .doughnut-container {
-  max-width: 150px; /* Ganti dengan ukuran yang diinginkan */
-  max-height: 150px; /* Ganti dengan ukuran yang diinginkan */
-  width: 100%; /* Menjaga agar lebar 100% dari wadah */
-  height: 100%; /* Menjaga agar tinggi 100% dari wadah */
-  display: flex; /* Menjaga agar konten di dalamnya bisa diposisikan dengan flexbox */
-  justify-content: center; /* Mengatur konten ke tengah secara horizontal */
-  align-items: center; /* Mengatur konten ke tengah secara vertikal */
+  max-width: 150px;
+  /* Ganti dengan ukuran yang diinginkan */
+  max-height: 150px;
+  /* Ganti dengan ukuran yang diinginkan */
+  width: 100%;
+  /* Menjaga agar lebar 100% dari wadah */
+  height: 100%;
+  /* Menjaga agar tinggi 100% dari wadah */
+  display: flex;
+  /* Menjaga agar konten di dalamnya bisa diposisikan dengan flexbox */
+  justify-content: center;
+  /* Mengatur konten ke tengah secara horizontal */
+  align-items: center;
+  /* Mengatur konten ke tengah secara vertikal */
 }
+
+.checkmark-animation {
+  animation: checkmark 1s ease-in-out forwards;
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  30% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.5;
+  }
+
+  60% {
+    transform: scale(0.9) rotate(270deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+

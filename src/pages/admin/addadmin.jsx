@@ -79,7 +79,7 @@ export default function User() {
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h1 className="text-black mb-4 fw-semibold">Admin</h1>
+                <h4 className="text-black mb-4 fw-semibold">Admin</h4>
 
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">

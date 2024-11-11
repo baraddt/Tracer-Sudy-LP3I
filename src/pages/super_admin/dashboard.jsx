@@ -105,7 +105,7 @@ export default function Dashboard() {
     ],
     datasets: [
       {
-        data: [10, 20, 15, 25, 5, 10, 12, 15],
+        data: [10, 15, 25, 5, 10, 12, 15],
         backgroundColor: [
           '#00c49f',  // Administrasi Bisnis
           '#4f4fbc',  // Hubungan Masyarakat

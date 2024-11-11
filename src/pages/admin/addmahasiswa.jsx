@@ -79,7 +79,7 @@ export default function User() {
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h1 className="text-black mb-4 fw-semibold">Mahasiswa</h1>
+                <h4 className="text-black mb-4 fw-semibold">Mahasiswa</h4>
 
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
@@ -107,18 +107,16 @@ export default function User() {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">#ID</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Avatar</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Nama</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Jabatan</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Pendidikan</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Email</th>
+                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">NIM</th>
+                            <th className='bg-secondary bg-opacity-25' scope="col">Nama Lengkap</th>
+                            <th className='bg-secondary bg-opacity-25' scope="col">Jenis Kelamin</th>
+                            <th className='bg-secondary bg-opacity-25' scope="col">Program Study</th>
                             <th className='bg-secondary bg-opacity-25 text-center' scope="col">Status</th>
                             <th className='bg-secondary bg-opacity-25 text-center' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {usersList.length > 0 ? (
+                        {/* {usersList.length > 0 ? (
                             usersList.map((users, index) => (
                                 <tr key={users._id}>
                                     <td>{`#U${index + 201}`}</td>
@@ -144,10 +142,10 @@ export default function User() {
                                 </tr>
                             ))
                         ) : (
+                        )} */}
                             <tr>
                                 <td colSpan="7" className="text-center">Tidak ada data pengguna.</td>
                             </tr>
-                        )}
                     </tbody>
                 </table>
 

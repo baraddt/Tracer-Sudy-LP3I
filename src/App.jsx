@@ -30,6 +30,7 @@ import NavbarAdmin from './components/navbarAdmin';
 import DashboardAdmin from './pages/admin/dashboard';
 import TracerStudyAdmin from './pages/admin/tracerstudy';
 import KampusAdmin from './pages/admin/kampus';
+import ProgramStudyAdmin from './pages/admin/programstudy';
 import AddAdmin from './pages/admin/addadmin';
 import AddMahasiswa from './pages/admin/addmahasiswa';
 import ArsipPengaduanAdmin from './pages/admin/arsippengaduan';
@@ -88,6 +89,7 @@ function AppContent() {
         <Route path="/admin/dashboard" element={<DashboardAdmin />} />
         <Route path="/admin/tracerstudy" element={<TracerStudyAdmin />} />
         <Route path="/admin/kampus" element={<KampusAdmin />} />
+        <Route path="/admin/programstudy" element={<ProgramStudyAdmin />} />
         <Route path="/admin/addadmin" element={<AddAdmin />} />
         <Route path="/admin/addmahasiswa" element={<AddMahasiswa />} />
         <Route path="/admin/arsippengaduan" element={<ArsipPengaduanAdmin />} />

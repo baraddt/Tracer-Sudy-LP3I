@@ -1,4 +1,11 @@
-export default function () {
+import React, { useState } from 'react';
+
+export default function HelpCenter() {
+    const [showModal, setShowModal] = useState(false);
+
+    const handleSend = () => setShowModal(true);
+    const handleClose = () => setShowModal(false);
+
     return (
         <div className="container mt-4">
             <div className="bg-white rounded p-3">
@@ -35,14 +42,59 @@ export default function () {
                                 style={{ width: '250%' }}
                             />
                         </label>
-
                     </div>
                     <img className="me-5" src="/pusatbantuan.png" alt="" width='auto' height='150px' />
                 </div>
                 <div className="text-end p-2 me-5 mt-5">
-                    <button className="btn btn-success p-2 col-md-3">Kirim</button>
+                    <button onClick={handleSend} className="btn btn-success p-2 col-md-3">Kirim</button>
                 </div>
             </div>
+
+            {/* Modal */}
+            {showModal && (
+                <>
+                    <div className="modal d-block" tabIndex="-1" style={{ zIndex: 1055 }}>
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content text-center">
+                                <div className="modal-header bg-primary text-white">
+                                    <h5 className="modal-title">Pengiriman Berhasil</h5>
+                                    <button type="button" className="btn-close" onClick={handleClose}></button>
+                                </div>
+                                <div className="modal-body">
+                                    {/* Animasi centang hijau menggunakan SVG */}
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="100"
+                                        height="100"
+                                        viewBox="0 0 24 24"
+                                        className="checkmark-animation"
+                                    >
+                                        <path
+                                            fill="none"
+                                            d="M0 0h24v24H0z"
+                                        />
+                                        <path
+                                            fill="none"
+                                            stroke="#28a745"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M5 13l4 4L19 7"
+                                        />
+                                    </svg>
+                                    <p className="mt-3">Terima kasih! Permasalahan Anda telah terkirim.</p>
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={handleClose}>
+                                        Tutup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-backdrop show" style={{ position: 'fixed', zIndex: 1040 }}></div>
+                </>
+            )}
         </div>
-    )
+    );
 }

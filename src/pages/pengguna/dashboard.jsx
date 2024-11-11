@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function () {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -101,9 +102,11 @@ export default function () {
                     </div>
                 </div>
             </div>
-            <div className="text-center mt-4">
-                <button className="btn btn-success">Selengkapnya</button>
-            </div>
+            <Link to='/pengguna/tracerstudy'>
+                <div className="text-center mt-4">
+                    <button className="btn btn-success">Selengkapnya</button>
+                </div>
+            </Link>
             {/* Modal inline dengan Bootstrap */}
             {isModalOpen && (
                 <div className="modal show fade" style={{ display: 'block' }} tabIndex="-1">

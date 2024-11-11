@@ -65,7 +65,7 @@ export default function Login() {
           <div className="rounded bg-white p-5" style={{ width: '100%', height: '100%' }}>
             <form
               onSubmit={(e) => {
-                e.preventDefault(); // Mencegah halaman refresh
+                e.preventDefault();
                 handleLogin();
               }}
               className="rounded bg-white p-5 d-flex flex-column justify-content-center"
