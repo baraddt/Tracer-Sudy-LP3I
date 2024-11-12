@@ -56,12 +56,12 @@ export default function Login() {
   return (
     <div className="container-fluid vh-100 d-flex">
       <div className="row w-100 flex-grow-1">
-        <div className="col-md-3 d-flex flex-column align-items-center justify-content-center" style={{ padding: '0' }}>
+        <div className="col-md-5 d-flex flex-column align-items-center justify-content-center" style={{ padding: '0' }}>
           <img src="/logo-lp3i.png" alt="Logo" width="160" className="mt-5" />
           <img src="/vektor.png" alt="Vektor" width="440" className="img-fluid mb-4" />
         </div>
 
-        <div className="col-md-9 d-flex align-items-center justify-content-center">
+        <div className="col-md-7 d-flex align-items-center justify-content-center">
           <div className="rounded bg-white p-5" style={{ width: '100%', height: '100%' }}>
             <form
               onSubmit={(e) => {

@@ -4,7 +4,7 @@ import axios from 'axios';
 export default function User() {
     const [usersList, setUsersList] = useState([]); // State untuk menyimpan data pengguna
     const [error, setError] = useState(null); // State untuk menangani error
-    const [newUser, setNewUser] = useState({ // State untuk menyimpan data pengguna baru
+    const [newUser, setNewUser] = useState({
         nama: '',
         avatar: '',
         nip: '',
@@ -14,41 +14,92 @@ export default function User() {
         password: '',
         roleId: '',
     });
-    const [showModal, setShowModal] = useState(false); // State untuk mengatur tampilan modal
-    // const [currentPage, setCurrentPage] = useState(1);
-    // const itemsPerPage = 5;
 
-    // Fungsi API Memanggil Data User
+    const [showModal, setShowModal] = useState(false); // State untuk mengatur tampilan modal
+    const [editUsers, setEditUsers] = useState(null);
+    const [showModalEdit, setShowModalEdit] = useState(false);
+    const [roleIdOptions, setRoleIdOptions] = useState([]); // Role ID options
+
+    // Fungsi API untuk mendapatkan data pengguna
     const fetchUsers = async () => {
         try {
             const response = await axios.get('http://192.168.18.176:5000/users/all');
-            setUsersList(response.data.data);
+            setUsersList(response.data.data); // Update state dengan data pengguna terbaru
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
     };
 
+    // Fungsi API untuk mendapatkan data Role ID
+    const fetchRoleId = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/users/role/all');
+            setRoleIdOptions(response.data.data); // Update state dengan data Role ID
+        } catch (error) {
+            console.error("Error fetching RoleId:", error.message);
+        }
+    };
 
     // useEffect untuk memanggil data API saat komponen pertama kali dirender
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        fetchUsers();  // Memanggil data pengguna pertama kali
+        fetchRoleId(); // Memanggil data Role ID
+    }, []); // [] memastikan hanya sekali saat komponen pertama kali dirender
 
-    // fungsi menambah data menggunakan API
+    // Fungsi menambah data pengguna baru menggunakan API
     const addUser = async () => {
         try {
-            const response = await axios.post('http://192.168.18.176:5000/users/adduser')
+            const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
+
+            // Menambahkan pengguna baru ke daftar pengguna lokal
             setUsersList((prevList) => [...prevList, response.data]);
 
-            // fetchData
-            setNewUser({ nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: '', });
+            // Memanggil ulang fetchUsers untuk memastikan data terbaru dimuat
+            fetchUsers();
+
+            // Reset form dan tutup modal
+            setNewUser({
+                nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: ''
+            });
             setShowModal(false);
         } catch (error) {
-            console.log("Response data:", error.response.data);
-            console.error("Error adding PSDKU:", error.message);
-            setError("Failed to add User, Try Again")
+            console.error("Error adding user:", error.message);
+            console.log("Error response:", error.response?.data); // Debug: pesan error dari server jika ada
+            setError("Failed to add User, Try Again");
         }
-    }
+    };
+
+    // Fungsi untuk mengedit data pengguna
+    const handleEditSubmit = async (event) => {
+        event.preventDefault();
+        try {
+            const response = await axios.put(
+                `http://192.168.18.176:5000/users/edituser/${editUsers._id}`,
+                editUsers
+            );
+            console.log('Users updated successfully:', response.data);
+            setShowModalEdit(false);
+        } catch (error) {
+            console.error('Error updating Users:', error);
+            setError(error.response?.data?.message || 'An error occurred');
+        }
+    };
+
+    // Fungsi untuk menghapus data pengguna
+    const deleteUser = async (userId) => {
+        try {
+            const response = await axios.delete(`http://192.168.18.176:5000/users/delete/${userId}`);
+
+            // Menghapus data pengguna dari state setelah dihapus dari API
+            setUsersList((prevList) => prevList.filter((user) => user._id !== userId));
+
+            console.log('User deleted successfully:', response.data);
+        } catch (error) {
+            console.error('Error deleting user:', error.message);
+        }
+    };
+
+
 
     // Fungsi untuk menangani perubahan pada form input
     const handleInputChange = (e) => {
@@ -61,8 +112,23 @@ export default function User() {
 
     // Fungsi untuk menangani pengiriman form
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Mencegah reload halaman
-        addUser();
+        e.preventDefault();
+        addUser(); // Menambahkan pengguna baru saat form disubmit
+    };
+
+    const openEditModal = (users) => {
+        console.log('Data Yang dipilih:', users);
+        setEditUsers(users);
+        setShowModalEdit(true);
+
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditUsers((prevUsers) => ({
+            ...prevUsers,
+            [name]: value,
+        }));
     };
 
     // Pagination
@@ -79,7 +145,7 @@ export default function User() {
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h4 className="text-black mb-4 fw-semibold">User</h4>
+                <h4 className="text-black mb-4 fw-semibold">Admin</h4>
 
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
@@ -135,10 +201,10 @@ export default function User() {
                                             <i className="bi bi-eye-fill text-info"></i>
                                         </button>
                                         <button className="btn-sm me-2 border-0 bg-transparent">
-                                            <i className="bi bi-pencil-fill text-primary"></i>
+                                            <i className="bi bi-pencil-fill text-primary" onClick={() => openEditModal(users)}></i>
                                         </button>
                                         <button className="btn-sm border-0 bg-transparent">
-                                            <i className="bi bi-trash-fill text-danger"></i>
+                                            <i className="bi bi-trash-fill text-danger" onClick={() => deleteUser(users._id)}></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -253,8 +319,11 @@ export default function User() {
                                     required
                                 >
                                     <option value="" disabled>Pilih Role</option>
-                                    <option value="Super Admin">Super Admin</option>
-                                    <option value="Admin">Admin</option>
+                                    {Array.isArray(roleIdOptions) && roleIdOptions.map((option) => (
+                                        <option key={option._id} value={option._id}>
+                                            {option.role} {/* Menampilkan nama akreditasi */}
+                                        </option>
+                                    ))}
                                 </select>
 
                                 <button type="submit" className="btn btn-success">Tambah</button>
@@ -263,7 +332,123 @@ export default function User() {
                     </div>
                 </div>
             </div>
-            <div className={`modal-backdrop fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }}></div>
+
+            {/* Edit Modal */}
+            {showModalEdit && (
+                <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog" aria-hidden="true">
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Edit Users</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => showModalEdit(false)}
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <form onSubmit={handleEditSubmit}>
+                                    {/* <div className="mb-2">
+                                        <label>Avatar</label>
+                                        <input
+                                            type="file"
+                                            name="avatar"
+                                            value={editUsers.avatar} // Mengambil nilai dari state
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                        />
+                                    </div> */}
+                                    <div className="mb-2">
+                                        <label>Nama</label>
+                                        <input
+                                            type="text"
+                                            name="nama"
+                                            value={editUsers.nama}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>NIP</label>
+                                        <input
+                                            type="number"
+                                            name="nip"
+                                            value={editUsers.nip}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Pendidikan</label>
+                                        <input
+                                            type="text"
+                                            name="pendidikan"
+                                            value={editUsers.pendidikan}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Email</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={editUsers.email}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>password</label>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            value={editUsers.password}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Role</label>
+                                        <select
+                                            name="roleId"
+                                            value={editUsers.role}  // Nilai pengguna yang dipilih
+                                            onChange={handleInputChange}  // Menangani perubahan pilihan
+                                            className="form-control mb-2"
+                                            required
+                                        >
+                                            {Array.isArray(roleIdOptions) && roleIdOptions.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.role}  {/* Menampilkan nama pengguna */}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {/* <div className="mb-2">
+                                        <label>Status</label>
+                                        <select
+                                            name="status"
+                                            value={editUsers.status}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                            required
+                                        >
+                                            <option value="">Pilih Status</option>
+                                            <option value="Aktif">Aktif</option>
+                                            <option value="Non Aktif">Non-Aktif</option>
+                                        </select>
+                                    </div> */}
+
+                                    <button type="submit" className="btn btn-primary">
+                                        Update
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

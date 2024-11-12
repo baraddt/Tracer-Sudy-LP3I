@@ -29,6 +29,13 @@ import Footer from './components/footer';
 import NavbarAdmin from './components/navbarAdmin';
 import DashboardAdmin from './pages/admin/dashboard';
 import TracerStudyAdmin from './pages/admin/tracerstudy';
+import TracerAddAdmin from './pages/admin/traceradd';
+import TracerSkala from './pages/admin/tracerskala';
+import TracerBankSoalAdmin from './pages/admin/tracerbanksoal';
+import TracerAtensi from './pages/admin/traceratensi';
+import TracerPreviewAdmin from './pages/admin/tracerpreview';
+import PreviewKueionser from './pages/admin/previewkuesioner';
+import PreviewResponden from './pages/admin/previewresponden';
 import KampusAdmin from './pages/admin/kampus';
 import ProgramStudyAdmin from './pages/admin/programstudy';
 import AddAdmin from './pages/admin/addadmin';
@@ -88,6 +95,13 @@ function AppContent() {
         {/* Route Admin */}
         <Route path="/admin/dashboard" element={<DashboardAdmin />} />
         <Route path="/admin/tracerstudy" element={<TracerStudyAdmin />} />
+        <Route path="/admin/traceradd" element={<TracerAddAdmin />} />
+        <Route path="/admin/tracerskala" element={<TracerSkala />} />
+        <Route path="/admin/tracerbanksoal" element={<TracerBankSoalAdmin />} />
+        <Route path="/admin/traceratensi" element={<TracerAtensi />} />
+        <Route path="/admin/tracerpreview" element={<TracerPreviewAdmin />} />
+        <Route path="/admin/previewkuesioner" element={<PreviewKueionser />} />
+        <Route path="/admin/previewresponden" element={<PreviewResponden />} />
         <Route path="/admin/kampus" element={<KampusAdmin />} />
         <Route path="/admin/programstudy" element={<ProgramStudyAdmin />} />
         <Route path="/admin/addadmin" element={<AddAdmin />} />

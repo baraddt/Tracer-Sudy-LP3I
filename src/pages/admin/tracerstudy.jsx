@@ -6,7 +6,7 @@ export default function () {
             <div className="rounded bg-white p-3">
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
-                    <Link to='/super_admin/tracerstudyadd'>
+                    <Link to='/admin/traceradd'>
                         <button className="btn btn-success mb-2">
                             <i className="bi bi-plus"></i>Tambah
                         </button>

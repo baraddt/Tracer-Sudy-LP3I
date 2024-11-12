@@ -105,7 +105,7 @@ export default function Dashboard() {
     ],
     datasets: [
       {
-        data: [10, 20, 15, 25, 5, 10, 12, 15],
+        data: [20, 15, 25, 5, 10, 12, 15],
         backgroundColor: [
           '#00c49f',  // Administrasi Bisnis
           '#4f4fbc',  // Hubungan Masyarakat
@@ -219,7 +219,7 @@ export default function Dashboard() {
       <div className="d-flex justify-content-center">
         {/* Info di Kiri */}
         <div
-          className="d-flex bg-white p-2 rounded me-3 flex-column" style={{ width:'300px', height: '400px'}}>
+          className="d-flex bg-white p-2 rounded me-3 flex-column" style={{ width: '300px', height: '400px' }}>
           <h6>Program Study</h6>
           <div style={{ height: '100%', maxWidth: '300px' }}> {/* Wadah untuk diagram */}
             <Doughnut
