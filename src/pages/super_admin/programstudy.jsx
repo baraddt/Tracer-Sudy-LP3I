@@ -1,34 +1,153 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 export default function ProgramList() {
     const [programList, setProgramList] = useState([]);
     const [error, setError] = useState(null);
     const [newProgram, setNewProgram] = useState({
-        kodePs: '',
-        programStudy: '',
+        kode: '',
+        nama: '',
         jenjang: '',
         akreditasi: '',
         status: '',
     });
+    const [akreditasiOptions, setAkreditasiOptions] = useState([]);
+    const [jenjangOptions, setJenjangOptions] = useState([]);
     const [editProgram, setEditProgram] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [previewProgram, setPreviewProgram] = useState(null);
+    const [showModalTambah, setShowModalTambah] = useState(false);
     const [showModalEdit, setShowModalEdit] = useState(false);
     const [showModalPreview, setShowModalPreview] = useState(false);
 
-    const dummyProgram = [
-        // { kodePs: '450052', programStudy: 'Administrasi Bisnis', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
-        // { kodePs: '450053', programStudy: 'Manajemen Informatika', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
-        // { kodePs: '450054', programStudy: 'Teknik Otomotif', jenjang: 'D2', akreditasi: 'Baik Sekali', status: 'Non-Aktif' },
-    ];
+    // const dummyProgram = [
+    //     { kodePs: '450052', programStudy: 'Administrasi Bisnis', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
+    //     { kodePs: '450053', programStudy: 'Manajemen Informatika', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
+    //     { kodePs: '450054', programStudy: 'Teknik Otomotif', jenjang: 'D2', akreditasi: 'Baik Sekali', status: 'Non-Aktif' },
+    // ];
 
-    const fetchProgram = () => {
-        setProgramList(dummyProgram);
+    // const fetchProgram = () => {
+    //     setProgramList(dummyProgram);
+    // };
+
+
+
+    // fungsi untuk get data dari API
+    const fetchData = async () => {
+        try {
+            // const response = await axios.get('http://192.168.18.176:5000/prodi/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/all');
+
+            setProgramList(response.data.data);
+        } catch (error) {
+            console.error("Error feching data:", error.message);
+        }
+    }
+
+    // fungsi untuk get akreditasi dari API
+    const fetchAkreditasi = async () => {
+        try {
+            // const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/akreditasi/all');
+
+            setAkreditasiOptions(response.data.data || []);
+        } catch (error) {
+            console.error("Error feching akreditasi data:", error.message);
+        }
+    }
+
+    // fungsi untuk get jenjang dari API
+
+    const fetchJenjang = async () => {
+        try {
+            // const response = await axios.get('http://192.168.18.176:5000/prodi/jenjang/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/jenjang/all');
+
+            setJenjangOptions(response.data.data || []);
+        } catch (error) {
+            console.error("Error feching jenjang data:", error.message);
+
+        }
     };
 
+
     useEffect(() => {
-        fetchProgram();
+        fetchData();
+        fetchAkreditasi();
+        fetchJenjang();
     }, []);
+
+
+    // fungsi CRUD
+
+    // fungsi untuk menambah data programstudy lewat API
+    const AddProgram = async () => {
+        try {
+            // const response = await axios.post('http://192.168.18.176:5000/prodi/add', newProgram)
+            const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/prodi/add', newProgram)
+            setProgramList((prevList) => [...prevList, response.data]);
+            fetchData();
+            setNewProgram({ kode: '', nama: '', jenjang: '', akreditasi: '', status: '' });
+            setShowModalTambah(false);
+        } catch (error) {
+            console.log('Response data:', error.response.data);
+            console.error("Error Adding Program Study:", error.message);
+            setError("Failed to add Program. Please Try Again..");
+
+        }
+    };
+
+    // Fungsi untuk menghapus program study lewat APi
+    const deleteProgram = async (programId) => {
+        try {
+            // const response = await axios.delete(`http://192.168.18.176:5000/prodi/delete/${psdkuId}`)
+            const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/prodi/delete/${programId}`);
+
+            setProgramList((prevList) => prevList.filter((program) => program._id !== programId));
+
+            console.log('Program Study deleted successfully:' , response.data);
+            
+        } catch (error) {
+            console.error('Error Delete Program Study');
+            
+        }
+    };
+
+    // fungsi melihat detail program study dari API
+    const getProgramById = async (programId) => {
+        try {
+            const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/prodi/${programId}`);
+            setPreviewProgram(response.data.data);
+            setShowModalPreview(true);
+            console.log(response.data);
+            
+        } catch (error) {
+            console.error("Error feching Program Study By ID:", error.message);
+            
+        }
+    }
+
+
+    //fungsi untuk mengedit data melalui API
+
+    const handleEditSubmit = async (event) => {
+        event.preventDefault();
+        try {
+            // const response = await axios.put(`http://192.168.18.176:5000/prodi/edit/${editProgram._id}`, editProgram);
+            const response = await axios.put(`https://9l47d23v-5000.asse.devtunnels.ms/prodi/edit/${editProgram._id}`, editProgram);
+
+            console.log("data yang terkirim:", editProgram);
+            console.log('ProgramStudy updated Successfuly:', response.data);
+            setShowModalEdit(false);
+        } catch (error) {
+
+            console.error("Error updating Program Study:", error.message);
+            setError(error.response?.data?.message || 'An error occurred');
+        }
+    }
+
+
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -40,27 +159,27 @@ export default function ProgramList() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        try {
-            setProgramList((prevList) => [
-                ...prevList,
-                { ...newProgram, _id: (prevList.length + 1).toString() },
-            ]);
-            setNewProgram({ kodePs: '', programStudy: '', jenjang: '', akreditasi: '', status: '' });
-            setShowModal(false);
-        } catch (error) {
-            setError(error.message);
-        }
+        AddProgram(); // Call the add function instead of updating the list directly
     };
 
     const openEditModal = (program) => {
-        setEditProgram(program);
+        console.log('Data yang dipilih untuk diedit:', program);
+        setEditProgram({
+            ...program,
+            jenjang: program.jenjang?._id || "",
+            akreditasi: program.akreditasi?._id || "",
+        });
         setShowModalEdit(true);
     };
 
-    const openPreviewModal = (program) => {
-        setEditProgram(program);
-        setShowModalPreview(true);
+    const openPreviewModal = (programId) => {
+        getProgramById(programId);
     };
+
+    const closePreviewModal = () => {
+        setShowModalPreview(false);
+        setPreviewProgram(null);
+    }
 
     const handleEditChange = (e) => {
         const { name, value } = e.target;
@@ -70,15 +189,7 @@ export default function ProgramList() {
         }));
     };
 
-    const handleEditSubmit = (e) => {
-        e.preventDefault();
-        setProgramList((prevList) =>
-            prevList.map((program) =>
-                program.kodePs === editProgram.kodePs ? editProgram : program
-            )
-        );
-        setShowModalEdit(false);
-    };
+
 
 
     return (
@@ -136,7 +247,7 @@ export default function ProgramList() {
                 <div className="row rounded bg-white p-3 align-items-center">
                     <div className="d-flex justify-content-between">
                         <h4>Daftar Program Study</h4>
-                        <button className="btn btn-success mb-2" onClick={() => setShowModal(true)}>
+                        <button className="btn btn-success mb-2" onClick={() => setShowModalTambah(true)}>
                             <i className="bi bi-plus"></i> Tambah
                         </button>
                     </div>
@@ -157,23 +268,23 @@ export default function ProgramList() {
                                 programList.map((program, index) => (
                                     <tr key={index}>
                                         <td>{index + 1}</td>
-                                        <td>{program.kodePs}</td>
-                                        <td>{program.programStudy || 'N/A'}</td>
-                                        <td className='text-center'>{program.jenjang || 'N/A'}</td>
-                                        <td className='text-center'>{program.akreditasi || 'N/A'}</td>
+                                        <td>{program.kode}</td>
+                                        <td>{program.nama || 'N/A'}</td>
+                                        <td className='text-center'>{program.jenjang?.jenjang || 'N/A'}</td>
+                                        <td className='text-center'>{program.akreditasi?.akreditasi || 'N/A'}</td>
                                         <td className={`text-center ${program.status === 'Aktif' ? 'text-success' : 'text-danger'}`}>
                                             {program.status || 'N/A'}
                                         </td>
 
                                         <td className='text-center'>
-                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openPreviewModal(program)}>
-                                                <i className="bi bi-eye"></i>
+                                            <button className="btn-sm border-0 bg-transparent" onClick={() => openPreviewModal(program._id)}>
+                                                <i className="bi bi-eye-fill text-info"></i>
                                             </button>
-                                            <button className="btn btn-warning btn-sm me-2" onClick={() => openEditModal(program)}>
-                                                <i className="bi bi-pencil"></i>
+                                            <button className="btn-sm border-0 bg-transparent" onClick={() => openEditModal(program)}>
+                                                <i className="bi bi-pencil-fill text-primary"></i>
                                             </button>
-                                            <button className="btn btn-danger btn-sm">
-                                                <i className="bi bi-trash"></i>
+                                            <button className="btn-sm border-0 bg-transparent">
+                                                <i className="bi bi-trash-fill text-danger" onClick={() => deleteProgram(program._id)}></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -189,20 +300,20 @@ export default function ProgramList() {
                     </table>
                 </div>
             </div>
-            {showModal && (
+            {showModalTambah && (
                 <div className="modal fade show d-block">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title">Tambah Program Study</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                                <button type="button" className="btn-close" onClick={() => setShowModalTambah(false)}></button>
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit}>
                                     <input
                                         type="text"
-                                        name="kodePs"
-                                        value={newProgram.kodePs}
+                                        name="kode"
+                                        value={newProgram.kode}
                                         onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="Kode PS"
@@ -210,31 +321,42 @@ export default function ProgramList() {
                                     />
                                     <input
                                         type="text"
-                                        name="programStudy"
-                                        value={newProgram.programStudy}
+                                        name="nama"
+                                        value={newProgram.nama}
                                         onChange={handleInputChange}
                                         className="form-control mb-2"
                                         placeholder="Program Study"
                                         required
                                     />
-                                    <input
-                                        type="text"
+                                    <select
                                         name="jenjang"
                                         value={newProgram.jenjang}
                                         onChange={handleInputChange}
                                         className="form-control mb-2"
-                                        placeholder="Jenjang"
                                         required
-                                    />
-                                    <input
-                                        type="text"
+                                    >
+                                        <option value="">Pilih Jenjang</option>
+                                        {Array.isArray(jenjangOptions) && jenjangOptions.map((option) => (
+                                            <option key={option._id} value={option._id}>
+                                                {option.jenjang} {/* Menampilkan nama jenjang */}
+                                            </option>
+                                        ))}
+
+                                    </select>
+                                    <select
                                         name="akreditasi"
                                         value={newProgram.akreditasi}
                                         onChange={handleInputChange}
                                         className="form-control mb-2"
-                                        placeholder="Akreditasi"
                                         required
-                                    />
+                                    >
+                                        <option value="">Pilih Akreditasi</option>
+                                        {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                            <option key={option._id} value={option._id}>
+                                                {option.akreditasi} {/* Menampilkan nama akreditasi */}
+                                            </option>
+                                        ))}
+                                    </select>
                                     <select
                                         name="status"
                                         value={newProgram.status}
@@ -271,8 +393,8 @@ export default function ProgramList() {
                                         <label>Kode PS</label>
                                         <input
                                             type="text"
-                                            name="kodePs"
-                                            value={editProgram.kodePs}
+                                            name="kode"
+                                            value={editProgram.kode}
                                             onChange={handleEditChange}
                                             className="form-control"
                                             disabled
@@ -282,31 +404,43 @@ export default function ProgramList() {
                                         <label>Program Study</label>
                                         <input
                                             type="text"
-                                            name="programStudy"
-                                            value={editProgram.programStudy}
+                                            name="nama"
+                                            value={editProgram.nama}
                                             onChange={handleEditChange}
                                             className="form-control"
                                         />
                                     </div>
                                     <div className="mb-2">
                                         <label>Jenjang</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="jenjang"
                                             value={editProgram.jenjang}
                                             onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                            className="form-control mb-2"
+                                            required
+                                        >
+                                            {Array.isArray(jenjangOptions) && jenjangOptions.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.jenjang}  {/* Menampilkan nama jenjang */}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="mb-2">
                                         <label>Akreditasi</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="akreditasi"
                                             value={editProgram.akreditasi}
                                             onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                            className="form-control mb-2"
+                                            required
+                                        >
+                                            {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.akreditasi}  {/* Menampilkan nama jenjang */}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="mb-2">
                                         <label>Status</label>
@@ -334,21 +468,28 @@ export default function ProgramList() {
             )}
             {/* Modal Priview */}
             {showModalPreview && (
-                <div className="modal fade show d-block">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Preview Program Study</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowModalPreview(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>Kode PS: {editProgram.kodePs}</p>
-                                <p>Program Study: {editProgram.programStudy}</p>
-                                {/* Other fields for display */}
-                            </div>
+                <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-hidden="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                <div className="modal-dialog modal-dialog-centered" role="document"> {/* Gunakan kelas modal-dialog-centered */}
+                    <div className="modal-content">
+                        <div className="modal-header d-flex justify-content-between">
+                            <h5 className="modal-title">Detail Program Study</h5>
+                            <button type="button" className="close" aria-label="Close" onClick={closePreviewModal}>
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <p><strong>Kode Program Study:</strong> {previewProgram.kode}</p>
+                            <p><strong>Nama Program Study:</strong> {previewProgram.nama}</p>
+                            <p><strong>Jenjang:</strong> {previewProgram.jenjang?.jenjang}</p>
+                            <p><strong>Akreditasi:</strong> {previewProgram.akreditasi?.akreditasi}</p>
+                            <p><strong>Status:</strong> {previewProgram.status}</p>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" onClick={closePreviewModal}>Close</button>
                         </div>
                     </div>
                 </div>
+            </div>
             )}
         </div>
     );

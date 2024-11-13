@@ -18,12 +18,15 @@ export default function User() {
     const [showModal, setShowModal] = useState(false); // State untuk mengatur tampilan modal
     const [editUsers, setEditUsers] = useState(null);
     const [showModalEdit, setShowModalEdit] = useState(false);
+    const [showModalPreview, setShowModalPreview] = useState(false);
     const [roleIdOptions, setRoleIdOptions] = useState([]); // Role ID options
+    const [selectedUser, setSelectedUser] = useState(null);
 
     // Fungsi API untuk mendapatkan data pengguna
     const fetchUsers = async () => {
         try {
             const response = await axios.get('http://192.168.18.176:5000/users/all');
+            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
             setUsersList(response.data.data); // Update state dengan data pengguna terbaru
         } catch (error) {
             console.error("Error fetching data:", error.message);
@@ -34,6 +37,7 @@ export default function User() {
     const fetchRoleId = async () => {
         try {
             const response = await axios.get('http://192.168.18.176:5000/users/role/all');
+            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/role/all');
             setRoleIdOptions(response.data.data); // Update state dengan data Role ID
         } catch (error) {
             console.error("Error fetching RoleId:", error.message);
@@ -50,14 +54,10 @@ export default function User() {
     const addUser = async () => {
         try {
             const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
+            // const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/users/adduser', newUser);
 
-            // Menambahkan pengguna baru ke daftar pengguna lokal
             setUsersList((prevList) => [...prevList, response.data]);
-
-            // Memanggil ulang fetchUsers untuk memastikan data terbaru dimuat
             fetchUsers();
-
-            // Reset form dan tutup modal
             setNewUser({
                 nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: ''
             });
@@ -74,8 +74,8 @@ export default function User() {
         event.preventDefault();
         try {
             const response = await axios.put(
-                `http://192.168.18.176:5000/users/edituser/${editUsers._id}`,
-                editUsers
+                `http://192.168.18.176:5000/users/edituser/${editUsers._id}`, editUsers
+                // `https://9l47d23v-5000.asse.devtunnels.ms/users/edituser/${editUsers._id}`, editUsers
             );
             console.log('Users updated successfully:', response.data);
             setShowModalEdit(false);
@@ -89,6 +89,7 @@ export default function User() {
     const deleteUser = async (userId) => {
         try {
             const response = await axios.delete(`http://192.168.18.176:5000/users/delete/${userId}`);
+            // const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/users/deleteuser/${userId}`);
 
             // Menghapus data pengguna dari state setelah dihapus dari API
             setUsersList((prevList) => prevList.filter((user) => user._id !== userId));
@@ -99,7 +100,29 @@ export default function User() {
         }
     };
 
+    // fungsi melihat detail pengguna
+    const getUserById = async (userId) => {
+        try {
+            const response = await axios.get(`http://192.168.18.176:5000/users/${userId}`);
+            // const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/users/${userId}`);
+            return response.data.data; // Mengembalikan data pengguna dari respons
 
+        } catch (error) {
+            console.error("Full error response:", error.response);
+            console.error("Error fetching user details:", error);
+            return null;
+        }
+    };
+
+
+    // fungsi untuk melihat preview pengguna
+    const handlePreviewUser = async (userId) => {
+        const userDetails = await getUserById(userId);
+        if (userDetails) {
+            setSelectedUser(userDetails);
+            setShowModalPreview(true); // Membuka modal preview
+        }
+    };
 
     // Fungsi untuk menangani perubahan pada form input
     const handleInputChange = (e) => {
@@ -121,6 +144,10 @@ export default function User() {
         setEditUsers(users);
         setShowModalEdit(true);
 
+    };
+
+    const closeEditModal = () => {
+        setShowModalEdit(false);
     };
 
     const handleEditChange = (e) => {
@@ -145,7 +172,7 @@ export default function User() {
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h4 className="text-black mb-4 fw-semibold">Admin</h4>
+                <h4 className="text-black mb-4 fw-semibold">User</h4>
 
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
@@ -198,7 +225,7 @@ export default function User() {
                                     </td>
                                     <td className='text-center'>
                                         <button className="btn-sm me-2 border-0 bg-transparent">
-                                            <i className="bi bi-eye-fill text-info"></i>
+                                            <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(users._Id)}></i>
                                         </button>
                                         <button className="btn-sm me-2 border-0 bg-transparent">
                                             <i className="bi bi-pencil-fill text-primary" onClick={() => openEditModal(users)}></i>
@@ -343,7 +370,7 @@ export default function User() {
                                 <button
                                     type="button"
                                     className="btn-close"
-                                    onClick={() => showModalEdit(false)}
+                                    onClick={() => closeEditModal(false)}
                                     aria-label="Close"
                                 ></button>
                             </div>
@@ -365,6 +392,16 @@ export default function User() {
                                             type="text"
                                             name="nama"
                                             value={editUsers.nama}
+                                            onChange={handleEditChange}
+                                            className="form-control"
+                                        />
+                                    </div>
+                                    <div className="mb-2">
+                                        <label>Jabatan</label>
+                                        <input
+                                            type="text"
+                                            name="jabatan"
+                                            value={editUsers.jabatan}
                                             onChange={handleEditChange}
                                             className="form-control"
                                         />
@@ -449,6 +486,29 @@ export default function User() {
                     </div>
                 </div>
             )}
+
+            {/* Modal Priview */}
+            {showModalPreview && (
+                <div className="modal fade show d-block">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Preview PSDKU</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowModalPreview(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Nama: {editUsers.nama}</p>
+                                <p>NIP: {editUsers.nip}</p>
+                                <p>Jabatan: {editUsers.jabatan}</p>
+                                <p>Pendidikan: {editUsers.pendidikan}</p>
+                                <p>Password: {editUsers.password}</p>
+                                {/* Other fields for display */}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

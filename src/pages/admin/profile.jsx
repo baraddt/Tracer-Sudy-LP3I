@@ -43,7 +43,7 @@ export default function () {
                             </div>
                             <div className="text-secondary mt-2">
                                 <h6 className="mt-4">Atep</h6>
-                                <h6 className="mt-4">Super Admin</h6>
+                                <h6 className="mt-4">Admin</h6>
                                 <h6 className="mt-4">Rektor</h6>
                                 <h6 className="mt-4">Politeknik LP3I Tasikmalaya</h6>
                                 <h6 className="mt-4">203232281 1283</h6>

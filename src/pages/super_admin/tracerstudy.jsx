@@ -1,6 +1,26 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import axios from 'axios';
 
 export default function () {
+    const [tracerList, setTracerList] = useState([]);
+    const [error, setError] = useState(null);
+
+    // fungsi mengambil data dari API
+    const fetchData = async () => {
+        try {
+            const response = await axios.get('http://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/all');
+            setTracerList(response.data.data);
+        } catch (error) {
+            console.error("Error feching data:", error.message);
+            
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
@@ -50,76 +70,36 @@ export default function () {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    #TR001
-                                </td>
-                                <td>
-                                    Analisis Kesuksesan Dengan Dunia Kerja
-                                </td>
-                                <td>
-                                    14 Oktober 2024
-                                </td>
-                                <td>
-                                    24 Desember 2024
-                                </td>
-                                <td className="text-center">
-                                    <span className="border rounded bg-primary bg-opacity-25 text-center p-1" style={{ fontSize: '13px' }}>Berlangsung</span>
-                                </td>
-                                <td className="text-end">
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent">
-                                        <i className="bi bi-pencil-fill text-primary"></i>
-                                    </button>
-
-                                    <button className="border border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    #TR002
-                                </td>
-                                <td>
-                                    Analisis Alumni Terhadap Pekerjaan
-                                </td>
-                                <td>
-                                    14 Januari 2024
-                                </td>
-                                <td>
-                                    24 Maret 2024
-                                </td>
-                                <td className="text-center text-success">
-                                    <span className="border rounded bg-success bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Selesai</span>
-                                </td>
-                                <td className="text-end">
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-file-earmark-pdf-fill text-danger"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-pencil-fill text-primary"></i></button>
-                                    <button className="border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    #TR003
-                                </td>
-                                <td>
-                                    Analisis Kampus Terhadap Kurikulum
-                                </td>
-                                <td>
-                                    14 Juni 2024
-                                </td>
-                                <td>
-                                    24 September 2024
-                                </td>
-                                <td className="text-center text-secondary">
-                                    <span className="border rounded bg-secondary bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Draft</span>
-                                </td>
-                                <td className="text-end">
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-pencil-fill text-primary"></i></button>
-                                    <button className="border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
-                                </td>
-                            </tr>
+                            {tracerList.length > 0 ? (
+                                tracerList.map((tracer, index) => (
+                                    <tr key={tracer._id}>
+                                        <td>{index + 1}</td>
+                                        <td>{tracer.id_detail.nama_kegiatan}</td>
+                                        <td>{tracer.id_detail.tanggal_mulai || 'N/A'}</td>
+                                        <td>{tracer.id_detail.tanggal_berakhir || 'N/A'}</td>
+                                        <td className={`text-center ${tracer.status === 'Selesai' ? 'text-success' : 'Draft' ? 'text-secondary' : 'Berlangsung' ? 'text-primary' : 'text-danger'}`}>
+                                            {tracer.status || 'N/A'}
+                                        </td>
+                                        <td className='text-center'>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openPreviewModal(psdku._id)}>
+                                                <i className="bi bi-eye-fill text-info"></i>
+                                            </button>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(psdku)}>
+                                                <i className="bi bi-pencil-fill text-primary"></i>
+                                            </button>
+                                            <button className="btn-sm border-0 bg-transparent">
+                                                <i className="bi bi-trash-fill text-danger" onClick={() => deletePsdku(psdku._id)}></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="6" className="text-center">
+                                        Tidak ada data PSDKU.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

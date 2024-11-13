@@ -21,26 +21,27 @@ export default function Psdku() {
     const [editPsdku, setEditPsdku] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showModalEdit, setShowModalEdit] = useState(false);
+    const [previewPsdku, setPreviewPsdku] = useState(null);
     const [showModalPreview, setShowModalPreview] = useState(false); // State untuk kontrol modal
 
     // Fungsi untuk mengambil data dari API
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/kampus/all');
+            // const response = await axios.get('http://192.168.18.176:5000/kampus/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/kampus/all');
             setPsdkuList(response.data.data); // Pastikan untuk mengupdate psdkuList dengan response.data.data
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
     };
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+
 
     // Fungsi untuk mengambil data akreditasi dari API
     const fetchAkreditasi = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
+            // const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/akreditasi/all');
             setAkreditasiOptions(response.data.data || []); // Simpan data akreditasi
 
         } catch (error) {
@@ -51,7 +52,8 @@ export default function Psdku() {
     // Fungsi untuk mengambil data akreditasi dari API
     const fetchPengguna = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/users/all');
+            // const response = await axios.get('http://192.168.18.176:5000/users/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
             setPenggunaOptions(response.data.data); // Simpan data akreditasi
 
         } catch (error) {
@@ -59,18 +61,44 @@ export default function Psdku() {
         }
     };
 
+    // Fungsi untuk refresh data
+    const refreshData = async () => {
+        try {
+            await fetchData(); // Panggil fetchData untuk memperbarui data
+        } catch (error) {
+            console.error("Error fetching updated data:", error);
+        }
+    };
+
+    // Fungsi untuk menambah atau mengedit data
+    const handleSaveData = async (data) => {
+        try {
+            setPsdkuList(data);  // Simpan data baru atau data yang diedit
+
+            // Tunggu 3 detik dan refresh data
+            setTimeout(async () => {
+                await refreshData();
+            }, 3000);
+        } catch (error) {
+            console.error("Error saving data:", error);
+        }
+    };
+
+
     useEffect(() => {
         fetchData();
         fetchAkreditasi();
         fetchPengguna(); // Panggil fungsi fetchAkreditasi saat komponen dimuat
     }, []);
 
+    //Fungsi CRUD
+
     // fungsi untuk menambah data ke API
     const addPsdku = async () => {
         try {
-            const response = await axios.post('http://192.168.18.176:5000/kampus/add', newPsdku);
-            setPsdkuList((prevList) => [...prevList, response.data]); // Update the local list with the new data
-
+            // const response = await axios.post('http://192.168.18.176:5000/kampus/add', newPsdku);
+            const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/kampus/add', newPsdku);
+            setPsdkuList((prevList) => [...prevList, response.data]); // Update list
             fetchData();
             setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', pengguna: [], akreditasi: '' }); // Reset form
             setShowModal(false); // Tutup modal
@@ -78,13 +106,13 @@ export default function Psdku() {
         } catch (error) {
             console.log("Response data:", error.response.data);
             console.error("Error adding PSDKU:", error.message);
-            setError("Failed to add PSDKU. Please try again."); // Handle error
+            setError("Failed to add PSDKU. Please try again.");
         }
     };
 
     // Fungsi untuk menambahkan pengguna ke dalam array pengguna
     const handleAddPengguna = (penggunaId) => {
-        // Cek apakah pengguna sudah ada dalam array
+
         if (!newPsdku.pengguna.includes(penggunaId)) {
             setNewPsdku((prevPsdku) => ({
                 ...prevPsdku,
@@ -93,30 +121,50 @@ export default function Psdku() {
         }
     };
 
-    // Fungsi untuk menghapus pengguna dari array
-    const handleRemovePengguna = (penggunaId) => {
-        setNewPsdku((prevPsdku) => ({
-            ...prevPsdku,
-            pengguna: prevPsdku.pengguna.filter((id) => id !== penggunaId), // Menghapus pengguna dari array
-        }));
-    };
-
-
-
-
     // Fungsi untuk mengirimkan data yang telah diedit ke API
     const handleEditSubmit = async (event) => {
         event.preventDefault();
         try {
             const response = await axios.put(
-                `http://192.168.18.176:5000/kampus/edit/${editPsdku._id}`,
-                editPsdku
+                // `http://192.168.18.176:5000/kampus/edit/${editPsdku._id}`, editPsdku
+                `https://9l47d23v-5000.asse.devtunnels.ms/kampus/edit/${editPsdku._id}`, editPsdku
             );
+
+            console.log("data yang di kirim :", editPsdku);
             console.log('Psdku updated successfully:', response.data);
             setShowModalEdit(false);
         } catch (error) {
             console.error('Error updating PSDKU:', error);
             setError(error.response?.data?.message || 'An error occurred');
+        }
+    };
+
+    // Fungsi untuk menghapus data psdku
+    const deletePsdku = async (psdkuId) => {
+        try {
+            // const response = await axios.delete(`http://192.168.18.176:5000/kampus/delete/${psdkuId}`);
+            const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/delete/${psdkuId}`);
+
+            // Menghapus data psdku dari state setelah dihapus dari API
+            setPsdkuList((prevList) => prevList.filter((psdku) => psdku._id !== psdkuId));
+
+            console.log('Psdku deleted successfully:', response.data);
+        } catch (error) {
+            console.error('Error deleting psdku:', error.message);
+        }
+    };
+
+    // fungsi melihat detail psdku
+    const getPsdkuById = async (psdkuId) => {
+        try {
+            // const response = await axios.get(`http://192.168.18.176:5000/kampus/${psdkuId}`);
+            const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/${psdkuId}`);
+            setPreviewPsdku(response.data.data); // Simpan data ke state previewPsdku
+            setShowModalPreview(true); // Buka modal preview setelah data berhasil diambil
+            console.log(response.data);
+
+        } catch (error) {
+            console.error("Error fetching PSDKU by ID:", error.message);
         }
     };
 
@@ -139,25 +187,61 @@ export default function Psdku() {
         console.log('Data yang dipilih untuk diedit:', psdku);
         setEditPsdku({
             ...psdku,
-            pengguna: psdku.pengguna?.nama || "",
-            akreditasi: psdku.akreditasi?._id || "",
+            pengguna: psdku.pengguna || [], // Pastikan 'pengguna' adalah array
+            akreditasi: psdku.akreditasi?._id || "", // Misalnya ID akreditasi
         });
         setShowModalEdit(true);
     };
+    // Fungsi untuk menghapus pengguna dari array pada saat menambah
+    const handleNewRemovePengguna = (penggunaId) => {
+        setNewPsdku((prevPsdku) => ({
+            ...prevPsdku,
+            pengguna: prevPsdku.pengguna.filter((id) => id !== penggunaId),
+        }));
+    };
+
+    // Fungsi untuk menghapus pengguna dari array pada saat edit
+    const handleEditRemovePengguna = (penggunaId) => {
+        setEditPsdku((prevPsdku) => ({
+            ...prevPsdku,
+            pengguna: prevPsdku.pengguna.filter((id) => id !== penggunaId),
+        }));
+    };
 
 
-    const openPreviewModal = (psdku) => {
-        setEditPsdku(psdku);
-        setShowModalPreview(true);
+    // fungsi modal preview
+    const openPreviewModal = (psdkuId) => {
+        getPsdkuById(psdkuId);
+    };
+
+    // fungsi close modal preview
+    const closePreviewModal = () => {
+        setShowModalPreview(false);
+        setPreviewPsdku(null);
     };
 
     const handleEditChange = (e) => {
         const { name, value } = e.target;
-        setEditPsdku((prevPsdku) => ({
-            ...prevPsdku,
-            [name]: value,
-        }));
+
+        setEditPsdku((prevPsdku) => {
+            if (name === "pengguna") {
+                // Periksa jika pengguna sudah ada di array untuk menghindari duplikasi
+                if (!prevPsdku.pengguna.includes(value)) {
+                    return {
+                        ...prevPsdku,
+                        pengguna: [...prevPsdku.pengguna, value], // Tambahkan pengguna ke array
+                    };
+                }
+            } else {
+                return {
+                    ...prevPsdku,
+                    [name]: value,
+                };
+            }
+            return prevPsdku;
+        });
     };
+
 
     return (
         <div className="container mt-4">
@@ -245,14 +329,14 @@ export default function Psdku() {
                                             {psdku.status || 'N/A'}
                                         </td>
                                         <td className='text-center'>
-                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openPreviewModal(psdku)}>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openPreviewModal(psdku._id)}>
                                                 <i className="bi bi-eye-fill text-info"></i>
                                             </button>
                                             <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(psdku)}>
                                                 <i className="bi bi-pencil-fill text-primary"></i>
                                             </button>
                                             <button className="btn-sm border-0 bg-transparent">
-                                                <i className="bi bi-trash-fill text-danger"></i>
+                                                <i className="bi bi-trash-fill text-danger" onClick={() => deletePsdku(psdku._id)}></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -329,9 +413,9 @@ export default function Psdku() {
                                     <div className="form-group">
                                         <select
                                             id="pengguna"
-                                            value={newPsdku.akreditasi}
+                                            value={newPsdku.pengguna}
                                             className="form-control"
-                                            onChange={(e) => handleAddPengguna(e.target.value)} // Menambahkan pengguna yang dipilih
+                                            onChange={(e) => handleAddPengguna(e.target.value)}
                                         >
                                             <option value="">-- Pilih Pengguna --</option>
                                             {penggunaOptions.map((option) => (
@@ -341,9 +425,8 @@ export default function Psdku() {
                                             ))}
                                         </select>
                                     </div>
-                                    {/* Menampilkan pengguna yang sudah dipilih */}
                                     <div className="mt-2">
-                                        <strong>Pengguna yang Dipilih:</strong>
+                                        <strong>Pengguna yang Ditambahkan:</strong>
                                         <ul>
                                             {newPsdku.pengguna.map((penggunaId, index) => {
                                                 const pengguna = penggunaOptions.find(option => option._id === penggunaId);
@@ -351,10 +434,11 @@ export default function Psdku() {
                                                     <li key={index}>
                                                         {pengguna.nama}
                                                         <button
+                                                            type="button"
                                                             className="btn btn-sm btn-danger ml-2"
-                                                            onClick={() => handleRemovePengguna(penggunaId)}
+                                                            onClick={() => handleNewRemovePengguna(penggunaId)}
                                                         >
-                                                            -
+                                                            Hapus
                                                         </button>
                                                     </li>
                                                 ) : null;
@@ -386,7 +470,7 @@ export default function Psdku() {
                                         <option value="Aktif">Aktif</option>
                                         <option value="Non-Aktif">Non-Aktif</option>
                                     </select> */}
-                                    <button type="submit" className="btn btn-primary">Simpan</button>
+                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(psdkuData)}>Simpan</button>
                                 </form>
                             </div>
                         </div>
@@ -458,6 +542,26 @@ export default function Psdku() {
                                             ))}
                                         </select>
                                     </div>
+                                    <div className="mt-2">
+                                        <strong>Pengguna yang Ditambahkan:</strong>
+                                        <ul>
+                                            {editPsdku.pengguna.map((penggunaId, index) => {
+                                                const pengguna = penggunaOptions.find(option => option._id === penggunaId);
+                                                return pengguna ? (
+                                                    <li key={index}>
+                                                        {pengguna.nama}
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm btn-danger ml-2"
+                                                            onClick={() => handleEditRemovePengguna(penggunaId)}
+                                                        >
+                                                            Hapus
+                                                        </button>
+                                                    </li>
+                                                ) : null;
+                                            })}
+                                        </ul>
+                                    </div>
                                     <div className="mb-2">
                                         <label>Alamat</label>
                                         <input
@@ -509,7 +613,7 @@ export default function Psdku() {
                                         </select>
                                     </div>
 
-                                    <button type="submit" className="btn btn-primary">
+                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(psdkuList)} >
                                         Update
                                     </button>
                                 </form>
@@ -519,22 +623,39 @@ export default function Psdku() {
                 </div>
             )}
 
-
-            {/* Modal Priview */}
-            {showModalPreview && (
-                <div className="modal fade show d-block">
-                    <div className="modal-dialog">
+            {/* Modal Preview */}
+            {showModalPreview && previewPsdku && (
+                <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-hidden="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                    <div className="modal-dialog modal-dialog-centered" role="document"> {/* Gunakan kelas modal-dialog-centered */}
                         <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Preview PSDKU</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowModalPreview(false)}></button>
+                            <div className="modal-header d-flex justify-content-between">
+                                <h5 className="modal-title">Detail PSDKU</h5>
+                                <button type="button" className="close" aria-label="Close" onClick={closePreviewModal}>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
                             <div className="modal-body">
-                                <p>Kode PT: {editPsdku.kodePt}</p>
-                                <p>PSDKU: {editPsdku.psdku}</p>
-                                <p>Akreditasi: {editPsdku.akreditasi}</p>
-                                <p>Status: {editPsdku.status}</p>
-                                {/* Other fields for display */}
+                                <p><strong>Kode PT:</strong> {previewPsdku.kode_pt}</p>
+                                <p><strong>Tanggal Berdiri:</strong> {previewPsdku.tanggal_berdiri}</p>
+                                <p><strong>Tanggal SK:</strong> {previewPsdku.tanggal_sk}</p>
+                                <p><strong>Alamat:</strong> {previewPsdku.alamat}</p>
+                                <p><strong>PSDKU:</strong> {previewPsdku.psdku}</p>
+                                <p><strong>Akreditasi:</strong> {previewPsdku.akreditasi?.akreditasi || 'N/A'}</p>
+
+                                {/* Render Pengguna */}
+                                <p><strong>Pengguna:</strong></p>
+                                <ul>
+                                    {previewPsdku.pengguna && previewPsdku.pengguna.length > 0 ? (
+                                        previewPsdku.pengguna.map((pengguna) => (
+                                            <li key={pengguna._id}>{pengguna.nama || 'N/A'}</li>
+                                        ))
+                                    ) : (
+                                        <li>Tidak ada pengguna</li>
+                                    )}
+                                </ul>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={closePreviewModal}>Close</button>
                             </div>
                         </div>
                     </div>
