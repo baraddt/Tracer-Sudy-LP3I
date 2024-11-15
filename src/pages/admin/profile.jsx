@@ -57,25 +57,25 @@ export default function () {
                         <h4 className="mt-2">About</h4>
                         <h6
                             className="text-secondary"
-                            style={{ lineHeight: "1.6", marginBottom: "1rem", fontSize: '14px'}}
+                            style={{ lineHeight: "1.6", marginBottom: "1rem", fontSize: '14px' }}
                         >
-                            Nama saya Atep, dan saya menjabat sebagai Rektor Kampus LP3I Tasikmalaya. 
-                            Saya memiliki dedikasi yang tinggi dalam bidang pendidikan dan berkomitmen 
-                            untuk meningkatkan kualitas pembelajaran di kampus kami. Dalam peran ini, 
-                            saya bertanggung jawab memastikan mahasiswa mendapatkan pendidikan yang relevan 
+                            Nama saya Atep, dan saya menjabat sebagai Rektor Kampus LP3I Tasikmalaya.
+                            Saya memiliki dedikasi yang tinggi dalam bidang pendidikan dan berkomitmen
+                            untuk meningkatkan kualitas pembelajaran di kampus kami. Dalam peran ini,
+                            saya bertanggung jawab memastikan mahasiswa mendapatkan pendidikan yang relevan
                             dan berkualitas.
 
                             <br /><br />
 
-                            Sebagai pimpinan kampus, saya berusaha mempersiapkan mahasiswa untuk sukses, 
-                            baik dalam karier maupun kehidupan mereka. Melalui berbagai program dan pendekatan 
-                            yang inovatif, saya dan tim berfokus untuk memberikan lingkungan belajar yang mendukung 
+                            Sebagai pimpinan kampus, saya berusaha mempersiapkan mahasiswa untuk sukses,
+                            baik dalam karier maupun kehidupan mereka. Melalui berbagai program dan pendekatan
+                            yang inovatif, saya dan tim berfokus untuk memberikan lingkungan belajar yang mendukung
                             pengembangan keterampilan dan potensi mereka.
 
                             <br /><br />
 
-                            Di luar pekerjaan, saya memiliki minat yang kuat dalam olahraga, terutama bermain 
-                            sepak bola, serta musik. Kedua hobi ini memberikan keseimbangan dan menyegarkan pikiran, 
+                            Di luar pekerjaan, saya memiliki minat yang kuat dalam olahraga, terutama bermain
+                            sepak bola, serta musik. Kedua hobi ini memberikan keseimbangan dan menyegarkan pikiran,
                             membantu saya tetap produktif dan bersemangat dalam menjalankan tugas sebagai rektor.
                         </h6>
 

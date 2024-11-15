@@ -25,8 +25,8 @@ export default function User() {
     // Fungsi API untuk mendapatkan data pengguna
     const fetchUsers = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/users/all');
-            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
+            // const response = await axios.get('http://192.168.18.176:5000/users/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
             setUsersList(response.data.data); // Update state dengan data pengguna terbaru
         } catch (error) {
             console.error("Error fetching data:", error.message);
@@ -36,11 +36,32 @@ export default function User() {
     // Fungsi API untuk mendapatkan data Role ID
     const fetchRoleId = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/users/role/all');
-            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/role/all');
+            // const response = await axios.get('http://192.168.18.176:5000/users/role/all');
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/role/all');
             setRoleIdOptions(response.data.data); // Update state dengan data Role ID
         } catch (error) {
             console.error("Error fetching RoleId:", error.message);
+        }
+    };
+
+    const refreshData = async () => {
+        try {
+            await fetchUsers();
+        } catch (error) {
+            console.error("Error feching updated data:", error.message);
+        }
+    };
+
+    const handleSaveData = async (data) => {
+        try {
+            setUsersList(data);
+
+            setTimeout(async () => {
+                await refreshData();
+            }, 3000);
+        } catch (error) {
+            console.error("Error saving data:", error);
+            
         }
     };
 
@@ -53,14 +74,15 @@ export default function User() {
     // Fungsi menambah data pengguna baru menggunakan API
     const addUser = async () => {
         try {
-            const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
-            // const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/users/adduser', newUser);
+            // const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
+            const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/users/adduser', newUser);
 
             setUsersList((prevList) => [...prevList, response.data]);
             fetchUsers();
             setNewUser({
                 nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: ''
             });
+            
             setShowModal(false);
         } catch (error) {
             console.error("Error adding user:", error.message);
@@ -74,8 +96,8 @@ export default function User() {
         event.preventDefault();
         try {
             const response = await axios.put(
-                `http://192.168.18.176:5000/users/edituser/${editUsers._id}`, editUsers
-                // `https://9l47d23v-5000.asse.devtunnels.ms/users/edituser/${editUsers._id}`, editUsers
+                // `http://192.168.18.176:5000/users/edituser/${editUsers._id}`, editUsers
+                `https://9l47d23v-5000.asse.devtunnels.ms/users/edituser/${editUsers._id}`, editUsers
             );
             console.log('Users updated successfully:', response.data);
             setShowModalEdit(false);
@@ -88,8 +110,8 @@ export default function User() {
     // Fungsi untuk menghapus data pengguna
     const deleteUser = async (userId) => {
         try {
-            const response = await axios.delete(`http://192.168.18.176:5000/users/delete/${userId}`);
-            // const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/users/deleteuser/${userId}`);
+            // const response = await axios.delete(`http://192.168.18.176:5000/users/delete/${userId}`);
+            const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/users/deleteuser/${userId}`);
 
             // Menghapus data pengguna dari state setelah dihapus dari API
             setUsersList((prevList) => prevList.filter((user) => user._id !== userId));
@@ -103,8 +125,8 @@ export default function User() {
     // fungsi melihat detail pengguna
     const getUserById = async (userId) => {
         try {
-            const response = await axios.get(`http://192.168.18.176:5000/users/${userId}`);
-            // const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/users/${userId}`);
+            // const response = await axios.get(`http://192.168.18.176:5000/users/${userId}`);
+            const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/users/${userId}`);
             return response.data.data; // Mengembalikan data pengguna dari respons
 
         } catch (error) {
@@ -353,7 +375,7 @@ export default function User() {
                                     ))}
                                 </select>
 
-                                <button type="submit" className="btn btn-success">Tambah</button>
+                                <button type="submit" className="btn btn-success" onClick={() => handleSaveData(usersList)}>Tambah</button>
                             </form>
                         </div>
                     </div>
@@ -362,7 +384,7 @@ export default function User() {
 
             {/* Edit Modal */}
             {showModalEdit && (
-                <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog" aria-hidden="true">
+                <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog">
                     <div className="modal-dialog" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -477,7 +499,7 @@ export default function User() {
                                         </select>
                                     </div> */}
 
-                                    <button type="submit" className="btn btn-primary">
+                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(usersList)}>
                                         Update
                                     </button>
                                 </form>

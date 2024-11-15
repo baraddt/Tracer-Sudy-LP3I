@@ -9,6 +9,7 @@ export default function () {
     // fungsi mengambil data dari API
     const fetchData = async () => {
         try {
+            // const response = await axios.get('http://192.168.18.176:5000/tracerstudy/all');
             const response = await axios.get('http://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/all');
             setTracerList(response.data.data);
         } catch (error) {

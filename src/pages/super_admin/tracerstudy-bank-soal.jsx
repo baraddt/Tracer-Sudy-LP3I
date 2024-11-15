@@ -1,8 +1,75 @@
 import { Link } from 'react-router-dom';
-import "react-quill/dist/quill.snow.css";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function () {
+
+    const [ dataTracerId, setDataTracerId ] = useState(null);
+    const [bankSoalList, setBankSoalList] = useState([]);
+    const [error, setError] = useState(null);
+    const [newSoal, setNewSoal] = useState({
+        soal: '',
+        jawaban: [
+            {
+                jawaban: '',
+                bobot_jawaban: ""
+            }
+        ]
+    });
+
+    // memanggil dulu data tracernya
+    const fetchTracer = async () => {
+        try {
+            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/all');
+            if (response.data.data && response.data.data.length > 0) {
+                setDataTracerId(response.data.data[0]._id);
+                console.log("ID tracer yang diambil:", response.data.data[0]._id);
+
+            } else {
+                console.error("data tracer kosong atau tidak ditemukan");
+
+            }
+        } catch (error) {
+            console.error("error feching data:", error.message);
+
+        }
+    };
+
+
+    useEffect(() => {
+        fetchTracer();
+    }, []);
+
+
+    // fungsi mengirim soal ke API
+    const addSoal = async () => {
+        try {
+            const response = await axios.post(`https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/banksoal/add/${dataTracerId}`, newSoal);
+            console.log("data soal yang berhasil ditambahkan:", response.data);
+
+
+        } catch (error) {
+            console.error("error adding soal:", error.message);
+            setError("failed to add soal. try again.");
+
+        }
+    };
+
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setNewSoal((prevState) => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("ID yang akan ditambahkan soal:", dataTracerId);
+        console.log("Data soal yang akan dikirim:", newSoal);   
+
+        addSoal();
+    };
 
     const [question, setQuestion] = useState('');
     const [options, setOptions] = useState(['', '', '', '']); // Inisialisasi 4 opsi kosong
@@ -44,6 +111,8 @@ export default function () {
         setWeights(newWeights);
     };
 
+
+
     const dummyData = [
         {
             question: "Seberapa relevan pendidikan Anda dengan kegiatan sehari-hari saat ini?",
@@ -81,7 +150,7 @@ export default function () {
             </div>
 
             {/* Form */}
-            <form>
+            <form onSubmit={handleSubmit}>
                 {/* heading */}
                 <div className="form-group">
                     <label style={{ fontSize: '19px' }}>Bank Soal</label>
@@ -94,10 +163,11 @@ export default function () {
                     <div className="input-group">
                         <input
                             type="text"
+                            name='soal'
+                            value={newSoal.soal}
+                            onChange={handleInputChange}
                             className="form-control"
                             placeholder="Tambahkan Pertanyaan"
-                            value={question}
-                            onChange={(e) => setQuestion(e.target.value)}
                         />
                         <button
                             type="button"
@@ -124,19 +194,21 @@ export default function () {
                         <div className="col-8">
                             <input
                                 type="text"
+                                name='jawaban'
+                                value={newSoal.jawaban.jawaban}
+                                onChange={handleInputChange}
                                 className="form-control text-secondary"
                                 placeholder={`Jawaban ${index + 1}`}
-                                value={option}
-                                onChange={(e) => handleOptionChange(index, e.target.value)}
                             />
                         </div>
                         <div className="col-4">
                             <input
                                 type="number"
+                                name='bobot_jawaban'
+                                value={newSoal.jawaban.bobot_jawaban} // Pastikan ada state untuk bobot
+                                onChange={handleInputChange}
                                 className="form-control text-secondary"
                                 placeholder={`Bobot Nilai Jawaban`}
-                                value={weights[index] || ''} // Pastikan ada state untuk bobot
-                                onChange={(e) => handleWeightChange(index, e.target.value)}
                             />
                         </div>
                     </div>
@@ -144,52 +216,53 @@ export default function () {
 
                 {/* Tambah Soal */}
                 <div className='d-flex justify-content-end'>
-                    <button className='btn btn-success'>Tambah</button>
+                    <button type='submit' className='btn btn-success'>Tambah</button>
                 </div>
+            </form>                                         
 
-                {/* Preview Section */}
-                <div className="preview mt-5">
-                    <label style={{ fontSize: '19px' }}>Preview</label>
-                    <p className="text-secondary" style={{ fontSize: '13px' }}>
-                        Tampilan pertanyaan dan opsi jawaban:
-                    </p>
-                    <div className="d-flex flex-wrap">
-                        {dummyData.map((item, index) => (
-                            <div key={index} className="mb-4" style={{ width: '300px', marginRight: '20px' }}>
-                                <p style={{ fontSize: '13px' }}>{index + 1}. {item.question}</p>
-                                <ul style={{ fontSize: '13px' }} className="list-unstyled">
-                                    {item.options.map((option, optIndex) => (
-                                        <li key={optIndex} className="d-flex align-items-center mb-2">
-                                            <input type="radio" disabled className="me-2" />
-                                            <label>{option}</label>
-                                        </li>
-                                    ))}
-                                    <div className='d-flex justify-content-end'>
-                                        <button className='border-0 bg-transparent'><i className='bi bi-pencil-fill'></i></button>
-                                        <button className='border-0 bg-transparent'><i className='bi bi-trash-fill'></i></button>
-                                    </div>
-                                </ul>
-                            </div>
-                        ))}
+            {/* Preview Section */}
+            {/* <div className="preview mt-5">
+                <label style={{ fontSize: '19px' }}>Preview</label>
+                <p className="text-secondary" style={{ fontSize: '13px' }}>
+                    Tampilan pertanyaan dan opsi jawaban:
+                </p>
+                <div className="d-flex flex-wrap">
+                    {dummyData.map((item, index) => (
+                        <div key={index} className="mb-4" style={{ width: '300px', marginRight: '20px' }}>
+                            <p style={{ fontSize: '13px' }}>{index + 1}. {item.question}</p>
+                            <ul style={{ fontSize: '13px' }} className="list-unstyled">
+                                {item.options.map((option, optIndex) => (
+                                    <li key={optIndex} className="d-flex align-items-center mb-2">
+                                        <input type="radio" disabled className="me-2" />
+                                        <label>{option}</label>
+                                    </li>
+                                ))}
+                                <div className='d-flex justify-content-end'>
+                                    <button className='border-0 bg-transparent'><i className='bi bi-pencil-fill'></i></button>
+                                    <button className='border-0 bg-transparent'><i className='bi bi-trash-fill'></i></button>
+                                </div>
+                            </ul>
+                        </div>
+                    ))}
 
-                    </div>
                 </div>
+            </div> */}
 
-                {/* Buttons */}
-                <div className="d-flex justify-content-between mt-4">
-                    <div>
-                        <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
-                    </div>
-                    <div>
-                        <Link to='/super_admin/tracerstudy-golongan-kegiatan'>
-                            <button type="button" className="btn btn-danger mb-3 me-3">Sebelumnnya</button>
-                        </Link>
-                        <Link to='/super_admin/tracerstudy-verifikasi-akhir'>
-                            <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
-                        </Link>
-                    </div>
+            {/* Buttons */}
+            <div className="d-flex justify-content-between mt-4">
+                <div>
+                    <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
                 </div>
-            </form>
+                <div>
+                    <Link to='/super_admin/tracerstudy-golongan-kegiatan'>
+                        <button type="button" className="btn btn-danger mb-3 me-3">Sebelumnnya</button>
+                    </Link>
+                    <Link to='/super_admin/tracerstudy-verifikasi-akhir'>
+                        <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
+                    </Link>
+                </div>
+            </div>
+
         </div>
     )
 }

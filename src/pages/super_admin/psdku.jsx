@@ -11,6 +11,7 @@ export default function Psdku() {
         tanggal_sk: '',
         alamat: '',
         psdku: '',
+        prodi: [],
         pengguna: [],
         akreditasi: '',
         // status: '',
@@ -18,6 +19,7 @@ export default function Psdku() {
 
     const [akreditasiOptions, setAkreditasiOptions] = useState([]); // State untuk menyimpan opsi akreditasi
     const [penggunaOptions, setPenggunaOptions] = useState([]); // State untuk menyimpan opsi pengguna
+    const [prodiOptions, setProdiOptions] = useState([]); // State untuk menyimpan opsi prodi
     const [editPsdku, setEditPsdku] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showModalEdit, setShowModalEdit] = useState(false);
@@ -27,8 +29,8 @@ export default function Psdku() {
     // Fungsi untuk mengambil data dari API
     const fetchData = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/kampus/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/kampus/all');
+            const response = await axios.get('http://192.168.18.176:5000/kampus/all');
+            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/kampus/all');
             setPsdkuList(response.data.data); // Pastikan untuk mengupdate psdkuList dengan response.data.data
         } catch (error) {
             console.error("Error fetching data:", error.message);
@@ -40,8 +42,8 @@ export default function Psdku() {
     // Fungsi untuk mengambil data akreditasi dari API
     const fetchAkreditasi = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/akreditasi/all');
+            const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
+            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/akreditasi/all');
             setAkreditasiOptions(response.data.data || []); // Simpan data akreditasi
 
         } catch (error) {
@@ -49,15 +51,27 @@ export default function Psdku() {
         }
     };
 
-    // Fungsi untuk mengambil data akreditasi dari API
+    // Fungsi untuk mengambil data pengguna dari API
     const fetchPengguna = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/users/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
+            const response = await axios.get('http://192.168.18.176:5000/users/all');
+            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
             setPenggunaOptions(response.data.data); // Simpan data akreditasi
 
         } catch (error) {
             console.error("Error fetching akreditasi data:", error.message);
+        }
+    };
+
+    // fungsi untuk mengambil prodi dari API
+    const fetchProdi = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/prodi/all');
+            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/all');
+            setProdiOptions(response.data.data);
+        } catch (error) {
+            console.error(("Error feching data:", error.message));
+
         }
     };
 
@@ -88,7 +102,8 @@ export default function Psdku() {
     useEffect(() => {
         fetchData();
         fetchAkreditasi();
-        fetchPengguna(); // Panggil fungsi fetchAkreditasi saat komponen dimuat
+        fetchPengguna();
+        fetchProdi();
     }, []);
 
     //Fungsi CRUD
@@ -96,11 +111,11 @@ export default function Psdku() {
     // fungsi untuk menambah data ke API
     const addPsdku = async () => {
         try {
-            // const response = await axios.post('http://192.168.18.176:5000/kampus/add', newPsdku);
-            const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/kampus/add', newPsdku);
+            const response = await axios.post('http://192.168.18.176:5000/kampus/add', newPsdku);
+            // const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/kampus/add', newPsdku);
             setPsdkuList((prevList) => [...prevList, response.data]); // Update list
             fetchData();
-            setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', pengguna: [], akreditasi: '' }); // Reset form
+            setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', prodi: [], pengguna: [], akreditasi: '' }); // Reset form
             setShowModal(false); // Tutup modal
 
         } catch (error) {
@@ -121,13 +136,23 @@ export default function Psdku() {
         }
     };
 
+    const handleAddProdi = (prodiId) => {
+
+        if (!newPsdku.prodi.includes(prodiId)) {
+            setNewPsdku((prevPsdku) => ({
+                ...prevPsdku,
+                prodi: [...prevPsdku.prodi, prodiId],
+            }));
+        }
+    };
+
     // Fungsi untuk mengirimkan data yang telah diedit ke API
     const handleEditSubmit = async (event) => {
         event.preventDefault();
         try {
             const response = await axios.put(
-                // `http://192.168.18.176:5000/kampus/edit/${editPsdku._id}`, editPsdku
-                `https://9l47d23v-5000.asse.devtunnels.ms/kampus/edit/${editPsdku._id}`, editPsdku
+                `http://192.168.18.176:5000/kampus/edit/${editPsdku._id}`, editPsdku
+                // `https://9l47d23v-5000.asse.devtunnels.ms/kampus/edit/${editPsdku._id}`, editPsdku
             );
 
             console.log("data yang di kirim :", editPsdku);
@@ -142,8 +167,8 @@ export default function Psdku() {
     // Fungsi untuk menghapus data psdku
     const deletePsdku = async (psdkuId) => {
         try {
-            // const response = await axios.delete(`http://192.168.18.176:5000/kampus/delete/${psdkuId}`);
-            const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/delete/${psdkuId}`);
+            const response = await axios.delete(`http://192.168.18.176:5000/kampus/delete/${psdkuId}`);
+            // const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/delete/${psdkuId}`);
 
             // Menghapus data psdku dari state setelah dihapus dari API
             setPsdkuList((prevList) => prevList.filter((psdku) => psdku._id !== psdkuId));
@@ -157,8 +182,8 @@ export default function Psdku() {
     // fungsi melihat detail psdku
     const getPsdkuById = async (psdkuId) => {
         try {
-            // const response = await axios.get(`http://192.168.18.176:5000/kampus/${psdkuId}`);
-            const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/${psdkuId}`);
+            const response = await axios.get(`http://192.168.18.176:5000/kampus/${psdkuId}`);
+            // const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/${psdkuId}`);
             setPreviewPsdku(response.data.data); // Simpan data ke state previewPsdku
             setShowModalPreview(true); // Buka modal preview setelah data berhasil diambil
             console.log(response.data);
@@ -187,6 +212,7 @@ export default function Psdku() {
         console.log('Data yang dipilih untuk diedit:', psdku);
         setEditPsdku({
             ...psdku,
+            prodi: psdku.prodi?.map((p) => p._id) || [], // Pastikan 'prodi' adalah array
             pengguna: psdku.pengguna || [], // Pastikan 'pengguna' adalah array
             akreditasi: psdku.akreditasi?._id || "", // Misalnya ID akreditasi
         });
@@ -200,11 +226,26 @@ export default function Psdku() {
         }));
     };
 
+    // Fungsi untuk menghapus prodi dari array pada saat menambah
+    const handleNewRemoveProdi = (prodiId) => {
+        setNewPsdku((prevPsdku) => ({
+            ...prevPsdku,
+            prodi: prevPsdku.prodi.filter((id) => id !== prodiId),
+        }));
+    };
+
     // Fungsi untuk menghapus pengguna dari array pada saat edit
     const handleEditRemovePengguna = (penggunaId) => {
         setEditPsdku((prevPsdku) => ({
             ...prevPsdku,
             pengguna: prevPsdku.pengguna.filter((id) => id !== penggunaId),
+        }));
+    };
+    // Fungsi untuk menghapus prodi dari array pada saat edit
+    const handleEditRemoveProdi = (prodiId) => {
+        setEditPsdku((prevPsdku) => ({
+            ...prevPsdku,
+            prodi: prevPsdku.prodi.filter((id) => id !== prodiId),
         }));
     };
 
@@ -220,27 +261,30 @@ export default function Psdku() {
         setPreviewPsdku(null);
     };
 
-    const handleEditChange = (e) => {
-        const { name, value } = e.target;
-
-        setEditPsdku((prevPsdku) => {
-            if (name === "pengguna") {
-                // Periksa jika pengguna sudah ada di array untuk menghindari duplikasi
-                if (!prevPsdku.pengguna.includes(value)) {
-                    return {
-                        ...prevPsdku,
-                        pengguna: [...prevPsdku.pengguna, value], // Tambahkan pengguna ke array
-                    };
-                }
-            } else {
-                return {
-                    ...prevPsdku,
-                    [name]: value,
-                };
-            }
-            return prevPsdku;
-        });
+    const handleEditChange = (event) => {
+        const { name, value } = event.target;
+        if (name === 'prodi') {
+            // Jika prodi, tambahkan prodi ke dalam array jika belum ada
+            setEditPsdku((prevPsdku) => {
+                const updatedProdi = prevPsdku.prodi.includes(value)
+                    ? prevPsdku.prodi // Jika prodi sudah ada, jangan menambahkannya lagi
+                    : [...prevPsdku.prodi, value]; // Tambahkan prodi baru
+                return { ...prevPsdku, prodi: updatedProdi };
+            });
+        } else if (name === 'pengguna') {
+            // Sama untuk pengguna jika diperlukan
+            setEditPsdku((prevPsdku) => {
+                const updatedPengguna = prevPsdku.pengguna.includes(value)
+                    ? prevPsdku.pengguna
+                    : [...prevPsdku.pengguna, value];
+                return { ...prevPsdku, pengguna: updatedPengguna };
+            });
+        } else {
+            setEditPsdku((prevPsdku) => ({ ...prevPsdku, [name]: value }));
+        }
     };
+
+
 
 
     return (
@@ -357,13 +401,14 @@ export default function Psdku() {
             {showModal && (
                 <div className="modal fade show d-block">
                     <div className="modal-dialog">
-                        <div className="modal-content">
+                        <div className="modal-content" style={{ width: '750px' }}>
                             <div className="modal-header">
                                 <h5 className="modal-title">Tambah PSDKU</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit}>
+
                                     <input
                                         type="number"
                                         name="kode_pt"
@@ -373,42 +418,83 @@ export default function Psdku() {
                                         placeholder="Kode PT"
                                         required
                                     />
-                                    <input
-                                        type="date"
-                                        name="tanggal_berdiri"
-                                        value={newPsdku.tanggal_berdiri}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        placeholder="Tanggal Berdiri"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        name="tanggal_sk"
-                                        value={newPsdku.tanggal_sk}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        placeholder="Tanggal SK"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        name="alamat"
-                                        value={newPsdku.alamat}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        placeholder="Alamat"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        name="psdku"
-                                        value={newPsdku.psdku}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        placeholder="PSDKU"
-                                        required
-                                    />
+                                    <div className='d-flex justify-content-between'>
+                                        <input
+                                            type="date"
+                                            name="tanggal_berdiri"
+                                            value={newPsdku.tanggal_berdiri}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2 w-75 me-4"
+                                            placeholder="Tanggal Berdiri"
+                                            required
+                                        />
+
+                                        <input
+                                            type="text"
+                                            name="tanggal_sk"
+                                            value={newPsdku.tanggal_sk}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="Tanggal SK"
+                                            required
+                                        />
+                                    </div>
+                                    <div className='d-flex justify-content-between'>
+                                        <input
+                                            type="text"
+                                            name="alamat"
+                                            value={newPsdku.alamat}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2 w-75 me-4"
+                                            placeholder="Alamat"
+                                            required
+                                        />
+                                        <input
+                                            type="text"
+                                            name="psdku"
+                                            value={newPsdku.psdku}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="PSDKU"
+                                            required
+                                        />
+                                    </div>
+                                    {/* Dropdown atau checkbox untuk memilih prodi */}
+                                    <div className="form-group">
+                                        <select
+                                            id="prodi"
+                                            value={newPsdku.prodi}
+                                            className="form-control"
+                                            onChange={(e) => handleAddProdi(e.target.value)}
+                                        >
+                                            <option value="">-- Pilih Prodi --</option>
+                                            {prodiOptions.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.nama}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="mt-2">
+                                        <strong>Prodi yang Ditambahkan:</strong>
+                                        <ul>
+                                            {newPsdku.prodi.map((prodiId, index) => {
+                                                const prodi = prodiOptions.find(option => option._id === prodiId);
+                                                return prodi ? (
+                                                    <li key={index}>
+                                                        {prodi.nama}
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm btn-danger ml-2 ms-5"
+                                                            onClick={() => handleNewRemoveProdi(prodiId)}
+                                                        >
+                                                            -
+                                                        </button>
+                                                    </li>
+                                                ) : null;
+                                            })}
+                                        </ul>
+                                    </div>
                                     {/* Dropdown atau checkbox untuk memilih pengguna */}
                                     <div className="form-group">
                                         <select
@@ -435,10 +521,10 @@ export default function Psdku() {
                                                         {pengguna.nama}
                                                         <button
                                                             type="button"
-                                                            className="btn btn-sm btn-danger ml-2"
+                                                            className="btn btn-sm btn-danger ml-2 ms-5"
                                                             onClick={() => handleNewRemovePengguna(penggunaId)}
                                                         >
-                                                            Hapus
+                                                            -
                                                         </button>
                                                     </li>
                                                 ) : null;
@@ -470,7 +556,7 @@ export default function Psdku() {
                                         <option value="Aktif">Aktif</option>
                                         <option value="Non-Aktif">Non-Aktif</option>
                                     </select> */}
-                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(psdkuData)}>Simpan</button>
+                                    <button type="submit" className="btn btn-success" onClick={() => handleSaveData(psdkuList)}>Tambahkan</button>
                                 </form>
                             </div>
                         </div>
@@ -527,6 +613,43 @@ export default function Psdku() {
                                         />
                                     </div>
                                     <div className="mb-2">
+                                        <label>Prodi</label>
+                                        <select
+                                            name="prodi"
+                                            value={editPsdku.prodi}
+                                            onChange={handleEditChange}
+                                            className="form-control mb-2"
+                                        >
+                                            {Array.isArray(prodiOptions) && prodiOptions.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.nama}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                    </div>
+                                    <div className="mt-2">
+                                        <strong>Prodi yang Ditambahkan:</strong>
+                                        <ul>
+                                            {editPsdku.prodi.map((prodiId, index) => {
+                                                const prodi = prodiOptions.find(option => option._id === prodiId);
+                                                return prodi ? (
+                                                    <li key={index}>
+                                                        {prodi.nama}
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm btn-danger ml-2 ms-4"
+                                                            onClick={() => handleEditRemoveProdi(prodiId)}
+                                                        >
+                                                            -
+                                                        </button>
+                                                    </li>
+                                                ) : null;
+                                            })}
+                                        </ul>
+                                    </div>
+
+                                    <div className="mb-2">
                                         <label>Pengguna</label>
                                         <select
                                             name="pengguna"
@@ -552,10 +675,10 @@ export default function Psdku() {
                                                         {pengguna.nama}
                                                         <button
                                                             type="button"
-                                                            className="btn btn-sm btn-danger ml-2"
+                                                            className="btn btn-sm btn-danger ml-2 ms-4"
                                                             onClick={() => handleEditRemovePengguna(penggunaId)}
                                                         >
-                                                            Hapus
+                                                            -
                                                         </button>
                                                     </li>
                                                 ) : null;
@@ -642,8 +765,20 @@ export default function Psdku() {
                                 <p><strong>PSDKU:</strong> {previewPsdku.psdku}</p>
                                 <p><strong>Akreditasi:</strong> {previewPsdku.akreditasi?.akreditasi || 'N/A'}</p>
 
+                                {/* Render Prodi */}
+                                <p><strong>Prodi:</strong></p>
+                                <ul>
+                                    {previewPsdku.prodi && previewPsdku.prodi.length > 0 ? (
+                                        previewPsdku.prodi.map((prodi) => (
+                                            <li key={prodi._id}>{prodi.nama || 'N/A'}</li>
+                                        ))
+                                    ) : (
+                                        <li>Tidak ada Prodi</li>
+                                    )}
+                                </ul>
+
                                 {/* Render Pengguna */}
-                                <p><strong>Pengguna:</strong></p>
+                                <p><h4>Pengguna:</h4></p>
                                 <ul>
                                     {previewPsdku.pengguna && previewPsdku.pengguna.length > 0 ? (
                                         previewPsdku.pengguna.map((pengguna) => (

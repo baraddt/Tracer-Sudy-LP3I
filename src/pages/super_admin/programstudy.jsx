@@ -70,6 +70,32 @@ export default function ProgramList() {
         }
     };
 
+    // fungsi untuk refresh data
+    const refreshData = async () => {
+        try {
+            await fetchData(); //panggil datanya
+        } catch (error) {
+            console.error("Error feching updated data:" , error);
+            
+        }
+    };
+
+    //fungsi untuk menambah atau mengedit data agar langsung refresh
+    const handleSaveData = async (data) => {
+        try {
+            setProgramList(data); //simpan data baru atau data yang di edit
+
+            // tunggu 3 detik dan refresh data
+            setTimeout(async () => {
+                await refreshData();
+            }, 3000);
+        } catch (error) {
+            console.error("Error saving data:", error);
+            
+        }
+    };
+
+
 
     useEffect(() => {
         fetchData();
@@ -368,7 +394,7 @@ export default function ProgramList() {
                                         <option value="Aktif">Aktif</option>
                                         <option value="Non-Aktif">Non-Aktif</option>
                                     </select>
-                                    <button type="submit" className="btn btn-primary">
+                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(programData)}>
                                         Simpan
                                     </button>
                                 </form>
@@ -457,7 +483,7 @@ export default function ProgramList() {
                                         </select>
                                     </div>
 
-                                    <button type="submit" className="btn btn-primary">
+                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(programList)}>
                                         Update
                                     </button>
                                 </form>
