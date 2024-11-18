@@ -288,7 +288,7 @@ export default function Psdku() {
 
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
             {/* Header Section */}
             <div
                 className="row rounded bg-white p-3 align-items-center"
@@ -312,12 +312,15 @@ export default function Psdku() {
                 </div>
                 <div className="col-md-9">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h1 className="mb-0">Politeknik LP3I Tasikmalaya</h1>
-                        <p className="mb-0">318/KPT/I/2019 <br /> No. SK Pendirian</p>
-                        <div>
-                            <p className="mb-0">Baik <br /> Akreditasi</p>
-                        </div>
+                        <h4 className="mb-0">Politeknik Lembaga Pendidikan dan Pengembangan Profesi Indonesia</h4>
+                        <p className="mb-0 ms-3 me-5 col-md-2">
+                            318/KPT/I/2019 <br /> No. SK Pendirian
+                        </p>
+                        <p className="mb-0">
+                            Baik <br /> Akreditasi
+                        </p>
                     </div>
+
                     <p className="mt-3">046053</p>
                     <p className="mt-5">
                         <i className="bi bi-geo-alt-fill"></i> Jl. Pahlawan No.59, Sukaluyu, <br />

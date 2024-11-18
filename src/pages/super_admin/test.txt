@@ -110,31 +110,6 @@ export default function () {
 
     // hapus soal
 
-    const deleteSoal = async (soalId) => {
-        // Pastikan soalId valid sebelum mengirim request
-        if (!soalId) {
-            console.error("ID soal tidak ditemukan");
-            return;
-        }
-
-        try {
-            // Mengirim request DELETE ke API
-            const response = await axios.delete(
-                `https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/bank_soal/delete/${soalId}`
-            );
-
-            // Update state bankSoalList dengan menghapus soal yang telah dihapus
-            setBankSoalList((prevList) =>
-                prevList.filter((soal) => soal._id !== soalId)
-            );
-
-            console.log("Soal Deleted Successfully", response.data);
-        } catch (error) {
-            // Menangani error jika request gagal
-            console.error("Error deleting soal:", error.message);
-        }
-    };
-
     // const deleteSoal = async (soalId) => {
     //     try {
     //         const response = await axios.delete(``)
@@ -215,33 +190,38 @@ export default function () {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-
+        // Gabungkan options dan weights menjadi array objek jawaban
         const updatedJawaban = options.map((option, index) => ({
             jawaban: option,
-            bobot_jawaban: Number(weights[index])
+            bobot_jawaban: Number(weights[index]) // Konversi bobot ke angka
         }));
 
         // Perbarui data soal
         const soalToSubmit = {
-            soal: newSoal.soal,
-            jawaban: updatedJawaban
+            ...newSoal,
+            jawaban: updatedJawaban // Pastikan jawaban yang baru diperbarui masuk ke dalam soal
         };
+
+        // Cek apakah editSoalId ada
+        if (!editSoalId) {
+            console.error("ID soal belum tersedia.");
+            return;  // Jangan lanjutkan jika ID soal tidak ada
+        }
 
         console.log("ID soal yang akan dikirim:", editSoalId);
         console.log("Data soal yang akan dikirim:", soalToSubmit);
 
         if (isEditMode) {
-            soalToSubmit.id_soal = editSoalId;
-
+            // Jika dalam mode edit, perbarui soal
             updateSoal(soalToSubmit);
         } else {
+            // Jika dalam mode tambah, tambahkan soal baru
             addSoal(soalToSubmit);
         }
 
         // Reset form setelah submit
         resetForm();
     };
-
 
 
 
@@ -373,9 +353,7 @@ export default function () {
                                 {/* Tombol edit dan hapus */}
                                 <div className='d-flex justify-content-end'>
                                     <button className='border-0 bg-transparent' onClick={() => handleEditSoal(item)}><i className='bi bi-pencil-fill'></i></button>
-                                    <button className='border-0 bg-transparent' onClick={() => deleteSoal(item.id_soal)}>
-                                        <i className='bi bi-trash-fill'></i>
-                                    </button>
+                                    <button className='border-0 bg-transparent'><i className='bi bi-trash-fill'></i></button>
                                 </div>
                             </div>
                         ))
@@ -384,7 +362,6 @@ export default function () {
                     )}
                 </div>
             </div>
-
 
             {/* Buttons */}
             <div className="d-flex justify-content-between mt-4">
@@ -395,9 +372,7 @@ export default function () {
                     <Link to='/super_admin/tracerstudy-golongan-kegiatan'>
                         <button type="button" className="btn btn-danger mb-3 me-3">Sebelumnya</button>
                     </Link>
-                    <Link to='/super_admin/tracerstudy-verifikasi-akhir'>
-                        <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
-                    </Link>
+                    <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
                 </div>
             </div>
         </div>

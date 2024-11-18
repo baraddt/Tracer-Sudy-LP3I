@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
+// component
+import Pdf from './components/pdf';
+
 // Import Bagian Super Admin
 import Navbar from './components/navbar';
 import Login from './components/login';
@@ -56,7 +59,7 @@ import NavbarPengguna from './components/navbarPengguna';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/' || location.pathname === '/super_admin/forgot-password' || location.pathname === '/pengguna/formtracer';
+  const isAuthPage = location.pathname === '/' || location.pathname === '/super_admin/forgot-password' || location.pathname === '/pengguna/formtracer' || location.pathname === '/pdf';
   const isSuperAdminPage = location.pathname.startsWith('/super_admin');
   const isAdminPage = location.pathname.startsWith('/admin');
   const isPenggunaPage = location.pathname.startsWith('/pengguna');
@@ -69,6 +72,9 @@ function AppContent() {
       {!isAuthPage && isPenggunaPage && <NavbarPengguna />}
 
       <Routes>
+        {/* component route */}
+        <Route path="pdf" element={<Pdf />} />
+
         {/* Route Super Admin */}
         <Route path="/" element={<Login />} /> {/* Halaman login di URL default */}
         <Route path="/super_admin/forgot-password" element={<ForgotPassword />} /> {/* Route untuk halaman lupa password */}

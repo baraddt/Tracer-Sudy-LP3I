@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 export default function () {
-    const [formData, setFormData] = useState(null);
+    const [detailList, setDetailList] = useState([]);
+
+    // ambil data detail dari API
+    const fetchDetail = async () => {
+        try {
+            const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/all`);
+            setDetailList(response.data.data)
+            
+        } catch (error) {
+            console.error("Error Feching data:", error.message);
+
+        }
+    };
 
     useEffect(() => {
-        // ambil data dari localStorage ni
-        const storedData = localStorage.getItem('formData');
-
-        // jika datanya ada maka akan di panggil
-        if (storedData) {
-            setFormData(JSON.parse(storedData));
-        }
+        fetchDetail();
     }, []);
-
-    if (!formData) {
-        return <div>Loading data...</div>;
-    }
-
-
-
 
     return (
         <div className="container rounded my-4 bg-white">
@@ -28,7 +28,7 @@ export default function () {
             {/* Banner/Flyer */}
             <div className="form-group">
                 <label className='border rounded bg-primary bg-opacity-25 p-1 mt-2' style={{ fontSize: '13px', color: '#00426D' }}><i className='bi bi-circle-fill me-2'></i>Preview</label>
-                <p className="mt-5" style={{ fontSize: '25px', color: '#00426D' }}>{formData.namaKegiatan}</p>
+                <p className="mt-5" style={{ fontSize: '25px', color: '#00426D' }}></p>
                 <p className="text-secondary" style={{ fontSize: '15px' }}>Dibuat oleh | Kampus Utama Politeknik LP3I | 13 Oktober 2024 13:45:53</p>
             </div>
 
@@ -57,22 +57,23 @@ export default function () {
             {/* Deskripsi */}
             <div className='ms-2 mt-4'>
                 <h6>Latar Belakang Kegiatan</h6>
-                <p className="text-secondary">{formData.latarBelakang.replace(/<[^>]*>/g, '')}</p>
+                {/* <p className="text-secondary">{formData.latarBelakang.replace(/<[^>]*>/g, '')}</p> */}
+                <p className="text-secondary"></p>
                 <h6 className='mt-4'>Tujuan Kegiatan</h6>
-                <p className='text-secondary'>{formData.tujuanKegiatan.replace(/<[^>]*>/g, '')}<br />
+                <p className='text-secondary'><br />
                 </p>
 
                 <h6>Manfaat Kegiatan</h6>
                 <p>Bagi Politeknik LP3I :</p>
-                <p className='text-secondary'>{formData.manfaatKegiatan.replace(/<[^>]*>/g, '')}<br />
+                <p className='text-secondary'><br />
                 </p>
 
                 <p>Bagi Alumni :</p>
-                <p className='text-secondary'>{formData.manfaatKegiatan.replace(/<[^>]*>/g, '')}<br />
+                <p className='text-secondary'><br />
                 </p>
 
                 <p>Bagi Industri :</p>
-                <p className='text-secondary'>{formData.manfaatKegiatan.replace(/<[^>]*>/g, '')}<br />
+                <p className='text-secondary'><br />
                 </p>
             </div>
 

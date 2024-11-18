@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import AuthService from '../../services/AuthService';
 import { Bar } from 'react-chartjs-2';
 import { Doughnut } from 'react-chartjs-2';
@@ -63,7 +63,7 @@ export default function Dashboard() {
   const chartOptions = {
     responsive: true,
     animation: {
-      duration: 300,
+      duration: 1000,
     },
     plugins: {
       legend: {
@@ -151,7 +151,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="container-fluid pt-4 pb-4 ps-5 pe-5 mt-4">
+    <div className="container mt-4">
       {/* Header Section */}
       <div className="row mb-4">
         {/* Wrapper for all cards with gap */}
@@ -219,7 +219,7 @@ export default function Dashboard() {
       <div className="d-flex justify-content-center">
         {/* Info di Kiri */}
         <div
-          className="d-flex bg-white p-2 rounded me-3 flex-column" style={{ width:'300px', height: '400px'}}>
+          className="d-flex bg-white p-2 rounded me-3 flex-column" style={{ width: '300px', height: '400px' }}>
           <h6>Program Study</h6>
           <div style={{ height: '100%', maxWidth: '300px' }}> {/* Wadah untuk diagram */}
             <Doughnut
@@ -256,7 +256,9 @@ export default function Dashboard() {
       <div className="mt-4 m-auto row rounded bg-white p-3 align-items-center">
         <div className="d-flex justify-content-between">
           <h4 style={{ fontSize: '20px' }}>Keselarasan Horizontal</h4>
-          <button className='bi bi-printer bg-info bg-opacity-10 border p-2 rounded text-info'> Generate Report</button>
+          <Link to='/pdf'>
+            <button className='bi bi-printer bg-info bg-opacity-10 border p-2 rounded text-info'> Generate Report</button>
+          </Link>
         </div>
 
         <table className="table mt-4">

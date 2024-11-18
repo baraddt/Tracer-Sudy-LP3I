@@ -6,6 +6,9 @@ export default function () {
     const openEditModal = () => {
         setShowModalEdit(true);
     }
+    const closeEditModal = () => {
+        setShowModalEdit(false);
+    }
 
 
     return (
@@ -92,96 +95,71 @@ export default function () {
             {/* Edit Profile */}
             {showModalEdit && (
                 <div className="modal show fade" style={{ display: 'block' }} tabIndex="-1">
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Sebelum Melanjutkan Isi Formulir Dulu YA</h5>
-                                <button type="button" className="btn-close" onClick={() => setIsModalOpen(false)} aria-label="Close"></button>
+                    <div className="modal-dialog modal-dialog-centered modal-lg mt-5 mb-5">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editProfileModalLabel">Edit Profil</h5>
+                                <button type="button" onClick={() => closeEditModal()} class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div className="modal-body">
+                            <div class="modal-body">
+                                {/* <!-- Foto Profil --> */}
+                                <div class="text-center mb-4">
+                                    <img src="/photo-profil.jpg" className='rounded-circle me-2' alt="" width='150px' height='auto' />
+                                    <button class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                </div>
+
+                                {/* <!-- Form --> */}
                                 <form>
-                                    <div className="row">
-                                        {/* Kolom Kiri */}
-                                        <div className="col-md-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="nama" className="form-label">Program Study :</label>
-                                                <select className="form-select" id="prodi" name="prodi">
-                                                    <option value="">Pilih Program Study</option>
-                                                    <option value="Manajement Informatika">Manajement Informatika</option>
-                                                    <option value="Administrasi Bisnis">Administrasi Bisnis</option>
-                                                    <option value="Manajement Perbangkan">Manajement Perbangkan</option>
-                                                    <option value="Manajement Pemasaran">Manajement Pemasaran</option>
-                                                    <option value="Bisnis Digital">Bisnis Digital</option>
-                                                </select>
-                                            </div>
-
-                                            <div className="mb-3">
-                                                <label htmlFor="email" className="form-label">Kondisi Saat Ini :</label>
-                                                <select className="form-select" id="kondisi" name="kondisi">
-                                                    <option value="">Pilih Kondisi</option>
-                                                    <option value="Bekerja">Bekerja</option>
-                                                    <option value="Wiraswasta">Wiraswasta</option>
-                                                    <option value="Mencari Kerja">Mencari Kerja</option>
-                                                    <option value="Melanjutkan Program Study">Melanjutkan Program Study</option>
-                                                </select>
-                                            </div>
-
-                                            <div className="mb-3">
-                                                <label htmlFor="telepon" className="form-label">Bidang Pekerjaan :</label>
-                                                <select className="form-select" id="bidang" name="bidang">
-                                                    <option value="">Pilih Bidang</option>
-                                                    <option value="Teknik Informasi">Teknik Informasi</option>
-                                                    <option value="Keuangan dan Akuntansi">Keuangan dan Akuntansi</option>
-                                                    <option value="Pemasaran dan Penjualan">Pemasaran dan Penjualan</option>
-                                                    <option value="Sumber Daya Manusia">Sumber Daya Manusia</option>
-                                                    <option value="Kesehatan">Kesehatan</option>
-                                                </select>
-                                            </div>
+                                    <div class="row mb-3">
+                                        {/* <!-- Nama --> */}
+                                        <div class="col-md-6">
+                                            <label for="name" class="form-label">Nama</label>
+                                            <input type="text" id="name" class="form-control" placeholder="Nama" value="Atep" />
                                         </div>
-
-                                        {/* Kolom Kanan */}
-                                        <div className="col-md-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="department" className="form-label">Kategori Pekerjaan :</label>
-                                                <select className="form-select" id="kategoriPekerjaan" name="kategoriPekerjaan">
-                                                    <option value="">Pilih Kategori</option>
-                                                    <option value="Full-time">Full-time</option>
-                                                    <option value="Part-time">Part-time</option>
-                                                    <option value="Kontrak">Kontrak</option>
-                                                    <option value="Freelance">Freelance</option>
-                                                    <option value="Magang">Magang</option>
-                                                </select>
-                                            </div>
-
-                                            <div className="mb-3">
-                                                <label htmlFor="position" className="form-label">Jenis Pekerjaan :</label>
-                                                <select className="form-select" id="jenispekerjaan" name="jenispekerjaan">
-                                                    <option value="">Pilih Jenis Pekerjaan</option>
-                                                    <option value="Pengembangan Perangkat Lunak">Pengembangan Perangkat Lunak</option>
-                                                    <option value="Desain Grafis">Desain Grafis</option>
-                                                    <option value="Manajemen Proyek">Manajemen Proyek</option>
-                                                    <option value="Analisis Data">Analisis Data</option>
-                                                    <option value="Customer Support">Customer Support</option>
-                                                </select>
-                                            </div>
-
-                                            <div className="mb-3">
-                                                <label htmlFor="status" className="form-label">Status Pekerjaan :</label>
-                                                <select className="form-select" id="status" name="status">
-                                                    <option value="">Pilih Status</option>
-                                                    <option value="Active">Active</option>
-                                                    <option value="Inactive">Inactive</option>
-                                                    <option value="Pending">Pending</option>
-                                                </select>
-                                            </div>
+                                        {/* <!-- Role --> */}
+                                        <div class="col-md-6">
+                                            <label for="role" class="form-label">Role</label>
+                                            <input type="text" id="role" class="form-control" value="Super Admin" readonly />
                                         </div>
                                     </div>
 
-                                    <button type="submit" className="btn btn-primary">Submit</button>
+                                    <div class="row mb-3">
+                                        {/* <!-- Jabatan --> */}
+                                        <div class="col-md-6">
+                                            <label for="jabatan" class="form-label">Jabatan</label>
+                                            <input type="text" id="jabatan" class="form-control" placeholder="Jabatan" value="IT Support" />
+                                        </div>
+                                        {/* <!-- NIP --> */}
+                                        <div class="col-md-6">
+                                            <label for="nip" class="form-label">NIP</label>
+                                            <input type="text" id="nip" class="form-control" placeholder="NIP" value="19830930 201003 1 003" />
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {/* <!-- Email --> */}
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" id="email" class="form-control" placeholder="Email" value="Atep@example.com" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {/* <!-- Pendidikan --> */}
+                                        <label for="education" class="form-label">Pendidikan</label>
+                                        <input type="text" id="education" class="form-control" placeholder="Pendidikan" value="Universitas Indonesia" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {/* <!-- About --> */}
+                                        <label for="about" class="form-label">About</label>
+                                        <textarea id="about" class="form-control" rows="3">IT Support Kampus bertugas untuk memastikan operasional teknologi informasi di lingkungan kampus berjalan lancar dan efisien. Tim ini memberikan dukungan teknis kepada dosen</textarea>
+                                    </div>
                                 </form>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Tutup</button>
+                            <div class="modal-footer">
+                                <button type="button" onClick={() => closeEditModal()} class="btn btn-danger" data-bs-dismiss="modal">Batal</button>
+                                <button type="button" class="btn btn-success">Update</button>
                             </div>
                         </div>
                     </div>

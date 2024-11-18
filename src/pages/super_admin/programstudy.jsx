@@ -75,8 +75,8 @@ export default function ProgramList() {
         try {
             await fetchData(); //panggil datanya
         } catch (error) {
-            console.error("Error feching updated data:" , error);
-            
+            console.error("Error feching updated data:", error);
+
         }
     };
 
@@ -91,7 +91,7 @@ export default function ProgramList() {
             }, 3000);
         } catch (error) {
             console.error("Error saving data:", error);
-            
+
         }
     };
 
@@ -131,11 +131,11 @@ export default function ProgramList() {
 
             setProgramList((prevList) => prevList.filter((program) => program._id !== programId));
 
-            console.log('Program Study deleted successfully:' , response.data);
-            
+            console.log('Program Study deleted successfully:', response.data);
+
         } catch (error) {
             console.error('Error Delete Program Study');
-            
+
         }
     };
 
@@ -146,10 +146,10 @@ export default function ProgramList() {
             setPreviewProgram(response.data.data);
             setShowModalPreview(true);
             console.log(response.data);
-            
+
         } catch (error) {
             console.error("Error feching Program Study By ID:", error.message);
-            
+
         }
     }
 
@@ -219,7 +219,7 @@ export default function ProgramList() {
 
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
             <div
                 className="row rounded bg-white p-3 align-items-center"
                 style={{
@@ -242,15 +242,13 @@ export default function ProgramList() {
 
                 <div className="col-md-9">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h1 className="mb-0">Politeknik LP3I Tasikmalaya</h1>
-                        <p className="mb-0">
+                        <h4 className="mb-0">Politeknik Lembaga Pendidikan dan Pengembangan Profesi Indonesia</h4>
+                        <p className="mb-0 ms-3 me-5 col-md-2">
                             318/KPT/I/2019 <br /> No. SK Pendirian
                         </p>
-                        <div>
-                            <p className="mb-0">
-                                Baik <br /> Akreditasi
-                            </p>
-                        </div>
+                        <p className="mb-0">
+                            Baik <br /> Akreditasi
+                        </p>
                     </div>
 
                     <p className="mt-3">046053</p>
@@ -495,27 +493,27 @@ export default function ProgramList() {
             {/* Modal Priview */}
             {showModalPreview && (
                 <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-hidden="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                <div className="modal-dialog modal-dialog-centered" role="document"> {/* Gunakan kelas modal-dialog-centered */}
-                    <div className="modal-content">
-                        <div className="modal-header d-flex justify-content-between">
-                            <h5 className="modal-title">Detail Program Study</h5>
-                            <button type="button" className="close" aria-label="Close" onClick={closePreviewModal}>
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <p><strong>Kode Program Study:</strong> {previewProgram.kode}</p>
-                            <p><strong>Nama Program Study:</strong> {previewProgram.nama}</p>
-                            <p><strong>Jenjang:</strong> {previewProgram.jenjang?.jenjang}</p>
-                            <p><strong>Akreditasi:</strong> {previewProgram.akreditasi?.akreditasi}</p>
-                            <p><strong>Status:</strong> {previewProgram.status}</p>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={closePreviewModal}>Close</button>
+                    <div className="modal-dialog modal-dialog-centered" role="document"> {/* Gunakan kelas modal-dialog-centered */}
+                        <div className="modal-content">
+                            <div className="modal-header d-flex justify-content-between">
+                                <h5 className="modal-title">Detail Program Study</h5>
+                                <button type="button" className="close" aria-label="Close" onClick={closePreviewModal}>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <p><strong>Kode Program Study:</strong> {previewProgram.kode}</p>
+                                <p><strong>Nama Program Study:</strong> {previewProgram.nama}</p>
+                                <p><strong>Jenjang:</strong> {previewProgram.jenjang?.jenjang}</p>
+                                <p><strong>Akreditasi:</strong> {previewProgram.akreditasi?.akreditasi}</p>
+                                <p><strong>Status:</strong> {previewProgram.status}</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={closePreviewModal}>Close</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             )}
         </div>
     );
