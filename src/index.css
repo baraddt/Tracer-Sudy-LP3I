@@ -59,6 +59,15 @@
 .text-primary {
   color: #00426D !important;
 }
+.text-secondary{
+  color: #A1A8AA !important;
+}
+.text-danger {
+  color: #E80000 !important;
+}
+.text-success {
+  color: #0AB39C !important;
+}
 
 .body {
   background-color: #f3f3f9;

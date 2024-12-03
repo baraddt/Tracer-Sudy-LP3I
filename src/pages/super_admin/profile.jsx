@@ -1,6 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from 'react';
+import getRoleName from '../../services/roleCheck';
 
 export default function () {
+    const [userName, setUserName] = useState('');
+    const [roleName, setRoleName] = useState('');
+    const [nip, setNip] = useState('');
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        // Ambil data user dari localStorage
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData); // Urai JSON menjadi objek
+            setUserName(user.nama || 'Pengguna'); // Pastikan ada fallback jika nama tidak tersedia
+            setRoleName(getRoleName(user.role)); // Ambil role
+            setNip(user.nip || 'N/A'); // Fallback kalau nip nggak ada
+            setEmail(user.email || 'N/A'); // Fallback kalau email nggak ada
+        }
+    }, []);
+
+
     const [showModalEdit, setShowModalEdit] = useState(false);
 
     const openEditModal = () => {
@@ -52,12 +71,12 @@ export default function () {
                                 <h6 className="mt-4">Email</h6>
                             </div>
                             <div className="text-secondary mt-2">
-                                <h6 className="mt-4">Atep</h6>
-                                <h6 className="mt-4">Super Admin</h6>
+                                <h6 className="mt-4">{userName}</h6>
+                                <h6 className="mt-4">{roleName}</h6>
                                 <h6 className="mt-4">Rektor</h6>
                                 <h6 className="mt-4">Politeknik LP3I Tasikmalaya</h6>
-                                <h6 className="mt-4">203232281 1283</h6>
-                                <h6 className="mt-4">atep@gmail.com</h6>
+                                <h6 className="mt-4">{nip}</h6>
+                                <h6 className="mt-4">{email}</h6>
                             </div>
                         </div>
                     </div>
@@ -69,7 +88,7 @@ export default function () {
                             className="text-secondary"
                             style={{ lineHeight: "1.6", marginBottom: "1rem", fontSize: '14px' }}
                         >
-                            Nama saya Atep, dan saya menjabat sebagai Rektor Kampus LP3I Tasikmalaya.
+                            Nama saya {userName}, dan saya menjabat sebagai Rektor Kampus LP3I Tasikmalaya.
                             Saya memiliki dedikasi yang tinggi dalam bidang pendidikan dan berkomitmen
                             untuk meningkatkan kualitas pembelajaran di kampus kami. Dalam peran ini,
                             saya bertanggung jawab memastikan mahasiswa mendapatkan pendidikan yang relevan

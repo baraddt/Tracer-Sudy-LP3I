@@ -1,7 +1,128 @@
-import { Link } from 'react-router-dom';
-import "react-quill/dist/quill.snow.css";
+import React, { useEffect, useState } from "react";
+import axiosClient from "../../services/axiosClient";
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function () {
+    const navigate = useNavigate();
+    const [dataTracerId, setDataTracerId] = useState(null);
+    const [dataAtensi, setDataAtensi] = useState([]);
+    const [dataHorizontal, setDataHorizontal] = useState([]);
+    const [newAtensi, setNewAtensi] = useState({
+        atensi_horizontal: [],
+        atensi_vertikal: [],
+    });
+
+    useEffect(() => {
+        const tracerId = localStorage.getItem('tracerId');
+        if (!tracerId) {
+            console.error("Tracer ID tidak ditemukan di localStorage.");
+            navigate('/super_admin/tracerstudy-bank-soal'); // Redirect ke step 1 jika ID tidak ditemukan
+        } else {
+            setDataTracerId(tracerId); // Simpan ke state
+            console.log("Tracer ID diambil dari localStorage:", tracerId);
+        }
+    }, [navigate]);
+
+    // const fetchTracer = async () => {
+    //     try {
+    //         const response = await axiosClient.get('/tracerstudy/all');
+    //         if (response.data.data && response.data.data.length > 0) {
+    //             setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
+    //             console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
+    //         } else {
+    //             console.error("Data tracer kosong atau tidak ditemukan");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error.message);
+    //     }
+    // };
+
+    const fetchVertikal = async () => {
+        try {
+            const response = await axiosClient.get('/tracerstudy/atensi_vertikal/all', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            setDataAtensi(response.data.data);
+        } catch (error) {
+            console.error("Error fetching data:", error.message);
+        }
+    };
+
+    const fetchHorizontal = async () => {
+        try {
+            const response = await axiosClient.get('/tracerstudy/atensi_horizontal/all', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            setDataHorizontal(response.data.data);
+
+        } catch (error) {
+            console.error("Error feching data:", error.message);
+
+        }
+    };
+
+    useEffect(() => {
+        // fetchTracer();
+        fetchVertikal();
+        fetchHorizontal();
+    }, []);
+
+    // mengirim atensi ke API tracerSTudy
+    const AddAtensi = async () => {
+        try {
+            if (!dataTracerId) {
+                throw new Error("ID tracer tidak ditemukan.");
+            }
+
+            const response = await axiosClient.post(
+                `/tracerstudy/atensi/apply/${dataTracerId}`,
+                newAtensi
+                , {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    }
+                });
+
+            console.log("Atensi yang berhasil ditambahkan:", response.data);
+        } catch (error) {
+            console.error("Error adding atensi:", error.message);
+        }
+    };
+
+
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setNewSkala((prevState) => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const tracerIdFromLocalStorage = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
+        console.log("ID yang akan diedit:", dataTracerId);
+
+        // Masukkan semua ID atensi_horizontal dan atensi_vertikal ke state newAtensi
+        setNewAtensi({
+            atensi_horizontal: dataHorizontal.map((item) => item._id), // Mengambil ID dari data horizontal
+            atensi_vertikal: dataAtensi.map((item) => item._id), // Mengambil ID dari data vertikal
+        });
+
+        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID di console untuk memeriksa
+        // Panggil fungsi AddAtensi untuk mengirim data
+        AddAtensi();
+    };
+
+
     return (
         <div className="container rounded my-4 bg-white">
             {/* Progress Steps */}
@@ -35,153 +156,184 @@ export default function () {
                     atau mengembangkan karir mereka setelah lulus</p>
             </div>
 
-            {/* Table */}
-            <div className="mt-4">
-                <h5>Sasaran Responden</h5>
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th className='fw-semibold'>Kriteria</th>
-                            <th className='fw-semibold'>Deksripsi</th>
-                            <th className='fw-semibold'>Min</th>
-                            <th className='fw-semibold'>Max</th>
-                            <th className='fw-semibold'>Atensi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th className="bg-danger text-white fw-normal text-center d-inline-block p-5" style={{ width: '150px', height: '150px' }}>Sangat Tidak Selaras</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Menunjukan bahwa mayoritas lulusan bekerja  dibidang
-                                yang sangat tidak relevan dengan program studi
-                                yang mereka ambil.
-                            </th>
-                            <th className='fw-normal'>0</th>
-                            <th className='fw-normal'>20</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Evaluasi mendalam terhadap kurikulum dan metode pengajaran.
-                                Identifikasi faktor-faktor penyebab lulusan kesulitan dalam mendapatkan pekerjaan yang relevan.
-                            </th>
-                        </tr>
-                        <tr>
-                            <th className="text-white fw-normal text-center d-inline-block p-5" style={{ backgroundColor: '#F06548', width: '150px', height: '150px' }}>Tidak Selaras</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Menunjukan bahwa mayoritas lulusan bekerja  dibidang
-                                yang sangat tidak relevan dengan program studi
-                                yang mereka ambil.
-                            </th>
-                            <th className='fw-normal'>20</th>
-                            <th className='fw-normal'>40</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Evaluasi mendalam terhadap kurikulum dan metode pengajaran.
-                                Identifikasi faktor-faktor penyebab lulusan kesulitan dalam mendapatkan pekerjaan yang relevan.
-                            </th>
-                        </tr>
-                        <tr>
-                            <th className="text-white fw-normal text-center d-inline-block p-5" style={{ backgroundColor: '#0AB39C', width: '150px', height: '150px' }}>Cukup Selaras</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Menunjukan bahwa mayoritas lulusan bekerja  dibidang
-                                yang sangat tidak relevan dengan program studi
-                                yang mereka ambil.
-                            </th>
-                            <th className='fw-normal'>40</th>
-                            <th className='fw-normal'>60</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Evaluasi mendalam terhadap kurikulum dan metode pengajaran.
-                                Identifikasi faktor-faktor penyebab lulusan kesulitan dalam mendapatkan pekerjaan yang relevan.
-                            </th>
-                        </tr>
-                        <tr>
-                            <th className="text-white fw-normal text-center d-inline-block p-5" style={{ backgroundColor: '#00AEB6', width: '150px', height: '150px' }}>Selaras</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Menunjukan bahwa mayoritas lulusan bekerja  dibidang
-                                yang sangat tidak relevan dengan program studi
-                                yang mereka ambil.
-                            </th>
-                            <th className='fw-normal'>60</th>
-                            <th className='fw-normal'>80</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Evaluasi mendalam terhadap kurikulum dan metode pengajaran.
-                                Identifikasi faktor-faktor penyebab lulusan kesulitan dalam mendapatkan pekerjaan yang relevan.
-                            </th>
-                        </tr>
-                        <tr>
-                            <th className="text-white fw-normal text-center d-inline-block p-5" style={{ backgroundColor: '#00426D', width: '150px', height: '150px' }}>Sangat Selaras</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Menunjukan bahwa mayoritas lulusan bekerja  dibidang
-                                yang sangat tidak relevan dengan program studi
-                                yang mereka ambil.
-                            </th>
-                            <th className='fw-normal'>80</th>
-                            <th className='fw-normal'>100</th>
-                            <th className='fw-normal pb-5' style={{
-                                wordWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                height: 'auto',
-                                maxWidth: '200px'
-                            }}>
-                                Evaluasi mendalam terhadap kurikulum dan metode pengajaran.
-                                Identifikasi faktor-faktor penyebab lulusan kesulitan dalam mendapatkan pekerjaan yang relevan.
-                            </th>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <form onSubmit={handleSubmit}>
+                {/* Table Atensi Horizontal */}
+                <div className="mt-4">
+                    <h4 className='text-center mb-4'>Atensi Horizontal</h4>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th className='fw-semibold'>Kriteria</th>
+                                <th className='fw-semibold'>Deksripsi</th>
+                                <th className='fw-semibold'>Min</th>
+                                <th className='fw-semibold'>Max</th>
+                                <th className='fw-semibold'>Atensi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dataHorizontal.length > 0 ? (
+                                dataHorizontal.map((item, index) => (
+                                    <tr key={index}>
+                                        <td
+                                            className={`text-white fw-normal text-center d-inline-block p-5 ${item.kriteria === "Sangat Tidak Selaras"
+                                                ? "bg-danger"
+                                                : item.kriteria === "Tidak Selaras"
+                                                    ? "bg-warning"
+                                                    : item.kriteria === "Cukup Selaras"
+                                                        ? "bg-success"
+                                                        : item.kriteria === "Selaras"
+                                                            ? "bg-info"
+                                                            : item.kriteria === "Sangat Selaras"
+                                                                ? "bg-primary"
+                                                                : "bg-black"
+                                                }`}
+                                            style={{ width: "150px", height: "150px" }}
+                                        >
+                                            {item.kriteria}
+                                        </td>
+
+                                        <td
+                                            className="fw-normal pb-5"
+                                            style={{
+                                                wordWrap: "break-word",
+                                                whiteSpace: "normal",
+                                                overflow: "hidden",
+                                                height: "auto",
+                                                maxWidth: "200px",
+                                            }}
+                                        >
+                                            {item.deskripsi || "Tidak ada deskripsi"}
+                                        </td>
+                                        <td
+                                            className="fw-normal pb-5"
+                                            style={{
+                                                wordWrap: "break-word",
+                                                whiteSpace: "normal",
+                                                overflow: "hidden",
+                                                height: "auto",
+                                                maxWidth: "200px",
+                                            }}
+                                        >
+                                            {item.min}
+                                        </td>
+                                        <td
+                                            className="fw-normal pb-5"
+                                            style={{
+                                                wordWrap: "break-word",
+                                                whiteSpace: "normal",
+                                                overflow: "hidden",
+                                                height: "auto",
+                                                maxWidth: "200px",
+                                            }}
+                                        >
+                                            {item.max}
+                                        </td>
+                                        <td
+                                            className="fw-normal pb-5"
+                                            style={{
+                                                wordWrap: "break-word",
+                                                whiteSpace: "normal",
+                                                overflow: "hidden",
+                                                height: "auto",
+                                                maxWidth: "200px",
+                                            }}
+                                        >
+                                            {item.atensi || "Tidak ada evaluasi"}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="3" className="text-center">Data tidak ditemukan</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                {/* Table Atensi Horizontal */}
+                <div className="mt-5">
+                    <h4 className="text-center mb-4">Atensi Vertical</h4>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th className='fw-semibold'>Kriteria</th>
+                                <th className='fw-semibold'>Deksripsi</th>
+                                <th className='fw-semibold'>Logika</th>
+                                <th className='fw-semibold'>Atensi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dataAtensi.length > 0 ? (
+                                dataAtensi.map((item, index) => (
+                                    <tr key={index}>
+                                        <td
+                                            className={`text-white fw-normal text-center d-inline-block p-5 ${item.kriteria === "Rendah"
+                                                ? "bg-danger"
+                                                : item.kriteria === "Sama"
+                                                    ? "bg-warning"
+                                                    : item.kriteria === "Tinggi"
+                                                        ? "bg-primary"
+                                                        : "bg-black"
+                                                }`}
+                                            style={{ width: "150px", height: "150px" }}
+                                        >
+                                            {item.kriteria}
+                                        </td>
+
+                                        <td
+                                            className="fw-normal pb-5"
+                                            style={{
+                                                wordWrap: "break-word",
+                                                whiteSpace: "normal",
+                                                overflow: "hidden",
+                                                height: "auto",
+                                                maxWidth: "200px",
+                                            }}
+                                        >
+                                            {item.deskripsi || "Tidak ada deskripsi"}
+                                        </td>
+                                        <td
+                                            className="fw-normal pb-5"
+                                            style={{
+                                                wordWrap: "break-word",
+                                                whiteSpace: "normal",
+                                                overflow: "hidden",
+                                                height: "auto",
+                                                maxWidth: "200px",
+                                            }}
+                                        >
+                                            {item.logika || "Tidak ada evaluasi"}
+                                        </td>
+                                        <td
+                                            className="fw-normal pb-5"
+                                            style={{
+                                                wordWrap: "break-word",
+                                                whiteSpace: "normal",
+                                                overflow: "hidden",
+                                                height: "auto",
+                                                maxWidth: "200px",
+                                            }}
+                                        >
+                                            {item.atensi || "Tidak ada evaluasi"}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="3" className="text-center">Data tidak ditemukan</td>
+                                </tr>
+                            )}
+                        </tbody>
+
+                    </table>
+                    <div className="text-end mb-5">
+                        <button type="button" className="btn btn-success" onClick={handleSubmit}>
+                            Terapkan Atensi
+                        </button>
+                    </div>
+
+                </div>
+            </form>
 
 
             {/* Buttons */}
@@ -190,10 +342,10 @@ export default function () {
                     <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
                 </div>
                 <div>
-                    <Link to='/admin/tracerbanksoal'>
+                    <Link to='/super_admin/tracerstudy-bank-soal'>
                         <button type="button" className="btn btn-danger mb-3 me-3">Sebelumnnya</button>
                     </Link>
-                    <Link to='/admin/tracerpreview'>
+                    <Link to='/super_admin/tracerstudy-preview'>
                         <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
                     </Link>
                 </div>

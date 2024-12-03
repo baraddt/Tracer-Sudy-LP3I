@@ -1,12 +1,125 @@
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import axiosClient from '../../services/axiosClient';
+
 
 export default function () {
+    
+    const navigate = useNavigate();
+    const [tracerList, setTracerList] = useState([]);
+    const [error, setError] = useState(null);
+    const [selectedTracer, setSelectedTracer] = useState(null);
+
+    // fungsi mengambil data dari API
+    const fetchData = async () => {
+        try {
+            // const response = await axios.get('/tracerstudy/all');
+            const response = await axiosClient.get('/tracerstudy/all');
+            setTracerList(response.data.data);
+            console.log(response.data.data);
+
+        } catch (error) {
+            console.error("Error feching data:", error.message);
+
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const getTracerById = async (tracerId) => {
+        try {
+            const response = await axiosClient.get(`/tracerstudy/${tracerId}`);
+            return response.data.data;
+        } catch (error) {
+            console.error("Error Feching tracer details:", error.message);
+            return null;
+        }
+    };
+
+    const deleteTracer = async (tracerId) => {
+        try {
+            const response = await axiosClient.delete(`/tracerstudy/delete/${tracerId}`);
+            setTracerList((prevList) => prevList.filter((tracer) => tracer._id !== tracerId));
+
+            console.log('Tracer Deleted Successfully:', response.data);
+
+        } catch (error) {
+            console.error('Error deleted Tracer:', error.message);
+
+        }
+    }
+
+    const handlePreviewTracer = async (tracerId) => {
+        const TracerStudyDetails = await getTracerById(tracerId);
+        if (TracerStudyDetails) {
+            setSelectedTracer(TracerStudyDetails);
+            navigate(`/super_admin/tracerstudy-getpreview/${tracerId}`); // Navigasi ke halaman preview
+        }
+    };
+
+
+    const checkAndUpdateStatus = async () => {
+        try {
+            const token = localStorage.getItem('token')
+            // Ambil data tracer terbaru dari server
+            const response = await axiosClient.get('/tracerstudy/all');
+            const tracerList = response.data.data;
+
+            if (!tracerList || tracerList.length === 0) {
+                console.log("Tidak ada data tracer untuk diperiksa.");
+                return;
+            }
+
+            // Iterasi melalui semua data tracer
+            for (const tracer of tracerList) {
+                const today = new Date(); // Tanggal hari ini
+                const tanggalBerakhir = new Date(tracer.id_detail.tanggal_berakhir); // Tanggal berakhir
+
+                // Pastikan tracer memiliki status dan tanggal_berakhir valid
+                if (tracer.status !== 'Selesai' && tracer.id_detail.tanggal_berakhir) {
+                    if (today > tanggalBerakhir) {
+                        // Jika tanggal sekarang lebih besar dari Tanggal Berakhir, ubah status ke "Berakhir"
+                        const updateResponse = await axiosClient.post(
+                            `/tracerstudy/${tracer._id}/publish?status=Selesai`
+                        );
+
+                        console.log(`Status tracer ID ${tracer._id} berhasil diperbarui menjadi Berakhir:`, updateResponse.data);
+
+                        // Perbarui status di state lokal (opsional jika diperlukan untuk tampilan)
+                        setTracerList((prevList) =>
+                            prevList.map((item) =>
+                                item._id === tracer._id ? { ...item, status: 'Selesai' } : item
+                            )
+                        );
+                    } else {
+                        // Jika belum melewati tanggal berakhir, log alasan
+                        console.log(
+                            `Status tracer ID ${tracer._id} belum diubah menjadi Berakhir karena hari ini (${today.toLocaleDateString()}) belum melewati Tanggal Berakhir (${tanggalBerakhir.toLocaleDateString()}).`
+                        );
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Gagal memeriksa dan memperbarui status:', error.message);
+        }
+    };
+
+    // Jalankan pemeriksaan saat komponen dimuat
+    useEffect(() => {
+        console.log("Memulai pemeriksaan status tracer...");
+        checkAndUpdateStatus();
+    }, []);
+
+
+
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
-                    <Link to='/admin/traceradd'>
+                    <Link to='/super_admin/tracerstudyadd'>
                         <button className="btn btn-success mb-2">
                             <i className="bi bi-plus"></i>Tambah
                         </button>
@@ -50,76 +163,47 @@ export default function () {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    #TR001
-                                </td>
-                                <td>
-                                    Analisis Kesuksesan Dengan Dunia Kerja
-                                </td>
-                                <td>
-                                    14 Oktober 2024
-                                </td>
-                                <td>
-                                    24 Desember 2024
-                                </td>
-                                <td className="text-center">
-                                    <span className="border rounded bg-primary bg-opacity-25 text-center p-1" style={{ fontSize: '13px' }}>Berlangsung</span>
-                                </td>
-                                <td className="text-end">
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent">
-                                        <i className="bi bi-pencil-fill text-primary"></i>
-                                    </button>
-
-                                    <button className="border border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    #TR002
-                                </td>
-                                <td>
-                                    Analisis Alumni Terhadap Pekerjaan
-                                </td>
-                                <td>
-                                    14 Januari 2024
-                                </td>
-                                <td>
-                                    24 Maret 2024
-                                </td>
-                                <td className="text-center text-success">
-                                    <span className="border rounded bg-success bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Selesai</span>
-                                </td>
-                                <td className="text-end">
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-file-earmark-pdf-fill text-danger"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-pencil-fill text-primary"></i></button>
-                                    <button className="border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    #TR003
-                                </td>
-                                <td>
-                                    Analisis Kampus Terhadap Kurikulum
-                                </td>
-                                <td>
-                                    14 Juni 2024
-                                </td>
-                                <td>
-                                    24 September 2024
-                                </td>
-                                <td className="text-center text-secondary">
-                                    <span className="border rounded bg-secondary bg-opacity-25 p-1" style={{ fontSize: "13px" }}>Draft</span>
-                                </td>
-                                <td className="text-end">
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-eye-fill text-success"></i></button>
-                                    <button className="me-2 border-0 bg-transparent"><i className="bi bi-pencil-fill text-primary"></i></button>
-                                    <button className="border-0 bg-transparent"><i className="bi bi-trash-fill text-danger"></i></button>
-                                </td>
-                            </tr>
+                            {tracerList.length > 0 ? (
+                                tracerList.map((tracer, index) => (
+                                    <tr key={tracer._id}>
+                                        <td>{`#TS${index + 201}`}</td>
+                                        <td>{tracer.id_detail.nama_kegiatan}</td>
+                                        <td>{tracer.id_detail.tanggal_mulai || 'N/A'}</td>
+                                        <td>{tracer.id_detail.tanggal_berakhir || 'N/A'}</td>
+                                        <td className={`text-center ${tracer.status === 'Selesai' ? 'text-success' : tracer.status === 'Berlangsung' ? 'text-primary' : tracer.status === 'Draft' ? 'text-secondary' : 'text-danger'}`}>
+                                            {tracer.status || 'N/A'}
+                                        </td>
+                                        <td className='text-center'>
+                                            <button
+                                                onClick={() => handlePreviewTracer(tracer._id)}
+                                                className="btn-sm border-0 bg-transparent"
+                                            >
+                                                <i className="bi bi-eye-fill text-info"></i>
+                                            </button>
+                                            <button
+                                                className="btn-sm me-2 border-0 bg-transparent"
+                                                onClick={() => navigate(`/super_admin/tracerstudy-edit/${tracer._id}`)}
+                                                disabled={tracer.status === 'Berlangsung' || tracer.status === 'Selesai'} // Nonaktifkan jika status "Berlangsung" atau "Selesai"
+                                                style={{
+                                                    color: tracer.status === 'Berlangsung' || tracer.status === 'Selesai' ? '#6c757d' : '#00426D', // Warna abu-abu jika nonaktif
+                                                    cursor: tracer.status === 'Berlangsung' || tracer.status === 'Selesai' ? 'not-allowed' : 'pointer', // Ubah kursor jika nonaktif
+                                                }}
+                                            >
+                                                <i className="bi bi-pencil-fill"></i>
+                                            </button>
+                                            <button className="btn-sm border-0 bg-transparent">
+                                                <i className="bi bi-trash-fill text-danger" onClick={() => deleteTracer(tracer._id)}></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="6" className="text-center">
+                                        Tidak ada data PSDKU.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

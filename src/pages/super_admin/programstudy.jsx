@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
 
 export default function ProgramList() {
     const [programList, setProgramList] = useState([]);
@@ -35,8 +35,8 @@ export default function ProgramList() {
     // fungsi untuk get data dari API
     const fetchData = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/prodi/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/all');
+            // const response = await axiosClient.get('/prodi/all');
+            const response = await axiosClient.get('/prodi/all');
 
             setProgramList(response.data.data);
         } catch (error) {
@@ -47,8 +47,8 @@ export default function ProgramList() {
     // fungsi untuk get akreditasi dari API
     const fetchAkreditasi = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/akreditasi/all');
+            // const response = await axiosClient.get('/prodi/akreditasi/all');
+            const response = await axiosClient.get('/prodi/akreditasi/all');
 
             setAkreditasiOptions(response.data.data || []);
         } catch (error) {
@@ -60,8 +60,8 @@ export default function ProgramList() {
 
     const fetchJenjang = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/prodi/jenjang/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/jenjang/all');
+            // const response = await axiosClient.get('/prodi/jenjang/all');
+            const response = await axiosClient.get('/prodi/jenjang/all');
 
             setJenjangOptions(response.data.data || []);
         } catch (error) {
@@ -109,8 +109,9 @@ export default function ProgramList() {
     // fungsi untuk menambah data programstudy lewat API
     const AddProgram = async () => {
         try {
-            // const response = await axios.post('http://192.168.18.176:5000/prodi/add', newProgram)
-            const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/prodi/add', newProgram)
+            const token = localStorage.getItem
+            // const response = await axiosClient.post('/prodi/add', newProgram)
+            const response = await axiosClient.post('/prodi/add', newProgram )
             setProgramList((prevList) => [...prevList, response.data]);
             fetchData();
             setNewProgram({ kode: '', nama: '', jenjang: '', akreditasi: '', status: '' });
@@ -126,8 +127,8 @@ export default function ProgramList() {
     // Fungsi untuk menghapus program study lewat APi
     const deleteProgram = async (programId) => {
         try {
-            // const response = await axios.delete(`http://192.168.18.176:5000/prodi/delete/${psdkuId}`)
-            const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/prodi/delete/${programId}`);
+            // const response = await axiosClient.delete(`/prodi/delete/${psdkuId}`)
+            const response = await axiosClient.delete(`/prodi/delete/${programId}`);
 
             setProgramList((prevList) => prevList.filter((program) => program._id !== programId));
 
@@ -142,7 +143,7 @@ export default function ProgramList() {
     // fungsi melihat detail program study dari API
     const getProgramById = async (programId) => {
         try {
-            const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/prodi/${programId}`);
+            const response = await axiosClient.get(`/prodi/${programId}`);
             setPreviewProgram(response.data.data);
             setShowModalPreview(true);
             console.log(response.data);
@@ -159,8 +160,8 @@ export default function ProgramList() {
     const handleEditSubmit = async (event) => {
         event.preventDefault();
         try {
-            // const response = await axios.put(`http://192.168.18.176:5000/prodi/edit/${editProgram._id}`, editProgram);
-            const response = await axios.put(`https://9l47d23v-5000.asse.devtunnels.ms/prodi/edit/${editProgram._id}`, editProgram);
+            // const response = await axiosClient.put(`/prodi/edit/${editProgram._id}`, editProgram);
+            const response = await axiosClient.put(`/prodi/edit/${editProgram._id}`, editProgram);
 
             console.log("data yang terkirim:", editProgram);
             console.log('ProgramStudy updated Successfuly:', response.data);
@@ -170,7 +171,7 @@ export default function ProgramList() {
             console.error("Error updating Program Study:", error.message);
             setError(error.response?.data?.message || 'An error occurred');
         }
-    }
+    };
 
 
 
@@ -392,7 +393,7 @@ export default function ProgramList() {
                                         <option value="Aktif">Aktif</option>
                                         <option value="Non-Aktif">Non-Aktif</option>
                                     </select>
-                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(programData)}>
+                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(programList)}>
                                         Simpan
                                     </button>
                                 </form>

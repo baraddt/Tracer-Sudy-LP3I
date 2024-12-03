@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
 
 export default function User() {
     const [usersList, setUsersList] = useState([]); // State untuk menyimpan data pengguna
@@ -21,7 +21,7 @@ export default function User() {
     // Fungsi API Memanggil Data User
     const fetchUsers = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/users/all');
+            const response = await axiosClient.get('/users/all');
             setUsersList(response.data.data);
         } catch (error) {
             console.error("Error fetching data:", error.message);
@@ -37,7 +37,7 @@ export default function User() {
     // fungsi menambah data menggunakan API
     const addUser = async () => {
         try {
-            const response = await axios.post('http://192.168.18.176:5000/users/adduser')
+            const response = await axiosClient.post('/users/adduser')
             setUsersList((prevList) => [...prevList, response.data]);
 
             // fetchData
@@ -63,17 +63,6 @@ export default function User() {
     const handleSubmit = async (e) => {
         e.preventDefault(); // Mencegah reload halaman
         addUser();
-    };
-
-    // Pagination
-    // const totalPages = Math.ceil(users.length / itemsPerPage);
-    // const startIndex = (currentPage - 1) * itemsPerPage;
-    // const usersList = users.slice(startIndex, startIndex + itemsPerPage);
-
-    const goToPage = (page) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-        }
     };
 
     return (

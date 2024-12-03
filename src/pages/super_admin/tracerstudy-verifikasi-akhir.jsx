@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Link } from 'react-router-dom';
+import axiosClient from "../../services/axiosClient";
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function () {
-
+    const navigate = useNavigate();
     const [dataTracerId, setDataTracerId] = useState(null);
     const [dataAtensi, setDataAtensi] = useState([]);
     const [dataHorizontal, setDataHorizontal] = useState([]);
@@ -12,23 +12,34 @@ export default function () {
         atensi_vertikal: [],
     });
 
-    const fetchTracer = async () => {
-        try {
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/all');
-            if (response.data.data && response.data.data.length > 0) {
-                setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
-                console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
-            } else {
-                console.error("Data tracer kosong atau tidak ditemukan");
-            }
-        } catch (error) {
-            console.error("Error fetching data:", error.message);
+    useEffect(() => {
+        const tracerId = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        if (!tracerId) {
+            console.error("Tracer ID tidak ditemukan di localStorage.");
+            navigate('/super_admin/tracerstudy-bank-soal'); // Redirect ke step 1 jika ID tidak ditemukan
+        } else {
+            setDataTracerId(tracerId); // Simpan ke state
+            console.log("Tracer ID diambil dari localStorage:", tracerId);
         }
-    };
+    }, [navigate]);
+
+    // const fetchTracer = async () => {
+    //     try {
+    //         const response = await axiosClient.get('/tracerstudy/all');
+    //         if (response.data.data && response.data.data.length > 0) {
+    //             setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
+    //             console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
+    //         } else {
+    //             console.error("Data tracer kosong atau tidak ditemukan");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error.message);
+    //     }
+    // };
 
     const fetchVertikal = async () => {
         try {
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/atensi_vertikal/all');
+            const response = await axiosClient.get('/tracerstudy/atensi_vertikal/all');
             setDataAtensi(response.data.data);
         } catch (error) {
             console.error("Error fetching data:", error.message);
@@ -37,7 +48,7 @@ export default function () {
 
     const fetchHorizontal = async () => {
         try {
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/atensi_horizontal/all');
+            const response = await axiosClient.get('/tracerstudy/atensi_horizontal/all');
             setDataHorizontal(response.data.data);
 
         } catch (error) {
@@ -47,7 +58,7 @@ export default function () {
     };
 
     useEffect(() => {
-        fetchTracer();
+        // fetchTracer();
         fetchVertikal();
         fetchHorizontal();
     }, []);
@@ -59,15 +70,14 @@ export default function () {
                 throw new Error("ID tracer tidak ditemukan.");
             }
 
-            const response = await axios.post(
-                `https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/atensi/apply/${dataTracerId}`,
+            const response = await axiosClient.post(
+                `/tracerstudy/atensi/apply/${dataTracerId}`,
                 newAtensi
             );
 
             console.log("Atensi yang berhasil ditambahkan:", response.data);
         } catch (error) {
             console.error("Error adding atensi:", error.message);
-            alert("Gagal menambahkan atensi. Silakan coba lagi.");
         }
     };
 
@@ -82,6 +92,9 @@ export default function () {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        const tracerIdFromLocalStorage = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
+        console.log("ID yang akan diedit:", dataTracerId);
 
         // Masukkan semua ID atensi_horizontal dan atensi_vertikal ke state newAtensi
         setNewAtensi({

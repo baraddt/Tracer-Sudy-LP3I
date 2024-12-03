@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, } from 'react-router-dom';
-import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
 
 export default function () {
     const [dataTracerId, setDataTracerId] = useState(null);
@@ -17,21 +17,33 @@ export default function () {
     const [tahunOptions, setTahunOptions] = useState([]);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const tracerId = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        if (!tracerId) {
+            console.error("Tracer ID tidak ditemukan di localStorage.");
+            navigate('/super_admin/tracerstudyadd'); // Redirect ke step 1 jika ID tidak ditemukan
+        } else {
+            setDataTracerId(tracerId); // Simpan ke state
+            console.log("Tracer ID diambil dari localStorage:", tracerId);
+        }
+    }, [navigate]);
+    
+
 
     // memanggil dulu data tracernya
-    const fetchTracer = async () => {
-        try {
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/all');
-            if (response.data.data && response.data.data.length > 0) {
-                setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
-                console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
-            } else {
-                console.error("Data tracer kosong atau tidak ditemukan");
-            }
-        } catch (error) {
-            console.error("Error fetching data:", error.message);
-        }
-    };
+    // const fetchTracer = async () => {
+    //     try {
+    //         const response = await axiosClient.get('/tracerstudy/all');
+    //         if (response.data.data && response.data.data.length > 0) {
+    //             setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
+    //             console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
+    //         } else {
+    //             console.error("Data tracer kosong atau tidak ditemukan");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error.message);
+    //     }
+    // };
 
 
 
@@ -39,8 +51,8 @@ export default function () {
     // memangil psdku lewat API
     const fetchPsdku = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/kampus/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/kampus/all');
+            // const response = await axiosClient.get('/kampus/all');
+            const response = await axiosClient.get('/kampus/all');
             setPsdkuList(response.data.data);
 
         } catch (error) {
@@ -52,8 +64,8 @@ export default function () {
     // memanggil tahun lulusan melalui API
     const fetchTahun = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/mahasiswa/tahun_lulu')
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/mahasiswa/tahun_lulusan/all')
+            // const response = await axiosClient.get('/mahasiswa/tahun_lulu')
+            const response = await axiosClient.get('/mahasiswa/tahun_lulusan/all')
 
             setTahunOptions(response.data.data || []);
 
@@ -67,7 +79,6 @@ export default function () {
     useEffect(() => {
         fetchPsdku();
         fetchTahun();
-        fetchTracer();
     }, []);
 
 
@@ -77,22 +88,25 @@ export default function () {
             if (!dataTracerId) {
                 throw new Error("ID tracer tidak ditemukan.");
             }
+
     
-            const response = await axios.put(
-                `https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/skalakegiatan/add/${dataTracerId}`,
+            const response = await axiosClient.put(
+                `/tracerstudy/skalakegiatan/add/${dataTracerId}`,
                 newSkala
             );
-            console.log("Data kegiatan yang berhasil ditambahkan:", response.data);
-            navigate('/super_admin/tracerstudy-bank-soal');
+    
+            console.log("Data skala kegiatan berhasil ditambahkan:", response.data);
+            navigate('/super_admin/tracerstudy-bank-soal'); // Navigasi ke step berikutnya
         } catch (error) {
-            console.error("Error adding skala:", error.message);
-            setError("Failed to add kegiatan. Please try again.");
+            console.error("Error saat menambahkan skala kegiatan:", error.message);
+            setError("Gagal menambahkan skala kegiatan. Silakan coba lagi.");
         }
     };
     
+    
     // const addSkala = async () => {
     //     try {
-    //         const response = await axios.put(`https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/skalakegiatan/add/${dataTracerId._id}`, newSkala);
+    //         const response = await axiosClient.put(`/tracerstudy/skalakegiatan/add/${dataTracerId._id}`, newSkala);
     //         if (response.data && response.data.data) {
     //             setDataTracerId(response.data.data);
     //         }
@@ -153,10 +167,14 @@ export default function () {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID di console untuk memeriksa
+        const tracerIdFromLocalStorage = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
+        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID yang ada di state
     
+        // Proses selanjutnya
         addSkala();
     };
+    
     
 
 

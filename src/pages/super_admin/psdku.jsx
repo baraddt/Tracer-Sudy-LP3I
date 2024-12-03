@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios'
+import axiosClient from '../../services/axiosClient';
 
 export default function Psdku() {
     const [psdkuList, setPsdkuList] = useState([]); // State untuk menyimpan data PSDKU
@@ -29,8 +29,8 @@ export default function Psdku() {
     // Fungsi untuk mengambil data dari API
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/kampus/all');
-            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/kampus/all');
+            const response = await axiosClient.get('/kampus/all');
+            // const response = await axiosClient.get('https://9l47d23v-5000.asse.devtunnels.ms/kampus/all');
             setPsdkuList(response.data.data); // Pastikan untuk mengupdate psdkuList dengan response.data.data
         } catch (error) {
             console.error("Error fetching data:", error.message);
@@ -42,8 +42,8 @@ export default function Psdku() {
     // Fungsi untuk mengambil data akreditasi dari API
     const fetchAkreditasi = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/prodi/akreditasi/all');
-            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/akreditasi/all');
+            const response = await axiosClient.get('/prodi/akreditasi/all');
+            // const response = await axiosClient.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/akreditasi/all');
             setAkreditasiOptions(response.data.data || []); // Simpan data akreditasi
 
         } catch (error) {
@@ -54,8 +54,8 @@ export default function Psdku() {
     // Fungsi untuk mengambil data pengguna dari API
     const fetchPengguna = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/users/all');
-            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
+            const response = await axiosClient.get('/users/all');
+            // const response = await axiosClient.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
             setPenggunaOptions(response.data.data); // Simpan data akreditasi
 
         } catch (error) {
@@ -66,8 +66,8 @@ export default function Psdku() {
     // fungsi untuk mengambil prodi dari API
     const fetchProdi = async () => {
         try {
-            const response = await axios.get('http://192.168.18.176:5000/prodi/all');
-            // const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/all');
+            const response = await axiosClient.get('/prodi/all');
+            // const response = await axiosClient.get('https://9l47d23v-5000.asse.devtunnels.ms/prodi/all');
             setProdiOptions(response.data.data);
         } catch (error) {
             console.error(("Error feching data:", error.message));
@@ -111,8 +111,8 @@ export default function Psdku() {
     // fungsi untuk menambah data ke API
     const addPsdku = async () => {
         try {
-            const response = await axios.post('http://192.168.18.176:5000/kampus/add', newPsdku);
-            // const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/kampus/add', newPsdku);
+            const response = await axiosClient.post('/kampus/add', newPsdku);
+            // const response = await axiosClient.post('https://9l47d23v-5000.asse.devtunnels.ms/kampus/add', newPsdku);
             setPsdkuList((prevList) => [...prevList, response.data]); // Update list
             fetchData();
             setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', prodi: [], pengguna: [], akreditasi: '' }); // Reset form
@@ -150,10 +150,8 @@ export default function Psdku() {
     const handleEditSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.put(
-                `http://192.168.18.176:5000/kampus/edit/${editPsdku._id}`, editPsdku
-                // `https://9l47d23v-5000.asse.devtunnels.ms/kampus/edit/${editPsdku._id}`, editPsdku
-            );
+            const response = await axiosClient.put(
+                `/kampus/edit/${editPsdku._id}`, editPsdku);
 
             console.log("data yang di kirim :", editPsdku);
             console.log('Psdku updated successfully:', response.data);
@@ -167,8 +165,8 @@ export default function Psdku() {
     // Fungsi untuk menghapus data psdku
     const deletePsdku = async (psdkuId) => {
         try {
-            const response = await axios.delete(`http://192.168.18.176:5000/kampus/delete/${psdkuId}`);
-            // const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/delete/${psdkuId}`);
+            const response = await axiosClient.delete(`/kampus/delete/${psdkuId}`);
+            // const response = await axiosClient.delete(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/delete/${psdkuId}`);
 
             // Menghapus data psdku dari state setelah dihapus dari API
             setPsdkuList((prevList) => prevList.filter((psdku) => psdku._id !== psdkuId));
@@ -182,8 +180,8 @@ export default function Psdku() {
     // fungsi melihat detail psdku
     const getPsdkuById = async (psdkuId) => {
         try {
-            const response = await axios.get(`http://192.168.18.176:5000/kampus/${psdkuId}`);
-            // const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/${psdkuId}`);
+            const response = await axiosClient.get(`/kampus/${psdkuId}`);
+            // const response = await axiosClient.get(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/${psdkuId}`);
             setPreviewPsdku(response.data.data); // Simpan data ke state previewPsdku
             setShowModalPreview(true); // Buka modal preview setelah data berhasil diambil
             console.log(response.data);

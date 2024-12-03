@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AuthService from '../../services/AuthService';
+import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, ArcElement, LineElement, PointElement, CategoryScale, LinearScale, Legend, Tooltip } from 'chart.js';
@@ -9,17 +7,6 @@ import { Chart as ChartJS, BarElement, ArcElement, LineElement, PointElement, Ca
 ChartJS.register(BarElement, ArcElement, LineElement, PointElement, CategoryScale, LinearScale, Legend, Tooltip);
 
 export default function Dashboard() {
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Periksa apakah token ada di localStorage
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/'); // Jika tidak ada token, redirect ke halaman login
-    }
-  }, [navigate]);
-
 
   const chartData = {
     labels: ['2019', '2020', '2021', '2022', '2023', '2024'],

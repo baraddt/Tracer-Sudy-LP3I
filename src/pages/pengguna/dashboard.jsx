@@ -1,17 +1,98 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 export default function () {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [jenisOptions, setJenisOptions] = useState([]);
+    const [posisiOptions, setPosisiOptions] = useState([]);
+    const [bidangOptions, setBidangOptions] = useState([]);
+    const [kondisiOptions, setKondisiOptions] = useState([]);
+    const storedUser = localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(storedUser) : {};
+    const [formData, setFormData] = useState({
+        id_mahasiswa: user.id || "",
+        pekerjaan: [
+            {
+                bidang: "",
+                jenis_pekerjaan: [
+                    {
+                        jenis: "",
+                        posisi: ""
+                    }
+                ]
+            }
+        ]
+    });
+    const fetchPekerjaan = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/pekerjaan/all');
+
+            setJenisOptions(response.data.data);
+            setPosisiOptions(response.data.data);
+            console.log(response.data.data);
+
+        } catch (err) {
+            console.error("Error feching data:", err.message);
+
+        }
+    };
+
+    const fetchBidang = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/pekerjaan/bidang');
+            setBidangOptions(response.data.data)
+            console.log(response.data);
+
+        } catch (err) {
+            console.error("Error feching data:", err.message);
+
+        }
+    };
+
+    const fetchKondisi = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/mahasiswa/get/kondisi');
+            setKondisiOptions(response.data.data);
+            console.log(response.data);
+
+        } catch (err) {
+            console.error("Error Feching Data:", err.message);
+
+        }
+    };
+
+    useEffect(() => {
+        fetchPekerjaan();
+        fetchBidang();
+        fetchKondisi();
+    }, []);
 
     useEffect(() => {
         // Timer untuk menampilkan modal setelah 5 detik
         const timer = setTimeout(() => {
             setIsModalOpen(true);
-        }, 5000);
+        }, 3000);
 
         // Clear timeout jika user berpindah dari halaman dashboard sebelum 5 detik
         return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+        const fetchJenisPekerjaan = async () => {
+            try {
+                const response = await axios.get('http://192.168.18.176:5000/pekerjaan/jenis');
+                if (response.status === 200) {
+                    setJenisOptions(response.data.data); // Menyimpan jenis pekerjaan dalam state
+                } else {
+                    console.error("Gagal mendapatkan data jenis pekerjaan");
+                }
+            } catch (error) {
+                console.error("Error fetching jenis pekerjaan:", error);
+            }
+        };
+
+        fetchJenisPekerjaan();
     }, []);
 
     const handleClickOutside = (event) => {
@@ -33,6 +114,64 @@ export default function () {
         };
     }, [isModalOpen]);
 
+    const handleChangeBidang = (e) => {
+        const { value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            pekerjaan: prevData.pekerjaan.map((pekerjaan, index) => {
+                if (index === 0) { // Misalkan hanya ingin update pekerjaan pertama
+                    return {
+                        ...pekerjaan,
+                        bidang: value
+                    };
+                }
+                return pekerjaan;
+            })
+        }));
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            // Simpan ke localStorage jika diperlukan
+            localStorage.setItem("formData", JSON.stringify(formData));
+
+            const accessToken = localStorage.getItem('accessToken');
+            console.log('Token yang ditemukan:', accessToken);
+            if (!accessToken) {
+                console.error('Token tidak ditemukan');
+                return;
+            };
+
+            console.log("Data yang akan dikirim:", formData);
+
+
+            const response = await axios.post(`http://192.168.18.176:5000/mahasiswa/addmahasiswakondisi`, formData, {
+                headers: {
+                    'Content-Type': "application/json",
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.status === 200) {
+                console.log("Data berhasil dikirim ke API:", response.data);
+                setIsModalOpen(false);  // Tutup modal setelah submit
+            } else {
+                console.log("Terjadi kesalahan di API:", response.data);
+            }
+        } catch (error) {
+            if (error.response) {
+                console.error("Gagal mengirim data ke API:", error.response.data);
+            } else {
+                console.error("Gagal mengirim data:", error.message);
+            }
+        }
+    };
 
     return (
         <div className="container mt-1">
@@ -107,7 +246,6 @@ export default function () {
                     <button className="btn btn-success">Selengkapnya</button>
                 </div>
             </Link>
-            {/* Modal inline dengan Bootstrap */}
             {isModalOpen && (
                 <div className="modal show fade" style={{ display: 'block' }} tabIndex="-1">
                     <div className="modal-dialog modal-lg">
@@ -117,13 +255,13 @@ export default function () {
                                 <button type="button" className="btn-close" onClick={() => setIsModalOpen(false)} aria-label="Close"></button>
                             </div>
                             <div className="modal-body">
-                                <form>
+                                <form onSubmit={handleSubmit}>
                                     <div className="row">
                                         {/* Kolom Kiri */}
                                         <div className="col-md-6">
-                                            <div className="mb-3">
+                                            {/* <div className="mb-3">
                                                 <label htmlFor="nama" className="form-label">Program Study :</label>
-                                                <select className="form-select" id="prodi" name="prodi">
+                                                <select className="form-select" id="prodi" name="prodi" value={formData.prodi} onChange={handleChange}>
                                                     <option value="">Pilih Program Study</option>
                                                     <option value="Manajement Informatika">Manajement Informatika</option>
                                                     <option value="Administrasi Bisnis">Administrasi Bisnis</option>
@@ -131,75 +269,120 @@ export default function () {
                                                     <option value="Manajement Pemasaran">Manajement Pemasaran</option>
                                                     <option value="Bisnis Digital">Bisnis Digital</option>
                                                 </select>
-                                            </div>
+                                            </div> */}
 
                                             <div className="mb-3">
-                                                <label htmlFor="email" className="form-label">Kondisi Saat Ini :</label>
-                                                <select className="form-select" id="kondisi" name="kondisi">
+                                                <label htmlFor="kondisi" className="form-label">Kondisi Saat Ini :</label>
+                                                <select className="form-select" id="kondisi" name="kondisi" value={formData.kondisi} onChange={handleChange}>
                                                     <option value="">Pilih Kondisi</option>
-                                                    <option value="Bekerja">Bekerja</option>
-                                                    <option value="Wiraswasta">Wiraswasta</option>
-                                                    <option value="Mencari Kerja">Mencari Kerja</option>
-                                                    <option value="Melanjutkan Program Study">Melanjutkan Program Study</option>
+                                                    {Array.isArray(kondisiOptions) && kondisiOptions.map((option) => (
+                                                        <option key={option._id} value={option._id}>
+                                                            {option.kondisi}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
-
-                                            <div className="mb-3">
-                                                <label htmlFor="telepon" className="form-label">Bidang Pekerjaan :</label>
-                                                <select className="form-select" id="bidang" name="bidang">
-                                                    <option value="">Pilih Bidang</option>
-                                                    <option value="Teknik Informasi">Teknik Informasi</option>
-                                                    <option value="Keuangan dan Akuntansi">Keuangan dan Akuntansi</option>
-                                                    <option value="Pemasaran dan Penjualan">Pemasaran dan Penjualan</option>
-                                                    <option value="Sumber Daya Manusia">Sumber Daya Manusia</option>
-                                                    <option value="Kesehatan">Kesehatan</option>
+                                            {/* <div className="mb-3">
+                                                <label htmlFor="status" className="form-label">Status Pekerjaan :</label>
+                                                <select className="form-select" id="status" name="status" value={formData.status} onChange={handleChange}>
+                                                    <option value="">Pilih Status</option>
+                                                    <option value="Active">Full-Time</option>
+                                                    <option value="Active">Part-Time</option>
+                                                    <option value="Active">Kontrak</option>
+                                                    <option value="Inactive">Freelance</option>
+                                                    <option value="Pending">On-call</option>
+                                                    <option value="Pending">Volunteer</option>
                                                 </select>
-                                            </div>
+                                            </div> */}
                                         </div>
 
                                         {/* Kolom Kanan */}
                                         <div className="col-md-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="department" className="form-label">Kategori Pekerjaan :</label>
-                                                <select className="form-select" id="kategoriPekerjaan" name="kategoriPekerjaan">
-                                                    <option value="">Pilih Kategori</option>
-                                                    <option value="Full-time">Full-time</option>
-                                                    <option value="Part-time">Part-time</option>
-                                                    <option value="Kontrak">Kontrak</option>
-                                                    <option value="Freelance">Freelance</option>
-                                                    <option value="Magang">Magang</option>
-                                                </select>
-                                            </div>
+                                            <label htmlFor="kondisi" className="form-label">Bidang Pekerjaan :</label>
+                                            <select
+                                                className="form-select"
+                                                id="bidangpekerjaan"
+                                                name="bidang"
+                                                value={formData.pekerjaan[0]?.bidang || ""}
+                                                onChange={handleChangeBidang}
+                                            >
+                                                <option value="">Pilih Bidang</option>
+                                                {bidangOptions.map((option, index) => (
+                                                    <option key={index} value={option}>
+                                                        {option}
+                                                    </option>
+                                                ))}
+                                            </select>
 
-                                            <div className="mb-3">
-                                                <label htmlFor="position" className="form-label">Jenis Pekerjaan :</label>
-                                                <select className="form-select" id="jenispekerjaan" name="jenispekerjaan">
-                                                    <option value="">Pilih Jenis Pekerjaan</option>
-                                                    <option value="Pengembangan Perangkat Lunak">Pengembangan Perangkat Lunak</option>
-                                                    <option value="Desain Grafis">Desain Grafis</option>
-                                                    <option value="Manajemen Proyek">Manajemen Proyek</option>
-                                                    <option value="Analisis Data">Analisis Data</option>
-                                                    <option value="Customer Support">Customer Support</option>
-                                                </select>
-                                            </div>
+                                            <label className='mt-2 mb-2'>Jenis Pekerjaan :</label>
+                                            <select
+                                                className="form-select"
+                                                id="jenispekerjaan"
+                                                name="jenispekerjaan"
+                                                value={formData.pekerjaan[0].jenis_pekerjaan[0].jenis}
+                                                onChange={(e) => {
+                                                    setFormData(prevData => ({
+                                                        ...prevData,
+                                                        pekerjaan: [
+                                                            {
+                                                                ...prevData.pekerjaan[0],
+                                                                jenis_pekerjaan: [
+                                                                    {
+                                                                        ...prevData.pekerjaan[0].jenis_pekerjaan[0],
+                                                                        jenis: e.target.value
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }));
+                                                }}
+                                            >
+                                                <option value="">Pilih Jenis</option>
+                                                {Array.isArray(jenisOptions) && jenisOptions.map((jenis, index) => (
+                                                    <option key={index} value={jenis}>
+                                                        {jenis}
+                                                    </option>
+                                                ))}
+                                            </select>
 
-                                            <div className="mb-3">
-                                                <label htmlFor="status" className="form-label">Status Pekerjaan :</label>
-                                                <select className="form-select" id="status" name="status">
-                                                    <option value="">Pilih Status</option>
-                                                    <option value="Active">Active</option>
-                                                    <option value="Inactive">Inactive</option>
-                                                    <option value="Pending">Pending</option>
-                                                </select>
-                                            </div>
+                                            <label className='mt-2 mb-2'>Posisi Pekerjaan :</label>
+                                            <select
+                                                className="form-select"
+                                                id="posisipekerjaan"
+                                                name="posisipekerjaan"
+                                                value={formData.pekerjaan[0].jenis_pekerjaan[0].posisi} // Menetapkan value untuk posisi
+                                                onChange={(e) => setFormData(prevData => ({
+                                                    ...prevData,
+                                                    pekerjaan: Array.isArray(prevData.pekerjaan)
+                                                        ? prevData.pekerjaan.map((item, index) =>
+                                                            index === 0 // Memastikan kita hanya memodifikasi pekerjaan pertama
+                                                                ? {
+                                                                    ...item,
+                                                                    jenis_pekerjaan: [{
+                                                                        ...item.jenis_pekerjaan[0], // Salin objek jenis_pekerjaan pertama
+                                                                        posisi: e.target.value // Update posisi
+                                                                    }]
+                                                                }
+                                                                : item
+                                                        )
+                                                        : [] // Jika pekerjaan bukan array, set ke array kosong
+                                                }))}
+                                            >
+                                                <option value="">Pilih Posisi</option>
+                                                {Array.isArray(posisiOptions) && posisiOptions.map((option) => (
+                                                    option.pekerjaan && option.pekerjaan[0]?.jenisPekerjaan?.map((jenis) => (
+                                                        jenis.posisi.map((posisi, idx) => (
+                                                            <option key={idx} value={posisi}>
+                                                                {posisi}
+                                                            </option>
+                                                        ))
+                                                    ))
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
-
                                     <button type="submit" className="btn btn-primary">Submit</button>
                                 </form>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Tutup</button>
                             </div>
                         </div>
                     </div>

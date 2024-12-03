@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/AuthService';
+import getRoleName from '../services/roleCheck';
 
 export default function Navbar() {
+  const [userName, setUserName] = useState('');
+  const [roleName, setRoleName] = useState('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const toggleProfileDropdown = () => {
@@ -16,11 +19,23 @@ export default function Navbar() {
     navigate('/'); // Kembali ke halaman login setelah logout
   };
 
+
+
+  useEffect(() => {
+    // Ambil data user dari localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData); // Urai JSON menjadi objek
+      setUserName(user.nama || 'Pengguna'); // Pastikan ada fallback jika nama tidak tersedia
+      setRoleName(getRoleName(user.role)); // Ambil role
+    }
+  }, []);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid d-flex align-items-center">
         {/* Logo dan Brand */}
-        <Link className="navbar-brand me-auto" to="/" style={{ color: '#00426D' }}>
+        <Link className="navbar-brand me-auto" to="#" style={{ color: '#00426D' }}>
           <img src="/logo-lp3i.png" width="45" height="60" alt="" /> Tracer Study LP3I
         </Link>
 
@@ -127,8 +142,8 @@ export default function Navbar() {
             className="rounded-circle me-2 p-2"
           />
           <div className="d-flex flex-column">
-            <span className="fw-semibold" style={{ color: '#00426D' }}>Atep Riandi</span>
-            <small className="text-muted">Admin</small>
+            <span className="fw-semibold" style={{ color: '#00426D' }}>{userName}</span>
+            <small className="text-muted">{roleName}</small>
           </div>
           <i className={`ms-2 bi bi-caret-down-fill ${isProfileOpen ? 'rotate' : ''}`}></i>
 

@@ -21,23 +21,43 @@ export default function User() {
     const [showModalPreview, setShowModalPreview] = useState(false);
     const [roleIdOptions, setRoleIdOptions] = useState([]); // Role ID options
     const [selectedUser, setSelectedUser] = useState(null);
-
+    const [previewData, setPreviewData] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1); // Halaman aktif
+    const [totalPages, setTotalPages] = useState(0); // Total halaman
+    const [totalUsers, setTotalUsers] = useState(0); // Total mahasiswa
+    const [pageSize] = useState(10);
     // Fungsi API untuk mendapatkan data pengguna
     const fetchUsers = async () => {
         try {
             // const response = await axios.get('http://192.168.18.176:5000/users/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/all');
-            setUsersList(response.data.data); // Update state dengan data pengguna terbaru
+            const response = await axios.get('http://192.168.18.176:5000/users/all');
+
+            // const data = response.data.data;
+            // const totalUsers = response.data.meta.totalUsers;
+            // const totalPages = response.data.meta.totalPages;
+
+            setUsersList(response.data.data);
+            setTotalPages(response.data.meta.totalPages);
+            setTotalUsers(response.data.meta.totalMahasiswa);
+            setCurrentPage(response.data.meta.currentPage);
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
     };
 
+    const goToPage = (page) => {
+        if (page < 1 || page > totalPages) return;
+    };
+
+    useEffect(() => {
+        fetchUsers(currentPage);
+    }, [currentPage]);
+
     // Fungsi API untuk mendapatkan data Role ID
     const fetchRoleId = async () => {
         try {
             // const response = await axios.get('http://192.168.18.176:5000/users/role/all');
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/users/role/all');
+            const response = await axios.get('http://192.168.18.176:5000/users/role/all');
             setRoleIdOptions(response.data.data); // Update state dengan data Role ID
         } catch (error) {
             console.error("Error fetching RoleId:", error.message);
@@ -61,7 +81,7 @@ export default function User() {
             }, 3000);
         } catch (error) {
             console.error("Error saving data:", error);
-            
+
         }
     };
 
@@ -75,14 +95,14 @@ export default function User() {
     const addUser = async () => {
         try {
             // const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
-            const response = await axios.post('https://9l47d23v-5000.asse.devtunnels.ms/users/adduser', newUser);
+            const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
 
             setUsersList((prevList) => [...prevList, response.data]);
             fetchUsers();
             setNewUser({
                 nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: ''
             });
-            
+
             setShowModal(false);
         } catch (error) {
             console.error("Error adding user:", error.message);
@@ -97,7 +117,7 @@ export default function User() {
         try {
             const response = await axios.put(
                 // `http://192.168.18.176:5000/users/edituser/${editUsers._id}`, editUsers
-                `https://9l47d23v-5000.asse.devtunnels.ms/users/edituser/${editUsers._id}`, editUsers
+                `http://192.168.18.176:5000/users/edituser/${editUsers._id}`, editUsers
             );
             console.log('Users updated successfully:', response.data);
             setShowModalEdit(false);
@@ -111,7 +131,7 @@ export default function User() {
     const deleteUser = async (userId) => {
         try {
             // const response = await axios.delete(`http://192.168.18.176:5000/users/delete/${userId}`);
-            const response = await axios.delete(`https://9l47d23v-5000.asse.devtunnels.ms/users/deleteuser/${userId}`);
+            const response = await axios.delete(`http://192.168.18.176:5000/users/deleteuser/${userId}`);
 
             // Menghapus data pengguna dari state setelah dihapus dari API
             setUsersList((prevList) => prevList.filter((user) => user._id !== userId));
@@ -126,7 +146,7 @@ export default function User() {
     const getUserById = async (userId) => {
         try {
             // const response = await axios.get(`http://192.168.18.176:5000/users/${userId}`);
-            const response = await axios.get(`https://9l47d23v-5000.asse.devtunnels.ms/users/${userId}`);
+            const response = await axios.get(`http://192.168.18.176:5000/users/${userId}`);
             return response.data.data; // Mengembalikan data pengguna dari respons
 
         } catch (error) {
@@ -180,16 +200,6 @@ export default function User() {
         }));
     };
 
-    // Pagination
-    // const totalPages = Math.ceil(users.length / itemsPerPage);
-    // const startIndex = (currentPage - 1) * itemsPerPage;
-    // const usersList = users.slice(startIndex, startIndex + itemsPerPage);
-
-    const goToPage = (page) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-        }
-    };
 
     return (
         <div className="container mt-4">
@@ -266,11 +276,38 @@ export default function User() {
                     </tbody>
                 </table>
 
-                {/* Pagination */}
-                {/* <nav>
+                {/* pagination otomatis */}
+                {/* {totalMahasiswa > 10 && (  // Cek apakah total mahasiswa lebih dari 10
+                    <nav>
+                        <ul className="pagination justify-content-end">
+                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                <button className="page-link" onClick={() => goToPage(currentPage - 1)}>
+                                    <i className="bi bi-chevron-left"></i>
+                                </button>
+                            </li>
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <li key={i} className={`page-item ${currentPage === i + 1 ? 'active bg-success text-white' : ''}`}>
+                                    <button className="page-link" onClick={() => goToPage(i + 1)}>
+                                        {i + 1}
+                                    </button>
+                                </li>
+                            ))}
+                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                <button className="page-link" onClick={() => goToPage(currentPage + 1)}>
+                                    <i className="bi bi-chevron-right"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                )} */}
+
+                {/* pagination default */}
+                <nav>
                     <ul className="pagination justify-content-end">
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                            <button className="page-link" onClick={() => goToPage(currentPage - 1)}><i className="bi bi-chevron-left"></i></button>
+                            <button className="page-link" onClick={() => goToPage(currentPage - 1)}>
+                                <i className="bi bi-chevron-left"></i>
+                            </button>
                         </li>
                         {Array.from({ length: totalPages }, (_, i) => (
                             <li key={i} className={`page-item ${currentPage === i + 1 ? 'active bg-success text-white' : ''}`}>
@@ -280,10 +317,12 @@ export default function User() {
                             </li>
                         ))}
                         <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                            <button className="page-link" onClick={() => goToPage(currentPage + 1)}><i className="bi bi-chevron-right"></i></button>
+                            <button className="page-link" onClick={() => goToPage(currentPage + 1)}>
+                                <i className="bi bi-chevron-right"></i>
+                            </button>
                         </li>
                     </ul>
-                </nav> */}
+                </nav>
             </div>
 
             {/* Modal untuk menambah pengguna */}

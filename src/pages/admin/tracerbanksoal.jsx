@@ -1,59 +1,261 @@
-import { Link } from 'react-router-dom';
-import "react-quill/dist/quill.snow.css";
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axiosClient from '../../services/axiosClient';
 
 export default function () {
-
-    const [question, setQuestion] = useState('');
+    const navigate = useNavigate();
+    const [isEditMode, setIsEditMode] = useState(false); // Default mode adalah tambah
+    const [editSoalId, setEditSoalId] = useState(null); // ID soal yang sedang diedit    
+    const [dataTracerId, setDataTracerId] = useState(null);
+    const [dataSoalId, setDataSoalId] = useState(null);
+    const [bankSoalList, setBankSoalList] = useState([]);
+    const [error, setError] = useState(null);
+    const [newSoal, setNewSoal] = useState({
+        soal: '',
+        jawaban: [] // Akan diisi array objek { jawaban, bobot_jawaban }
+    });
     const [options, setOptions] = useState(['', '', '', '']); // Inisialisasi 4 opsi kosong
     const [weights, setWeights] = useState(['1', '1', '1', '1']); // Inisialisasi bobot dengan 4 nilai 1
 
-    const incrementOptions = () => {
-        if (options.length < 5) { // Maksimal 5 opsi
-            setOptions([...options, `Jawaban ${options.length + 1}`]); // Tambah opsi baru
-            setWeights([...weights, '1']); // Tambah bobot baru dengan nilai default 1
+    useEffect(() => {
+        const tracerId = localStorage.getItem('tracerId');
+        if (!tracerId) {
+            console.error("Tracer ID tidak ditemukan di localStorage.");
+            navigate('/admin/tracerskala'); // Redirect ke step 1 jika ID tidak ditemukan
+        } else {
+            setDataTracerId(tracerId); // Simpan ke state
+            console.log("Tracer ID diambil dari localStorage:", tracerId);
+        }
+    }, [navigate]);
+
+    // fetch bank soal untuk preview soal
+    const fetchBankSoal = async () => {
+        if (!dataTracerId) {
+            console.error("ID Tracer belum tersedia.");
+            return;
+        }
+        try {
+            const response = await axiosClient.get(
+                `/tracerstudy/bank_soal/get/${dataTracerId}`);
+            if (response.data && response.data.data) {
+                console.log("Data soal berhasil diambil:", response.data.data);
+                setBankSoalList(response.data.data);
+            } else {
+                console.error("Bank soal kosong atau tidak ditemukan.");
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error.message);
         }
     };
 
-    const decrementOptions = () => {
-        if (options.length > 2) { // Pastikan minimal ada satu opsi
-            setOptions(options.slice(0, -1)); // Hapus opsi terakhir
-            setWeights(weights.slice(0, -1)); // Hapus bobot terakhir
+
+    // Memanggil data tracer
+    // useEffect(() => {
+    //     fetchTracer();
+    // }, []);
+
+    // Memanggil bank soal setelah dataTracerId tersedia
+    useEffect(() => {
+        if (dataTracerId) {
+            fetchBankSoal();
+        }
+    }, [dataTracerId]);
+
+    // Fungsi untuk menambah soal ke API
+    const addSoal = async (soalToSubmit) => {
+        try {
+            const response = await axiosClient.post(
+                `/tracerstudy/banksoal/add/${dataTracerId}`,
+                soalToSubmit
+            );
+            console.log("Data soal berhasil ditambahkan:", response.data);
+        } catch (error) {
+            console.error("Error adding soal:", error.message);
+            setError("Gagal menambahkan soal. Coba lagi.");
         }
     };
 
+    // edit soal
+    const updateSoal = async (soalToSubmit) => {
+        if (!editSoalId) {
+            console.error("ID soal tidak valid atau belum terisi.");
+            return;
+        }
+
+        try {
+            const response = await axiosClient.put(
+                `/tracerstudy/bank_soal/edit/${editSoalId}`, // Gunakan editSoalId yang valid
+                soalToSubmit
+            );
+            console.log("Soal berhasil diperbarui:", response.data);
+            setIsEditMode(false);
+            setEditSoalId(null);
+            setNewSoal({
+                soal: '',
+                jawaban: [], // Reset jawaban setelah edit
+            });
+            fetchBankSoal(); // Refresh data bank soal
+        } catch (error) {
+            console.error("Gagal memperbarui soal:", error.message);
+        }
+    };
+
+
+
+
+    // hapus soal
+
+    const deleteSoal = async (soalId) => {
+        // Pastikan soalId valid sebelum mengirim request
+        if (!soalId) {
+            console.error("ID soal tidak ditemukan");
+            return;
+        }
+
+        try {
+            // Mengirim request DELETE ke API
+            const response = await axiosClient.delete(
+                `/tracerstudy/bank_soal/delete/${soalId}`
+            );
+
+            // Update state bankSoalList dengan menghapus soal yang telah dihapus
+            setBankSoalList((prevList) =>
+                prevList.filter((soal) => soal._id !== soalId)
+            );
+
+            console.log("Soal Deleted Successfully", response.data);
+        } catch (error) {
+            // Menangani error jika request gagal
+            console.error("Error deleting soal:", error.message);
+        }
+    };
+
+    // const deleteSoal = async (soalId) => {
+    //     try {
+    //         const response = await axiosClient.delete(``)
+    //     }
+    // }
+
+    // Menangani perubahan input pertanyaan
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setNewSoal((prevState) => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    // Menangani perubahan opsi jawaban
     const handleOptionChange = (index, value) => {
         const newOptions = [...options];
         newOptions[index] = value;
         setOptions(newOptions);
     };
 
+    // Menangani perubahan bobot jawaban
     const handleWeightChange = (index, value) => {
         const newWeights = [...weights];
         const numericValue = Number(value); // Konversi nilai ke angka
 
-        // Validasi bobot
         if (numericValue >= 1 && numericValue <= 5) {
             newWeights[index] = numericValue; // Update bobot jika valid
-        } else if (value === '') {
-            newWeights[index] = ''; // Biarkan kosong jika input dihapus
-        } else {
-            newWeights[index] = 1; // Set ke 1 jika nilai di luar rentang
         }
-
         setWeights(newWeights);
     };
 
-    const dummyData = [
-        {
-            question: "Seberapa relevan pendidikan Anda dengan kegiatan sehari-hari saat ini?",
-            options: ["Sangat relevan", "Relevan", "Cukup relevan", "Tidak relevan"]
-        },
-        {
-            question: "Apakah keterampilan yang Anda pelajari di pendidikan membantu dalam kegiatan sehari-hari?",
-            options: ["Sangat membantu", "Membantu", "Cukup membantu", "Tidak membantu"]
+    const handleEditSoal = (soal) => {
+        if (soal && soal.id_soal) {  // Gunakan 'id_soal' bukan '_id'
+            setNewSoal({
+                soal: soal.soal,  // Set soal
+                jawaban: soal.jawaban.map(jawaban => ({
+                    jawaban: jawaban.jawaban,  // Set jawaban
+                    bobot_jawaban: jawaban.bobot_jawaban  // Set bobot
+                }))
+            });
+
+            // Set options dan weights dari soal yang diambil
+            setOptions(soal.jawaban.map(jawaban => jawaban.jawaban));  // Set jawaban
+            setWeights(soal.jawaban.map(jawaban => jawaban.bobot_jawaban));  // Set bobot
+
+            // Set editSoalId dengan ID yang valid
+            setEditSoalId(soal.id_soal);  // Gunakan 'id_soal' yang benar
+
+            setIsEditMode(true);  // Ubah mode menjadi edit
+        } else {
+            console.error("Soal tidak memiliki ID yang valid", soal);
         }
-    ];
+    };
+
+
+
+
+
+    // Menambahkan opsi jawaban
+    const incrementOptions = () => {
+        if (options.length < 5) { // Maksimal 5 opsi
+            setOptions([...options, '']);
+            setWeights([...weights, '1']);
+        }
+    };
+
+    // Menghapus opsi jawaban
+    const decrementOptions = () => {
+        if (options.length > 2) { // Minimal 2 opsi
+            setOptions(options.slice(0, -1));
+            setWeights(weights.slice(0, -1));
+        }
+    };
+
+    // Menangani submit form
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        // Ambil tracerId dari localStorage
+        const tracerIdFromLocalStorage = localStorage.getItem('tracerId');
+        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
+        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID yang ada di state
+
+        // Perbarui jawaban dan bobot
+        const updatedJawaban = options.map((option, index) => ({
+            jawaban: option,
+            bobot_jawaban: Number(weights[index]),
+        }));
+
+        // Siapkan data soal untuk dikirim
+        const soalToSubmit = {
+            soal: newSoal.soal,
+            jawaban: updatedJawaban,
+        };
+
+        console.log("ID soal yang diambil:", dataTracerId); // Log ID soal yang akan dikirim
+
+        if (isEditMode) {
+            soalToSubmit.id_soal = dataTracerId; // Gunakan dataTracerId jika dalam mode edit
+            updateSoal(soalToSubmit);
+        } else {
+            addSoal(soalToSubmit);
+        }
+
+        // Reset form setelah submit
+        resetForm();
+    };
+
+
+
+
+
+    const resetForm = () => {
+        setNewSoal({
+            soal: '',
+            jawaban: [], // Reset jawaban setelah edit
+        });
+        setOptions(['', '', '', '']); // Reset opsi jawaban
+        setWeights(['1', '1', '1', '1']); // Reset bobot jawaban
+        setIsEditMode(false);  // Reset mode ke tambah
+    };
+
+
+
 
     return (
         <div className="container rounded my-4 bg-white">
@@ -81,8 +283,8 @@ export default function () {
             </div>
 
             {/* Form */}
-            <form>
-                {/* heading */}
+            <form onSubmit={handleSubmit}>
+                {/* Heading */}
                 <div className="form-group">
                     <label style={{ fontSize: '19px' }}>Bank Soal</label>
                     <p className="text-secondary" style={{ fontSize: '13px' }}>Kumpulkan soal wajib yang ada untuk melakukan kegiatan Tracer Study</p>
@@ -90,14 +292,15 @@ export default function () {
 
                 {/* Input Pertanyaan */}
                 <div className="form-group mb-3">
-                    <label className="mb-3">Pertanyaan Pilihan Ganda</label>
+                    <label className='mb-3'>{isEditMode ? "Edit Pertanyaan" : "Tambah Pertanyaan"}</label>
                     <div className="input-group">
                         <input
                             type="text"
+                            name='soal'
+                            value={newSoal.soal}
+                            onChange={handleInputChange}
                             className="form-control"
                             placeholder="Tambahkan Pertanyaan"
-                            value={question}
-                            onChange={(e) => setQuestion(e.target.value)}
                         />
                         <button
                             type="button"
@@ -117,26 +320,25 @@ export default function () {
                     </div>
                 </div>
 
-
                 {/* Render Options */}
                 {options.map((option, index) => (
                     <div className="row mb-2" key={index}>
                         <div className="col-8">
                             <input
                                 type="text"
-                                className="form-control text-secondary"
-                                placeholder={`Jawaban ${index + 1}`}
                                 value={option}
                                 onChange={(e) => handleOptionChange(index, e.target.value)}
+                                className="form-control text-secondary"
+                                placeholder={`Jawaban ${index + 1}`}
                             />
                         </div>
                         <div className="col-4">
                             <input
                                 type="number"
-                                className="form-control text-secondary"
-                                placeholder={`Bobot Nilai Jawaban`}
-                                value={weights[index] || ''} // Pastikan ada state untuk bobot
+                                value={weights[index]}
                                 onChange={(e) => handleWeightChange(index, e.target.value)}
+                                className="form-control text-secondary"
+                                placeholder={`Bobot Jawaban`}
                             />
                         </div>
                     </div>
@@ -144,52 +346,59 @@ export default function () {
 
                 {/* Tambah Soal */}
                 <div className='d-flex justify-content-end'>
-                    <button className='btn btn-success'>Tambah</button>
-                </div>
-
-                {/* Preview Section */}
-                <div className="preview mt-5">
-                    <label style={{ fontSize: '19px' }}>Preview</label>
-                    <p className="text-secondary" style={{ fontSize: '13px' }}>
-                        Tampilan pertanyaan dan opsi jawaban:
-                    </p>
-                    <div className="d-flex flex-wrap">
-                        {dummyData.map((item, index) => (
-                            <div key={index} className="mb-4" style={{ width: '300px', marginRight: '20px' }}>
-                                <p style={{ fontSize: '13px' }}>{index + 1}. {item.question}</p>
-                                <ul style={{ fontSize: '13px' }} className="list-unstyled">
-                                    {item.options.map((option, optIndex) => (
-                                        <li key={optIndex} className="d-flex align-items-center mb-2">
-                                            <input type="radio" disabled className="me-2" />
-                                            <label>{option}</label>
-                                        </li>
-                                    ))}
-                                    <div className='d-flex justify-content-end'>
-                                        <button className='border-0 bg-transparent'><i className='bi bi-pencil-fill'></i></button>
-                                        <button className='border-0 bg-transparent'><i className='bi bi-trash-fill'></i></button>
-                                    </div>
-                                </ul>
-                            </div>
-                        ))}
-
-                    </div>
-                </div>
-
-                {/* Buttons */}
-                <div className="d-flex justify-content-between mt-4">
-                    <div>
-                        <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
-                    </div>
-                    <div>
-                        <Link to='/admin/tracerskala'>
-                            <button type="button" className="btn btn-danger mb-3 me-3">Sebelumnnya</button>
-                        </Link>
-                        <Link to='/admin/traceratensi'>
-                            <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
-                        </Link>
-                    </div>
+                    <button type='submit' className='btn btn-success'>{isEditMode ? "Perbarui" : "Tambah"}</button>
                 </div>
             </form>
+
+            {/* Preview Section */}
+            <div className="preview mt-5">
+                <label style={{ fontSize: '19px' }}>Preview</label>
+                <p className="text-secondary" style={{ fontSize: '13px' }}>
+                    Tampilan pertanyaan dan opsi jawaban:
+                </p>
+                <div className="d-flex flex-wrap">
+                    {Array.isArray(bankSoalList) && bankSoalList.length > 0 ? (
+                        bankSoalList.map((item, index) => (
+                            <div key={index} className="mb-4" style={{ width: '300px', marginRight: '20px' }}>
+                                <p style={{ fontSize: '13px' }}>{index + 1}. {item.soal}</p>
+                                <ul style={{ fontSize: '13px' }} className="list-unstyled">
+                                    {item.jawaban.map((jawaban, optIndex) => (
+                                        <li key={optIndex} className="d-flex align-items-center mb-2">
+                                            <input type="radio" disabled className="me-2" />
+                                            <label>{jawaban.jawaban}</label>
+                                        </li>
+                                    ))}
+                                </ul>
+                                {/* Tombol edit dan hapus */}
+                                <div className='d-flex justify-content-end'>
+                                    <button className='border-0 bg-transparent' onClick={() => handleEditSoal(item)}><i className='bi bi-pencil-fill'></i></button>
+                                    <button className='border-0 bg-transparent' onClick={() => deleteSoal(item.id_soal)}>
+                                        <i className='bi bi-trash-fill'></i>
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-muted">Belum ada soal yang ditambahkan untuk Tracer Study ini.</p>
+                    )}
+                </div>
+            </div>
+
+
+            {/* Buttons */}
+            <div className="d-flex justify-content-between mt-4">
+                <div>
+                    <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
+                </div>
+                <div>
+                    <Link to='/admin/tracerskala'>
+                        <button type="button" className="btn btn-danger mb-3 me-3">Sebelumnya</button>
+                    </Link>
+                    <Link to='/admin/traceratensi'>
+                        <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
+                    </Link>
+                </div>
+            </div>
         </div>
     )
 }

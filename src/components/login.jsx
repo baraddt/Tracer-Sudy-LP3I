@@ -1,67 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AuthService from '../services/AuthService.jsx'; // Pastikan untuk mengimpor AuthService
-import dummyUsers from '../../src/services/dummyUsers';
+import AuthService from '../services/AuthService';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const AuthService = {
-    login: async (credentials) => {
-      const user = dummyUsers.find(
-        (user) =>
-          user.username === credentials.username &&
-          user.password === credentials.password
-      );
-
-      if (user) {
-        localStorage.setItem('token', user.token);
-        localStorage.setItem('role', user.role);
-        return {
-          success: true,
-          token: user.token,
-          role: user.role,
-        };
-      }
-      return { success: false };
-    },
-
-    logout: () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-    },
-  };
 
   const handleLogin = async () => {
-    const response = await AuthService.login({ username, password });
+    try {
+      const role = await AuthService.login(email, password); // Memanggil AuthService
 
-    if (response && response.success) {
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('role', response.role);
-
-      if (response.role === 'super_admin') {
+      // Pengecekan role untuk navigasi
+      if (role === '672d79e1861bcc3c8128d855') {
         navigate('/super_admin/dashboard');
-      } else if (response.role === 'admin') {
+      } else if (role === '672d79e7861bcc3c8128d857') {
         navigate('/admin/dashboard');
       } else {
-        navigate('/pengguna/dashboard');
+        setError('Role tidak dikenali. Hubungi admin.');
       }
-    } else {
-      alert('Login gagal. Silakan coba lagi.');
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
-    <div className="container-fluid vh-100 d-flex">
+    <div className="container mt-5">
       <div className="row w-100 flex-grow-1">
-        <div className="col-md-5 d-flex flex-column align-items-center justify-content-center" style={{ padding: '0' }}>
+        <div className="col-md-4 d-flex flex-column align-items-center justify-content-center" style={{ padding: '0' }}>
           <img src="/logo-lp3i.png" alt="Logo" width="160" className="mt-5" />
           <img src="/vektor.png" alt="Vektor" width="440" className="img-fluid mb-4" />
         </div>
 
-        <div className="col-md-7 d-flex align-items-center justify-content-center">
+        <div className="col-md-8 d-flex align-items-center justify-content-center">
           <div className="rounded bg-white p-5" style={{ width: '100%', height: '100%' }}>
             <form
               onSubmit={(e) => {
@@ -77,10 +50,10 @@ export default function Login() {
               <label className="form-label w-75">Username</label>
               <input
                 type="text"
-                placeholder="Username"
+                placeholder="Email"
                 className="form-control mb-3 text-secondary w-50"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
 
               <label className="form-label">Password</label>
@@ -97,7 +70,14 @@ export default function Login() {
                 </Link>
               </div>
               <button type="submit" className="btn btn-success mt-3 w-50">Sign In</button>
+              {error && <div className="mt-3 text-danger">{error}</div>}
             </form>
+            <div className="d-flex mt-1 ">
+              <button className="btn btn-primary me-3">Login Kampus</button>
+              <Link to="/p">
+                <button className="btn btn-secondary">Login Mahasiswa</button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -1,53 +1,32 @@
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axiosClient from '../../services/axiosClient';
-import { Link } from 'react-router-dom';
 
-export default function () {
-    const [tracerList, setTracerList] = useState(null);  // Menyimpan data tracer
-    const [error, setError] = useState(null);  // Menyimpan error jika ada
-    const [dataTracerId, setDataTracerId] = useState(null);
+export default function TracerStudyPreview() {
+    const navigate = useNavigate();
+    const { id } = useParams(); // Ambil ID dari URL
+    const [tracerDetail, setTracerDetail] = useState(null);
     const [bankSoalList, setBankSoalList] = useState([]);
 
-
-    // Fungsi untuk mengambil data utama dari API
-    const fetchData = async () => {
-        try {
-            const tracerIdFromLocalStorage = localStorage.getItem('tracerId');  // Ambil tracerId dari localStorage
-            if (tracerIdFromLocalStorage) {
-                setDataTracerId(tracerIdFromLocalStorage);  // Set tracerId dari localStorage
-                console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage);
-                // Panggil fetchDetailData dengan tracerId yang diambil
-                await fetchDetailData(tracerIdFromLocalStorage);
-            } else {
-                console.error("Tracer ID tidak ditemukan di localStorage");
+    useEffect(() => {
+        const fetchDetail = async () => {
+            try {
+                const response = await axiosClient.get(`/tracerstudy/${id}`);
+                setTracerDetail(response.data.data); // Simpan detail ke state
+            } catch (error) {
+                console.error("Error fetching tracer detail:", error.message);
             }
-        } catch (error) {
-            console.error("Error fetching data:", error.message);
-        }
-    };
+        };
 
-    // Fungsi untuk mengambil detail berdasarkan _id
-    const fetchDetailData = async (id) => {
-        try {
-            // Mengambil data detail berdasarkan tracerId
-            const response = await axiosClient.get(`/tracerstudy/${id}`);
-            setTracerList(response.data.data);  // Menyimpan data yang diterima ke state
-            console.log("Data tracer detail:", response.data.data);  // Untuk debugging
-        } catch (error) {
-            console.error("Error fetching detail data:", error.message);
-            setError(error.message);  // Menyimpan error ke state jika terjadi kesalahan
+        if (id) {
+            fetchDetail(); // Panggil API jika ID tersedia
         }
-    };
+    }, [id]);
 
     const fetchBankSoal = async () => {
-        if (!dataTracerId) {
-            console.error("ID Tracer belum tersedia.");
-            return;
-        }
         try {
-            const response = await axiosClient.get(
-                `/tracerstudy/bank_soal/get/${dataTracerId}`
-            );
+            const response = await axios.get(
+                `/tracerstudy/bank_soal/get/${id}`);
             if (response.data && response.data.data) {
                 console.log("Data soal berhasil diambil:", response.data.data);
                 setBankSoalList(response.data.data);
@@ -60,51 +39,50 @@ export default function () {
     };
 
     useEffect(() => {
-        fetchData();
+        fetchBankSoal();
     }, []);
 
-    useEffect(() => {
-        if (dataTracerId) {
-            fetchBankSoal();
-        }
-    }, [dataTracerId]);
+
 
     return (
         <div className="container rounded my-4 bg-white">
-            {error && <p>{error}</p>}
-            {tracerList ? (
-                <>
+            {tracerDetail ? (
+                <div>
                     {/* Banner/Flyer */}
                     <div className="form-group">
                         <label className='border rounded bg-primary bg-opacity-25 p-1 mt-2' style={{ fontSize: '13px', color: '#00426D' }}>
                             <i className='bi bi-circle-fill me-2'></i>Preview
                         </label>
                         <p className="mt-5" style={{ fontSize: '25px', color: '#00426D' }}>
-                            {tracerList.id_detail.nama_kegiatan}
+                            {tracerDetail.id_detail.nama_kegiatan}
                         </p>
                         <p className="text-secondary" style={{ fontSize: '15px' }}>
-                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerList.createdAt).toLocaleString()}
+                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerDetail.createdAt).toLocaleString()}
                         </p>
                     </div>
 
                     {/* Skala Kegiatan */}
                     <div>
                         <label className='border rounded bg-primary bg-opacity-25 p-1 me-2' style={{ color: '#00426D' }}>
-                            {tracerList.skala_kegiatan.skala_kegiatan}
+                            {tracerDetail.skala_kegiatan.skala_kegiatan}
                         </label>
                     </div>
 
                     {/* Button Navigasi */}
                     <div className='d-flex gap-5 mt-4'>
-                        <Link to='/super_admin/tracerstudy-preview'>
-                            <button className='border-0 bg-transparent'>Detail Kegiatan</button>
-                        </Link>
-                        <Link to='/super_admin/tracerstudy-preview-kuesioner'>
-                            <button className='border-0 border-bottom bg-transparent'>Kuesioner</button>
-                        </Link>
-                        <Link to='/super_admin/tracerstudy-preview-responden'>
-                            <button className='border-0 bg-transparent'>Responden</button>
-                        </Link>
+                        <button className='border-0 bg-transparent' onClick={() => {
+                            navigate(`/super_admin/tracerstudy-getpreview/${id}`)
+                        }}>Detail Kegiatan</button>
+
+                        <button className='border-0 border-bottom bg-transparent'>Kuesioner</button>
+
+                        <button className='border-0 bg-transparent' onClick={() => {
+                            navigate(`/super_admin/tracerstudy-getpreview-responden/${id}`)
+                        }}>Responden</button>
+
+                        <button className='border-0 bg-transparent' onClick={() => {
+                            navigate(`/super_admin/tracerstudy-getpreview-kriteria/${id}`)
+                        }}>Kriteria Ketuntasasn Hasil</button>
                     </div>
 
                     {/* Preview Section */}
@@ -140,18 +118,18 @@ export default function () {
                             <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
                         </div>
                         <div>
-                            <Link to='/super_admin/tracerstudy-verifikasi-akhir'>
-                                <button type="button" className="btn btn-danger mb-3 me-3">Batalkan</button>
+                            <Link to='/super_admin/tracerstudy'>
+                                <button type="button" className="btn btn-danger mb-3 me-3">Kembali</button>
                             </Link>
                             <Link to='/super_admin/tracerstudy'>
                                 <button type="submit" className="btn btn-success mb-3">Publikasi</button>
                             </Link>
                         </div>
                     </div>
-                </>
+                </div>
             ) : (
                 <p>Loading...</p>
             )}
         </div>
-    )
+    );
 }

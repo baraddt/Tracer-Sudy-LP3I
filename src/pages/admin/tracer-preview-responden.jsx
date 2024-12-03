@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
 
-
 export default function () {
     const [tracerList, setTracerList] = useState(null);
     const [error, setError] = useState(null);
@@ -70,15 +69,15 @@ export default function () {
 
                     {/* Button Navigasi*/}
                     <div className='d-flex gap-5 mt-4'>
-                        <Link to='/super_admin/tracerstudy-preview'>
+                        <Link to='/admin/tracer-preview'>
                             <button className='border-0 bg-transparent'>Detail Kegiatan</button>
                         </Link>
 
-                        <Link to='/super_admin/tracerstudy-preview-kuesioner'>
+                        <Link to='/admin/tracer-preview-kuesioner'>
                             <button className='border-0 bg-transparent'>Kuesioner</button>
                         </Link>
 
-                        <Link to='/super_admin/tracerstudy-preview-responden'>
+                        <Link to='/admin/tracer-preview-responden'>
                             <button className='border-0 border-bottom bg-transparent'>Responden</button>
                         </Link>
                     </div>
@@ -112,10 +111,10 @@ export default function () {
                             <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
                         </div>
                         <div>
-                            <Link to='/super_admin/tracerstudy-verifikasi-akhir'>
+                            {/* <Link to='/super_admin/tracerstudy-verifikasi-akhir'> */}
                                 <button type="button" className="btn btn-danger mb-3 me-3">Batalkan</button>
-                            </Link>
-                            <Link to='/super_admin/tracerstudy'>
+                            {/* </Link> */}
+                            <Link to='/admin/tracerstudy'>
                                 <button type="submit" className="btn btn-success mb-3">Publikasi</button>
                             </Link>
                         </div>

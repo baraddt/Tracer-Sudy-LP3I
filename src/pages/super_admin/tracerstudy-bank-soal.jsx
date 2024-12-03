@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
 
 export default function () {
-
+    const navigate = useNavigate();
     const [isEditMode, setIsEditMode] = useState(false); // Default mode adalah tambah
     const [editSoalId, setEditSoalId] = useState(null); // ID soal yang sedang diedit    
     const [dataTracerId, setDataTracerId] = useState(null);
@@ -17,20 +17,31 @@ export default function () {
     const [options, setOptions] = useState(['', '', '', '']); // Inisialisasi 4 opsi kosong
     const [weights, setWeights] = useState(['1', '1', '1', '1']); // Inisialisasi bobot dengan 4 nilai 1
 
-    // Fetch Tracer ID
-    const fetchTracer = async () => {
-        try {
-            const response = await axios.get('https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/all');
-            if (response.data.data && response.data.data.length > 0) {
-                setDataTracerId(response.data.data[0]._id);
-                console.log("ID tracer yang diambil:", response.data.data[0]._id);
-            } else {
-                console.error("Data tracer kosong atau tidak ditemukan.");
-            }
-        } catch (error) {
-            console.error("Error fetching data:", error.message);
+    useEffect(() => {
+        const tracerId = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        if (!tracerId) {
+            console.error("Tracer ID tidak ditemukan di localStorage.");
+            navigate('/super_admin/tracerstudy-golongan-kegiatan'); // Redirect ke step 1 jika ID tidak ditemukan
+        } else {
+            setDataTracerId(tracerId); // Simpan ke state
+            console.log("Tracer ID diambil dari localStorage:", tracerId);
         }
-    };
+    }, [navigate]);
+
+    // Fetch Tracer ID
+    // const fetchTracer = async () => {
+    //     try {
+    //         const response = await axiosClient.get('/tracerstudy/all');
+    //         if (response.data.data && response.data.data.length > 0) {
+    //             setDataTracerId(response.data.data[0]._id);
+    //             console.log("ID tracer yang diambil:", response.data.data[0]._id);
+    //         } else {
+    //             console.error("Data tracer kosong atau tidak ditemukan.");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error.message);
+    //     }
+    // };
 
     // fetch bank soal untuk preview soal
     const fetchBankSoal = async () => {
@@ -39,9 +50,9 @@ export default function () {
             return;
         }
         try {
-            const response = await axios.get(
-                `https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/bank_soal/get/${dataTracerId}`
-            );
+            const response = await axiosClient.get(
+                `/tracerstudy/bank_soal/get/${dataTracerId}`
+                ,);
             if (response.data && response.data.data) {
                 console.log("Data soal berhasil diambil:", response.data.data);
                 setBankSoalList(response.data.data);
@@ -55,9 +66,9 @@ export default function () {
 
 
     // Memanggil data tracer
-    useEffect(() => {
-        fetchTracer();
-    }, []);
+    // useEffect(() => {
+    //     fetchTracer();
+    // }, []);
 
     // Memanggil bank soal setelah dataTracerId tersedia
     useEffect(() => {
@@ -69,10 +80,10 @@ export default function () {
     // Fungsi untuk menambah soal ke API
     const addSoal = async (soalToSubmit) => {
         try {
-            const response = await axios.post(
-                `https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/banksoal/add/${dataTracerId}`,
+            const response = await axiosClient.post(
+                `/tracerstudy/banksoal/add/${dataTracerId}`,
                 soalToSubmit
-            );
+                ,);
             console.log("Data soal berhasil ditambahkan:", response.data);
         } catch (error) {
             console.error("Error adding soal:", error.message);
@@ -88,10 +99,10 @@ export default function () {
         }
 
         try {
-            const response = await axios.put(
-                `https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/bank_soal/edit/${editSoalId}`, // Gunakan editSoalId yang valid
+            const response = await axiosClient.put(
+                `/tracerstudy/bank_soal/edit/${editSoalId}`, // Gunakan editSoalId yang valid
                 soalToSubmit
-            );
+                ,);
             console.log("Soal berhasil diperbarui:", response.data);
             setIsEditMode(false);
             setEditSoalId(null);
@@ -119,9 +130,9 @@ export default function () {
 
         try {
             // Mengirim request DELETE ke API
-            const response = await axios.delete(
-                `https://9l47d23v-5000.asse.devtunnels.ms/tracerstudy/bank_soal/delete/${soalId}`
-            );
+            const response = await axiosClient.delete(
+                `/tracerstudy/bank_soal/delete/${soalId}`
+                ,);
 
             // Update state bankSoalList dengan menghapus soal yang telah dihapus
             setBankSoalList((prevList) =>
@@ -137,7 +148,7 @@ export default function () {
 
     // const deleteSoal = async (soalId) => {
     //     try {
-    //         const response = await axios.delete(``)
+    //         const response = await axiosClient.delete(``)
     //     }
     // }
 
@@ -215,24 +226,27 @@ export default function () {
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        // Ambil tracerId dari localStorage
+        const tracerIdFromLocalStorage = localStorage.getItem('tracerId');
+        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
+        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID yang ada di state
 
+        // Perbarui jawaban dan bobot
         const updatedJawaban = options.map((option, index) => ({
             jawaban: option,
-            bobot_jawaban: Number(weights[index])
+            bobot_jawaban: Number(weights[index]),
         }));
 
-        // Perbarui data soal
+        // Siapkan data soal untuk dikirim
         const soalToSubmit = {
             soal: newSoal.soal,
-            jawaban: updatedJawaban
+            jawaban: updatedJawaban,
         };
 
-        console.log("ID soal yang akan dikirim:", editSoalId);
-        console.log("Data soal yang akan dikirim:", soalToSubmit);
+        console.log("ID soal yang diambil:", dataTracerId); // Log ID soal yang akan dikirim
 
         if (isEditMode) {
-            soalToSubmit.id_soal = editSoalId;
-
+            soalToSubmit.id_soal = dataTracerId; // Gunakan dataTracerId jika dalam mode edit
             updateSoal(soalToSubmit);
         } else {
             addSoal(soalToSubmit);
@@ -241,6 +255,7 @@ export default function () {
         // Reset form setelah submit
         resetForm();
     };
+
 
 
 
@@ -268,7 +283,7 @@ export default function () {
                             <span className="active border rounded bg-secondary bg-opacity-50 p-2">Detail Kegiatan</span>
                         </li>
                         <li className="nav-item">
-                            <span className="active border rounded bg-secondary bg-opacity-50 p-2">Golongan Kegiatan</span>
+                            <span className="active border rounded bg-secondary bg-opacity-50 p-2">Skala Kegiatan</span>
                         </li>
                         <li className="nav-item">
                             <span className="active border rounded bg-primary bg-opacity-50 p-2">Bank soal</span>
