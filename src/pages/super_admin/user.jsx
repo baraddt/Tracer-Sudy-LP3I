@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
+import _ from 'lodash';
+import ModalSuccess from '../../components/compModals/modalsuccess';
+import ModalFailed from '../../components/compModals/modalFailed';
+import ModalConfirmDelete from '../../components/compModals/userDelete';
+import ModalFilter from '../../components/compModals/modalFilter';
 
 export default function User() {
     const [usersList, setUsersList] = useState([]); // State untuk menyimpan data pengguna
@@ -15,28 +21,67 @@ export default function User() {
         roleId: '',
     });
 
-    const [showModal, setShowModal] = useState(false); // State untuk mengatur tampilan modal
+    const [showModal, setShowModal] = useState(false);
     const [editUsers, setEditUsers] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [userToDelete, setUserToDelete] = useState(null);
     const [showModalEdit, setShowModalEdit] = useState(false);
     const [showModalPreview, setShowModalPreview] = useState(false);
-    const [roleIdOptions, setRoleIdOptions] = useState([]); // Role ID options
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
+    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const [showFiltersModal, setShowFiltersModal] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [roleIdOptions, setRoleIdOptions] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [currentAvatar, setCurrentAvatar] = useState("");
     const [previewData, setPreviewData] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1); // Halaman aktif
-    const [totalPages, setTotalPages] = useState(0); // Total halaman
-    const [totalUsers, setTotalUsers] = useState(0); // Total mahasiswa
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalUsers, setTotalUsers] = useState(0);
     const [pageSize] = useState(10);
-    // Fungsi API untuk mendapatkan data pengguna
+
+    const fetchSearchResults = async (query) => {
+        try {
+            const response = await axiosClient.get(`https://api.example.com/mahasiswa?q=${query}`);
+            setSearchResults(response.data.results);
+        } catch (error) {
+            console.error("Error saat mencari data:", error);
+            setSearchResults([]);
+        }
+    };
+
+    const debouncedSearch = _.debounce((query) => {
+        fetchSearchResults(query);
+    }, 500);
+
+    useEffect(() => {
+        if (searchQuery) {
+            debouncedSearch(searchQuery);
+        } else {
+            setSearchResults([]); // Kosongkan hasil jika query kosong
+        }
+
+        // Cleanup untuk debounce
+        return () => debouncedSearch.cancel();
+    }, [searchQuery]);
+
+
     const fetchUsers = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/users/all');
-            const response = await axios.get('http://192.168.18.176:5000/users/all');
+            // const response = await axiosClient.get('/users/all');
+            const response = await axiosClient.get('/users/all');
 
             // const data = response.data.data;
             // const totalUsers = response.data.meta.totalUsers;
             // const totalPages = response.data.meta.totalPages;
 
             setUsersList(response.data.data);
+            console.log(response.data.data);
+
+            setCurrentAvatar(response.data.avatar);
             setTotalPages(response.data.meta.totalPages);
             setTotalUsers(response.data.meta.totalMahasiswa);
             setCurrentPage(response.data.meta.currentPage);
@@ -56,8 +101,8 @@ export default function User() {
     // Fungsi API untuk mendapatkan data Role ID
     const fetchRoleId = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.176:5000/users/role/all');
-            const response = await axios.get('http://192.168.18.176:5000/users/role/all');
+            // const response = await axiosClient.get('/users/role/all');
+            const response = await axiosClient.get('/users/role/all');
             setRoleIdOptions(response.data.data); // Update state dengan data Role ID
         } catch (error) {
             console.error("Error fetching RoleId:", error.message);
@@ -87,15 +132,15 @@ export default function User() {
 
     // useEffect untuk memanggil data API saat komponen pertama kali dirender
     useEffect(() => {
-        fetchUsers();  // Memanggil data pengguna pertama kali
-        fetchRoleId(); // Memanggil data Role ID
-    }, []); // [] memastikan hanya sekali saat komponen pertama kali dirender
+        fetchUsers();  
+        fetchRoleId(); 
+    }, []); 
 
     // Fungsi menambah data pengguna baru menggunakan API
     const addUser = async () => {
         try {
-            // const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
-            const response = await axios.post('http://192.168.18.176:5000/users/adduser', newUser);
+            // const response = await axiosClient.post('/users/adduser', newUser);
+            const response = await axiosClient.post('/users/adduser', newUser);
 
             setUsersList((prevList) => [...prevList, response.data]);
             fetchUsers();
@@ -104,7 +149,9 @@ export default function User() {
             });
 
             setShowModal(false);
+            setShowSuccessModal(true);
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error adding user:", error.message);
             console.log("Error response:", error.response?.data); // Debug: pesan error dari server jika ada
             setError("Failed to add User, Try Again");
@@ -115,13 +162,16 @@ export default function User() {
     const handleEditSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.put(
-                // `http://192.168.18.176:5000/users/edituser/${editUsers._id}`, editUsers
-                `http://192.168.18.176:5000/users/edituser/${editUsers._id}`, editUsers
+            const response = await axiosClient.put(
+                // `/users/edituser/${editUsers._id}`, editUsers
+                `/users/edituser/${editUsers._id}`, editUsers
             );
             console.log('Users updated successfully:', response.data);
             setShowModalEdit(false);
+            setShowSuccessModal(true)
         } catch (error) {
+            setShowFailedModal(true);
+            setShowModalEdit(false);
             console.error('Error updating Users:', error);
             setError(error.response?.data?.message || 'An error occurred');
         }
@@ -130,41 +180,45 @@ export default function User() {
     // Fungsi untuk menghapus data pengguna
     const deleteUser = async (userId) => {
         try {
-            // const response = await axios.delete(`http://192.168.18.176:5000/users/delete/${userId}`);
-            const response = await axios.delete(`http://192.168.18.176:5000/users/deleteuser/${userId}`);
-
-            // Menghapus data pengguna dari state setelah dihapus dari API
+            const response = await axiosClient.delete(`/users/deleteuser/${userId}`);
+            // Hapus user dari daftar setelah berhasil dihapus
             setUsersList((prevList) => prevList.filter((user) => user._id !== userId));
-
             console.log('User deleted successfully:', response.data);
+            setShowSuccessModal(true);
         } catch (error) {
+            setShowFailedModal(true);
             console.error('Error deleting user:', error.message);
+        } finally {
+            setShowConfirmDeleteModal(false); // Menutup modal setelah delete
         }
     };
 
     // fungsi melihat detail pengguna
-    const getUserById = async (userId) => {
+    const getUserById = async (id) => {
         try {
-            // const response = await axios.get(`http://192.168.18.176:5000/users/${userId}`);
-            const response = await axios.get(`http://192.168.18.176:5000/users/${userId}`);
-            return response.data.data; // Mengembalikan data pengguna dari respons
+            // const response = await axiosClient.get(`/users/${userId}`);
+            const response = await axiosClient.get(`/users/${id}`);
+            setPreviewData(response.data.data);
+            setShowModalPreview(true);
 
         } catch (error) {
             console.error("Full error response:", error.response);
             console.error("Error fetching user details:", error);
-            return null;
         }
     };
-
-
     // fungsi untuk melihat preview pengguna
-    const handlePreviewUser = async (userId) => {
-        const userDetails = await getUserById(userId);
-        if (userDetails) {
-            setSelectedUser(userDetails);
-            setShowModalPreview(true); // Membuka modal preview
-        }
+    const handlePreviewUser = (userId) => {
+        // Panggil fungsi untuk mendapatkan data mahasiswa
+        getUserById(userId);
     };
+
+
+    const handleDeleteClick = (user) => {
+        setUserToDelete(user); // Menyimpan data pengguna yang akan dihapus
+        setShowConfirmDeleteModal(true); // Menampilkan modal konfirmasi
+    };
+
+
 
     // Fungsi untuk menangani perubahan pada form input
     const handleInputChange = (e) => {
@@ -178,7 +232,7 @@ export default function User() {
     // Fungsi untuk menangani pengiriman form
     const handleSubmit = async (e) => {
         e.preventDefault();
-        addUser(); // Menambahkan pengguna baru saat form disubmit
+        addUser();
     };
 
     const openEditModal = (users) => {
@@ -200,18 +254,36 @@ export default function User() {
         }));
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setSelectedFile(file); // Menyimpan file gambar yang dipilih
+    };
+
+    const handleApplyFilters = (filters) => {
+        console.log("Filters applied:", filters);
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword((prev) => !prev);
+    };
+
 
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h4 className="text-black mb-4 fw-semibold">User</h4>
-
+                <h4 className="mb-4 fw-semibold text-dark">User</h4>
+                {/* <div className='d-flex gap-2'>
+                    <button className='btn btn-success' onClick={() => setShowSuccessModal(true)}>Cek Modal Success</button>
+                    <button className='btn btn-danger' onClick={() => setShowFailedModal(true)}>Cek Modal Failed</button>
+                    <button className='btn btn-danger' onClick={() => setShowModalPreview(true)}>Cek Modal Preview</button>
+                    <button className='btn btn-danger' onClick={() => openEditModal(true)}>Cek Modal Edit</button>
+                </div> */}
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
                     <button className="btn btn-success mb-2" onClick={() => setShowModal(true)}>
                         <i className="bi bi-plus"></i>Tambah
                     </button>
-                    <button className="btn btn-primary"><i className="bi bi-filter"></i> Filter</button>
+                    <button className="btn btn-primary" onClick={() => setShowFiltersModal(true)}><i className="bi bi-filter"></i> Filter</button>
                 </div>
 
                 {/* Form pencarian pengguna */}
@@ -220,58 +292,95 @@ export default function User() {
                         type="search"
                         className="form-control me-2"
                         placeholder="Cari User"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)} // Update query saat mengetik
                     />
-                    <button className="btn btn-secondary d-flex align-items-center">
+                    {/* <button className="btn btn-secondary d-flex align-items-center">
                         <i className="bi bi-search me-2"></i> Cari
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
             {/* Tabel data pengguna */}
-            <div className="rounded mt-4 bg-white p-3">
+            <div className="rounded table-reponsive-sm table-responsive-md mt-4 bg-white p-3">
                 <table className="table">
-                    <thead>
+                    <thead className='table-secondary'>
                         <tr>
-                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">#ID</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Avatar</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Nama</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Jabatan</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Pendidikan</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Email</th>
-                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">Status</th>
-                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">Aksi</th>
+                            <th className='fw-semibold text-dark text-center' scope="col">#ID</th>
+                            <th className='fw-semibold text-dark' scope="col">Avatar</th>
+                            <th className='fw-semibold text-dark text-truncate' scope="col">Nama</th>
+                            <th className='fw-semibold text-dark text-truncate' scope="col">Jabatan</th>
+                            <th className='fw-semibold text-dark text-truncate' scope="col">Pendidikan</th>
+                            <th className='fw-semibold text-dark text-truncate' scope="col">Email</th>
+                            <th className='fw-semibold text-dark text-center' scope="col">Status</th>
+                            <th className='fw-semibold text-dark text-center' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {usersList.length > 0 ? (
-                            usersList.map((users, index) => (
-                                <tr key={users._id}>
-                                    <td>{`#U${index + 201}`}</td>
-                                    <td><img className='rounded-circle' src={users.avatar} alt="Avatar" width="50" height="50" /></td>
-                                    <td>{users.nama}</td>
-                                    <td>{users.jabatan || 'N/A'}</td>
-                                    <td>{users.pendidikan || 'N/A'}</td>
-                                    <td>{users.email}</td>
-                                    <td className={`text-center ${users.is_active ? 'text-success' : 'text-danger'}`}>
-                                        {users.is_active ? 'Aktif' : 'Tidak Aktif'}
-                                    </td>
-                                    <td className='text-center'>
-                                        <button className="btn-sm me-2 border-0 bg-transparent">
-                                            <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(users._Id)}></i>
-                                        </button>
-                                        <button className="btn-sm me-2 border-0 bg-transparent">
-                                            <i className="bi bi-pencil-fill text-primary" onClick={() => openEditModal(users)}></i>
-                                        </button>
-                                        <button className="btn-sm border-0 bg-transparent">
-                                            <i className="bi bi-trash-fill text-danger" onClick={() => deleteUser(users._id)}></i>
-                                        </button>
-                                    </td>
+                    {searchQuery && searchQuery.length > 0 ? (
+                            // Jika ada query pencarian, tampilkan hasil pencarian (searchResults)
+                            searchResults.length > 0 ? (
+                                searchResults.map((users) => (
+                                    <tr key={users._id}>
+                                        <td>{`#U${index + 201}`}</td>
+                                        <td><img className='rounded-circle' src={users.avatar} alt="Avatar" width="50" height="50" /></td>
+                                        <td className='text-truncate'>{users.nama}</td>
+                                        <td className='text-truncate'>{users.jabatan || 'N/A'}</td>
+                                        <td className='text-truncate'>{users.pendidikan || 'N/A'}</td>
+                                        <td className='text-truncate'>{users.email}</td>
+                                        <td className={`text-center ${users.is_active ? 'text-success' : 'text-danger'}`}>
+                                            {users.is_active ? 'Aktif' : 'Tidak Aktif'}
+                                        </td>
+                                        <td className='text-center'>
+                                            <button className="btn-sm me-2 border-0 bg-transparent">
+                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(users._Id)}></i>
+                                            </button>
+                                            <button className="btn-sm me-2 border-0 bg-transparent">
+                                                <i className="bi bi-pencil-fill text-primary" onClick={() => openEditModal(users)}></i>
+                                            </button>
+                                            <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(users._id)}>
+                                                <i className="bi bi-trash-fill text-danger"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="text-center text-dark">Tidak ada hasil pencarian.</td>
                                 </tr>
-                            ))
+                            )
                         ) : (
-                            <tr>
-                                <td colSpan="7" className="text-center">Tidak ada data pengguna.</td>
-                            </tr>
+                            // Jika tidak ada query pencarian, tampilkan data awal
+                            usersList.length > 0 ? (
+                                usersList.map((users, index) => (
+                                    <tr key={users._id}>
+                                        <td>{`#U${index + 201}`}</td>
+                                        <td><img className='rounded-circle' src={users.avatar} alt="Avatar" width="50" height="50" /></td>
+                                        <td>{users.nama}</td>
+                                        <td>{users.jabatan || 'N/A'}</td>
+                                        <td>{users.pendidikan || 'N/A'}</td>
+                                        <td>{users.email}</td>
+                                        <td className={`text-center ${users.is_active ? 'text-success' : 'text-danger'}`}>
+                                            {users.is_active ? 'Aktif' : 'Tidak Aktif'}
+                                        </td>
+                                        <td className='text-center'>
+                                            <button className="btn-sm me-2 border-0 bg-transparent">
+                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(users._id)}></i>
+                                            </button>
+                                            <button className="btn-sm me-2 border-0 bg-transparent">
+                                                <i className="bi bi-pencil-fill text-primary" onClick={() => openEditModal(users)}></i>
+                                            </button>
+                                            <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(users._id)}>
+                                                <i className="bi bi-trash-fill text-danger"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="8" className="text-center text-dark">Tidak ada data pengguna.</td>
+                                </tr>
+                            )
                         )}
                     </tbody>
                 </table>
@@ -326,94 +435,132 @@ export default function User() {
             </div>
 
             {/* Modal untuk menambah pengguna */}
-            <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden={!showModal}>
+            <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ position: 'fixed', top: '60%', left: '45%', transform: 'translate(-50%, -50%)', display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden={!showModal}>
                 <div className="modal-dialog">
-                    <div className="modal-content">
+                    <div className="modal-content" style={{ width: '600px' }}>
                         <div className="modal-header">
                             <h5 className="modal-title" id="exampleModalLabel">Tambah Pengguna</h5>
                             <button type="button" className="btn-close" onClick={() => setShowModal(false)} aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
                             <form onSubmit={handleSubmit}>
-                                <input
-                                    type="text"
-                                    name="nama"
-                                    value={newUser.nama}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    placeholder="Nama"
-                                    required
-                                />
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    name="avatar"
-                                    value={newUser.avatar}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    placeholder="avatar"
-                                    required
-                                />
-                                <input
-                                    type="number"
-                                    name="nip"
-                                    value={newUser.nip}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    placeholder="Nip"
-                                    required
-                                />
-                                <input
-                                    type="text"
-                                    name="jabatan"
-                                    value={newUser.jabatan}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    placeholder="Jabatan"
-                                    required
-                                />
-                                <input
-                                    type="text"
-                                    name="pendidikan"
-                                    value={newUser.pendidikan}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    placeholder="Pendidikan"
-                                    required
-                                />
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={newUser.email}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    placeholder="Email"
-                                    required
-                                />
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={newUser.password}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    placeholder="Password"
-                                    required
-                                />
-                                <select
-                                    name="roleId"
-                                    value={newUser.roleId}
-                                    onChange={handleInputChange}
-                                    className="form-control mb-2"
-                                    required
-                                >
-                                    <option value="" disabled>Pilih Role</option>
-                                    {Array.isArray(roleIdOptions) && roleIdOptions.map((option) => (
-                                        <option key={option._id} value={option._id}>
-                                            {option.role} {/* Menampilkan nama akreditasi */}
-                                        </option>
-                                    ))}
-                                </select>
-
+                                <div className='mb-3'>
+                                    <label htmlFor="avatar" className='form-label'>Pilih Avatar :</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        name="avatar"
+                                        value={newUser.avatar}
+                                        onChange={handleInputChange}
+                                        className="form-control"
+                                        placeholder="avatar"
+                                        required
+                                    />
+                                </div>
+                                <div className='d-flex justify-content-between mb-2'>
+                                    <div className='w-50 me-2'>
+                                        <label htmlFor="nama" className='mb-2'>Nama :</label>
+                                        <input
+                                            type="text"
+                                            name="nama"
+                                            value={newUser.nama}
+                                            onChange={handleInputChange}
+                                            className="form-control"
+                                            placeholder="Nama"
+                                            required
+                                        />
+                                    </div>
+                                    <div className='w-50'>
+                                        <label htmlFor="nip" className='mb-2'>NIP :</label>
+                                        <input
+                                            type="number"
+                                            name="nip"
+                                            value={newUser.nip}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="Nip"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className='d-flex justify-content-between mb-2'>
+                                    <div className='w-50 me-2'>
+                                        <label htmlFor="jabatan" className='mb-2'>Jabatan :</label>
+                                        <input
+                                            type="text"
+                                            name="jabatan"
+                                            value={newUser.jabatan}
+                                            onChange={handleInputChange}
+                                            className="form-control"
+                                            placeholder="Jabatan"
+                                            required
+                                        />
+                                    </div>
+                                    <div className='w-50'>
+                                        <label htmlFor="pendidikan" className='mb-2'>Pendidikan :</label>
+                                        <input
+                                            type="text"
+                                            name="pendidikan"
+                                            value={newUser.pendidikan}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="Pendidikan"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className='d-flex justify-content-between mb-3'>
+                                    <div className='w-50 me-2'>
+                                        <label htmlFor="email" className='mb-2'>Email :</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={newUser.email}
+                                            onChange={handleInputChange}
+                                            className="form-control"
+                                            placeholder="Email"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="w-50">
+                                        <label htmlFor="password" className="mb-2">Password :</label>
+                                        <div className="input-group">
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                name="password"
+                                                value={newUser.password}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                placeholder="Password"
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={togglePasswordVisibility}
+                                                className="btn btn-outline-secondary"
+                                            >
+                                                {showPassword ? "🙈" : "👁️"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='mb-3'>
+                                    <label htmlFor="roleId" className='mb-2'>Pilih Role :</label>
+                                    <select
+                                        name="roleId"
+                                        value={newUser.roleId}
+                                        onChange={handleInputChange}
+                                        className="form-control"
+                                        required
+                                    >
+                                        <option value="" disabled>Pilih Role</option>
+                                        {Array.isArray(roleIdOptions) && roleIdOptions.map((option) => (
+                                            <option key={option._id} value={option._id}>
+                                                {option.role}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <button type="submit" className="btn btn-success" onClick={() => handleSaveData(usersList)}>Tambah</button>
                             </form>
                         </div>
@@ -421,11 +568,12 @@ export default function User() {
                 </div>
             </div>
 
+
             {/* Edit Modal */}
             {showModalEdit && (
                 <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog">
                     <div className="modal-dialog" role="document">
-                        <div className="modal-content">
+                        <div className="modal-content" style={{ width: '550px' }}>
                             <div className="modal-header">
                                 <h5 className="modal-title">Edit Users</h5>
                                 <button
@@ -437,93 +585,101 @@ export default function User() {
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleEditSubmit}>
-                                    {/* <div className="mb-2">
+                                    <div className="form-group mt-3 mb-2">
                                         <label>Avatar</label>
-                                        <input
-                                            type="file"
-                                            name="avatar"
-                                            value={editUsers.avatar} // Mengambil nilai dari state
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
-                                    </div> */}
-                                    <div className="mb-2">
-                                        <label>Nama</label>
-                                        <input
-                                            type="text"
-                                            name="nama"
-                                            value={editUsers.nama}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                        <div>
+                                            {currentAvatar && !selectedFile && (
+                                                <img
+                                                    src={currentAvatar}
+                                                    alt="Current Avatar"
+                                                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                                                />
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                                className="form-control"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="mb-2">
-                                        <label>Jabatan</label>
-                                        <input
-                                            type="text"
-                                            name="jabatan"
-                                            value={editUsers.jabatan}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                    <div className='d-flex gap-2'>
+                                        <div className="mb-2">
+                                            <label>Nama</label>
+                                            <input
+                                                type="text"
+                                                name="nama"
+                                                value={editUsers.nama}
+                                                onChange={handleEditChange}
+                                                className="form-control"
+                                            />
+                                        </div>
+                                        <div className="mb-2 w-50">
+                                            <label>Jabatan</label>
+                                            <input
+                                                type="text"
+                                                name="jabatan"
+                                                value={editUsers.jabatan}
+                                                onChange={handleEditChange}
+                                                className="form-control"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="mb-2">
-                                        <label>NIP</label>
-                                        <input
-                                            type="number"
-                                            name="nip"
-                                            value={editUsers.nip}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                    <div className='d-flex gap-2'>
+                                        <div className="mb-2">
+                                            <label>NIP</label>
+                                            <input
+                                                type="number"
+                                                name="nip"
+                                                value={editUsers.nip}
+                                                onChange={handleEditChange}
+                                                className="form-control"
+                                            />
+                                        </div>
+                                        <div className="mb-2 w-50">
+                                            <label>Pendidikan</label>
+                                            <input
+                                                type="text"
+                                                name="pendidikan"
+                                                value={editUsers.pendidikan}
+                                                onChange={handleEditChange}
+                                                className="form-control"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="mb-2">
-                                        <label>Pendidikan</label>
-                                        <input
-                                            type="text"
-                                            name="pendidikan"
-                                            value={editUsers.pendidikan}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                    <div className='d-flex gap-2'>
+                                        <div className="mb-2">
+                                            <label htmlFor="email">Email</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={editUsers.email}
+                                                onChange={handleEditChange}
+                                                className="form-control"
+                                            />
+                                        </div>
+                                        <div className="mb-2">
+                                            <label>Password</label>
+                                            <div className="input-group">
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    name="password"
+                                                    value={editUsers.password}
+                                                    onChange={handleEditChange}
+                                                    className="form-control"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={togglePasswordVisibility}
+                                                    className="btn btn-outline-secondary"
+                                                >
+                                                    {showPassword ? "🙈" : "👁️"}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
+
                                     <div className="mb-2">
-                                        <label>Email</label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={editUsers.email}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
-                                    </div>
-                                    <div className="mb-2">
-                                        <label>password</label>
-                                        <input
-                                            type="password"
-                                            name="password"
-                                            value={editUsers.password}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
-                                    </div>
-                                    <div className="mb-2">
-                                        <label>Role</label>
-                                        <select
-                                            name="roleId"
-                                            value={editUsers.role}  // Nilai pengguna yang dipilih
-                                            onChange={handleInputChange}  // Menangani perubahan pilihan
-                                            className="form-control mb-2"
-                                            required
-                                        >
-                                            {Array.isArray(roleIdOptions) && roleIdOptions.map((option) => (
-                                                <option key={option._id} value={option._id}>
-                                                    {option.role}  {/* Menampilkan nama pengguna */}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    {/* <div className="mb-2">
                                         <label>Status</label>
                                         <select
                                             name="status"
@@ -536,7 +692,7 @@ export default function User() {
                                             <option value="Aktif">Aktif</option>
                                             <option value="Non Aktif">Non-Aktif</option>
                                         </select>
-                                    </div> */}
+                                    </div>
 
                                     <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(usersList)}>
                                         Update
@@ -553,23 +709,85 @@ export default function User() {
                 <div className="modal fade show d-block">
                     <div className="modal-dialog">
                         <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Preview PSDKU</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowModalPreview(false)}></button>
-                            </div>
-                            <div className="modal-body">
-                                <p>Nama: {editUsers.nama}</p>
-                                <p>NIP: {editUsers.nip}</p>
-                                <p>Jabatan: {editUsers.jabatan}</p>
-                                <p>Pendidikan: {editUsers.pendidikan}</p>
-                                <p>Password: {editUsers.password}</p>
-                                {/* Other fields for display */}
+                            <div className="modal-content shadow-lg">
+                                <div className="modal-body p-4">
+                                    <div className="text-center">
+                                        {/* Foto Profil */}
+                                        <img
+                                            src="/profile.jpg"
+                                            alt='Gambar'
+                                            className="rounded-circle border mb-3"
+                                            style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                                        />
+                                        {/* Nama */}
+                                        <h5 className="fw-bold mb-1">{previewData.nama}</h5>
+                                        {/* Jabatan */}
+                                        <p className="text-muted mb-4">{previewData.jabatan}</p>
+                                    </div>
+                                    {/* Info Tambahan */}
+                                    <hr />
+                                    <p className="text-center text-uppercase text-muted fw-bold mb-3">
+                                        More Info
+                                    </p>
+                                    <div className="d-flex justify-content-between">
+                                        <span className="fw-bold">Pendidikan</span>
+                                        <span>{previewData.pendidikan}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">NIP</span>
+                                        <span>{previewData.nip}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Email</span>
+                                        <span>{previewData.email}</span>
+                                    </div>
+                                </div>
+                                <div className="modal-footer border-0">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary w-100 rounded-pill"
+                                        onClick={() => setShowModalPreview(false)}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
+
+
+            {/* Modal Konfirmasi Delete */}
+            {userToDelete && (
+                <ModalConfirmDelete
+                    show={showConfirmDeleteModal}
+                    onClose={() => setShowConfirmDeleteModal(false)}
+                    message="Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak bisa dibatalkan."
+                    users={userToDelete}
+                    deleteUser={deleteUser} // Mengirimkan fungsi deleteUser ke modal
+                />
+            )}
+
+            <ModalFilter
+                show={showFiltersModal}
+                onClose={() => setShowFiltersModal(false)}
+                onApply={handleApplyFilters}
+            />
         </div>
     );
 }

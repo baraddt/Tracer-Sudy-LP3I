@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { refreshToken } from './AuthService';
 
-const API_URL = 'http://192.168.18.176:5000'; 
+const API_URL = 'http://192.168.18.223:5000'; 
 
 const axiosClient = axios.create({
     baseURL: API_URL,
@@ -22,7 +22,7 @@ axiosClient.interceptors.response.use(
 
             try {
                 
-                const storedRefreshToken = localStorage.getItem('refreshToken'); 
+                const storedRefreshToken = sessionStorage.getItem('refreshToken'); 
                 if (!storedRefreshToken) {
                     console.error('Refresh token tidak ditemukan.');
                     throw new Error('Refresh token tidak tersedia.');
@@ -34,7 +34,7 @@ axiosClient.interceptors.response.use(
                 console.log('Token berhasil diperbarui:', newAccessToken);
 
                 
-                localStorage.setItem('accessToken', newAccessToken);
+                sessionStorage.setItem('accessToken', newAccessToken);
 
                 
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;

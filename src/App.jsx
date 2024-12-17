@@ -23,6 +23,8 @@ import TracerPreviewKuesioner from './pages/super_admin/tracerstudy-preview-kues
 import TracerPreviewResponden from './pages/super_admin/tracerstudy-preview-responden';
 import TracerEdit from './pages/super_admin/tracerstudy-edit';
 import TracerEditSkala from './pages/super_admin/tracerstudy-editskala';
+import TracerEditBank from './pages/super_admin/tracerstudy-editbank';
+import TracerEditAtensi from './pages/super_admin/tracerstudy-editatensi';
 import Kampus from './pages/super_admin/kampus';
 import KampusEdit from './pages/super_admin/kampusedit';
 import User from './pages/super_admin/user';
@@ -47,6 +49,7 @@ import TracerPreviewAdmin from './pages/admin/tracerpreview';
 import PreviewKueionser from './pages/admin/tracer-preview-kuesioner';
 import PreviewResponden from './pages/admin/tracer-preview-responden';
 import KampusAdmin from './pages/admin/kampus';
+import PsdkuEdit from './pages/admin/psdkuedit';
 import ProgramStudyAdmin from './pages/admin/programstudy';
 import AddAdmin from './pages/admin/addadmin';
 import AddMahasiswa from './pages/admin/addmahasiswa';
@@ -60,6 +63,7 @@ import LoginPengguna from './components/loginPengguna';
 import DashboardPengguna from './pages/pengguna/dashboard';
 import TracerStudy from './pages/pengguna/tracerstudy';
 import FormTracer from './pages/pengguna/formtracer';
+import TrackRecord from './pages/pengguna/trackrecord';
 import InfoKampus from './pages/pengguna/kampus';
 import PusatBantuanPengguna from './pages/pengguna/pusatbantuan'
 import ProfilePengguna from './pages/pengguna/profile';
@@ -80,72 +84,80 @@ function AppContent() {
       {!isAuthPage && isAdminPage && <NavbarAdmin />}
       {!isAuthPage && isPenggunaPage && <NavbarPengguna />}
 
-      <Routes>
-        {/* component route */}
-        <Route path="pdf" element={<Pdf />} />
+      <div className="d-flex flex-column min-vh-100"> {/* Flexbox untuk layout vertikal */}
+        <div className="flex-grow-1"> {/* Bagian konten utama */}
+          <Routes>
+            {/* component route */}
+            <Route path="pdf" element={<Pdf />} />
 
-        {/* Route Super Admin */}
-        <Route path="/" element={<Login />} /> {/* Halaman login di URL default */}
-        <Route path="/loginPengguna" element={<loginPengguna />} /> {/* Halaman login di URL default */}
-        <Route path="/super_admin/forgot-password" element={<ForgotPassword />} /> {/* Route untuk halaman lupa password */}
-        <Route path="/super_admin/dashboard" element={<Dashboard />} />
-        <Route path="/super_admin/tracerstudy" element={<Tracer />} />
-        <Route path="/super_admin/tracerstudyadd" element={<TracerAdd />} />
-        <Route path="/super_admin/tracerstudy-golongan-kegiatan" element={<TracerGolongan />} />
-        <Route path="/super_admin/tracerstudy-bank-soal" element={<TracerBankSoal />} />
-        <Route path="/super_admin/tracerstudy-verifikasi-akhir" element={<TracerVerifikasi />} />
-        <Route path="/super_admin/tracerstudy-preview" element={<TracerPreview />} />
-        <Route path="/super_admin/tracerstudy-getpreview/:id" element={<GetTracerPreview />} />
-        <Route path="/super_admin/tracerstudy-getpreview-kuesioner/:id" element={<GetTracerPreviewKuesioner />} />
-        <Route path="/super_admin/tracerstudy-getpreview-responden/:id" element={<GetTracerPreviewResponden />} />
-        <Route path="/super_admin/tracerstudy-getpreview-kriteria/:id" element={<GetTracerPreviewKriteria />} />
-        <Route path="/super_admin/tracerstudy-edit/:id" element={<TracerEdit />} />
-        <Route path="/super_admin/tracerstudy-editskala" element={<TracerEditSkala />} />
-        <Route path="/super_admin/tracerstudy-preview-kuesioner" element={<TracerPreviewKuesioner />} />
-        <Route path="/super_admin/tracerstudy-preview-responden" element={<TracerPreviewResponden />} />
-        <Route path="/super_admin/kampus" element={<Kampus />} />
-        <Route path="/super_admin/kampusedit" element={<KampusEdit />} />
-        <Route path="/super_admin/user" element={<User />} />
-        <Route path="/super_admin/arsippengaduan" element={<ArsipPengaduan />} />
-        <Route path="/super_admin/arsiptracer" element={<ArsipTracer />} />
-        <Route path="/super_admin/pusatbantuan" element={<PusatBantuan />} />
-        <Route path="/super_admin/profile" element={<Profile />} />
-        <Route path="/super_admin/psdku" element={<Psdku />} />
-        <Route path="/super_admin/programstudy" element={<Programstudy />} />
+            {/* Route Super Admin */}
+            <Route path="/" element={<Login />} /> {/* Halaman login di URL default */}
+            <Route path="/loginPengguna" element={<loginPengguna />} /> {/* Halaman login di URL default */}
+            <Route path="/super_admin/forgot-password" element={<ForgotPassword />} /> {/* Route untuk halaman lupa password */}
+            <Route path="/super_admin/dashboard" element={<Dashboard />} />
+            <Route path="/super_admin/tracerstudy" element={<Tracer />} />
+            <Route path="/super_admin/tracerstudyadd" element={<TracerAdd />} />
+            <Route path="/super_admin/tracerstudy-golongan-kegiatan" element={<TracerGolongan />} />
+            <Route path="/super_admin/tracerstudy-bank-soal" element={<TracerBankSoal />} />
+            <Route path="/super_admin/tracerstudy-verifikasi-akhir" element={<TracerVerifikasi />} />
+            <Route path="/super_admin/tracerstudy-preview" element={<TracerPreview />} />
+            <Route path="/super_admin/tracerstudy-getpreview/:id" element={<GetTracerPreview />} />
+            <Route path="/super_admin/tracerstudy-getpreview-kuesioner/:id" element={<GetTracerPreviewKuesioner />} />
+            <Route path="/super_admin/tracerstudy-getpreview-responden/:id" element={<GetTracerPreviewResponden />} />
+            <Route path="/super_admin/tracerstudy-getpreview-kriteria/:id" element={<GetTracerPreviewKriteria />} />
+            {/* <Route path="/super_admin/tracerstudy-edit/:id" element={<TracerEdit />} /> */}
+            <Route path="/super_admin/tracerstudy-edit" element={<TracerEdit />} />
+            <Route path="/super_admin/tracerstudy-editskala" element={<TracerEditSkala />} />
+            <Route path="/super_admin/tracerstudy-editbank" element={<TracerEditBank />} />
+            <Route path="/super_admin/tracerstudy-editatensi" element={<TracerEditAtensi />} />
+            <Route path="/super_admin/tracerstudy-preview-kuesioner" element={<TracerPreviewKuesioner />} />
+            <Route path="/super_admin/tracerstudy-preview-responden" element={<TracerPreviewResponden />} />
+            <Route path="/super_admin/kampus" element={<Kampus />} />
+            <Route path="/super_admin/kampusedit" element={<KampusEdit />} />
+            <Route path="/super_admin/user" element={<User />} />
+            <Route path="/super_admin/arsippengaduan" element={<ArsipPengaduan />} />
+            <Route path="/super_admin/arsiptracer" element={<ArsipTracer />} />
+            <Route path="/super_admin/pusatbantuan" element={<PusatBantuan />} />
+            <Route path="/super_admin/profile" element={<Profile />} />
+            <Route path="/super_admin/psdku" element={<Psdku />} />
+            <Route path="/super_admin/programstudy" element={<Programstudy />} />
 
+            {/* Route Admin */}
+            <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+            <Route path="/admin/tracerstudy" element={<TracerStudyAdmin />} />
+            <Route path="/admin/traceradd" element={<TracerAddAdmin />} />
+            <Route path="/admin/tracerskala" element={<TracerSkala />} />
+            <Route path="/admin/tracerbanksoal" element={<TracerBankSoalAdmin />} />
+            <Route path="/admin/traceratensi" element={<TracerAtensi />} />
+            <Route path="/admin/tracerpreview" element={<TracerPreviewAdmin />} />
+            <Route path="/admin/tracer-preview-kuesioner" element={<PreviewKueionser />} />
+            <Route path="/admin/tracer-preview-responden" element={<PreviewKueionser />} />
+            <Route path="/admin/previewresponden" element={<PreviewResponden />} />
+            <Route path="/admin/kampus" element={<KampusAdmin />} />
+            <Route path="/admin/psdkuedit" element={<PsdkuEdit />} />
+            <Route path="/admin/programstudy" element={<ProgramStudyAdmin />} />
+            <Route path="/admin/addadmin" element={<AddAdmin />} />
+            <Route path="/admin/addmahasiswa" element={<AddMahasiswa />} />
+            <Route path="/admin/arsippengaduan" element={<ArsipPengaduanAdmin />} />
+            <Route path="/admin/arsiptracer" element={<ArsipTracerAdmin />} />
+            <Route path="/admin/pusatbantuan" element={<PusatBantuanAdmin />} />
+            <Route path="/admin/profile" element={<ProfileAdmin />} />
 
-        {/* Route Admin */}
-        <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-        <Route path="/admin/tracerstudy" element={<TracerStudyAdmin />} />
-        <Route path="/admin/traceradd" element={<TracerAddAdmin />} />
-        <Route path="/admin/tracerskala" element={<TracerSkala />} />
-        <Route path="/admin/tracerbanksoal" element={<TracerBankSoalAdmin />} />
-        <Route path="/admin/traceratensi" element={<TracerAtensi />} />
-        <Route path="/admin/tracerpreview" element={<TracerPreviewAdmin />} />
-        <Route path="/admin/tracer-preview-kuesioner" element={<PreviewKueionser />} />
-        <Route path="/admin/tracer-preview-responden" element={<PreviewKueionser />} />
-        <Route path="/admin/previewresponden" element={<PreviewResponden />} />
-        <Route path="/admin/kampus" element={<KampusAdmin />} />
-        <Route path="/admin/programstudy" element={<ProgramStudyAdmin />} />
-        <Route path="/admin/addadmin" element={<AddAdmin />} />
-        <Route path="/admin/addmahasiswa" element={<AddMahasiswa />} />
-        <Route path="/admin/arsippengaduan" element={<ArsipPengaduanAdmin />} />
-        <Route path="/admin/arsiptracer" element={<ArsipTracerAdmin />} />
-        <Route path="/admin/pusatbantuan" element={<PusatBantuanAdmin />} />
-        <Route path="/admin/profile" element={<ProfileAdmin />} />
+            {/* Route Pengguna */}
+            <Route path="/p" element={<LoginPengguna />} />
+            <Route path="/pengguna/dashboard" element={<DashboardPengguna />} />
+            <Route path="/pengguna/tracerstudy" element={<TracerStudy />} />
+            <Route path="/pengguna/kampus" element={<InfoKampus />} />
+            <Route path="/pengguna/pusatbantuan" element={<PusatBantuanPengguna />} />
+            <Route path="/pengguna/profile" element={<ProfilePengguna />} />
+            <Route path="/pengguna/trackrecord" element={<TrackRecord />} />
+            <Route path="/pengguna/formtracer/:id_tracer" element={<FormTracer />} />
+          </Routes>
+        </div>
 
-        {/* Route Pengguna */}
-        <Route path="/p" element={<LoginPengguna />} />
-        <Route path="/pengguna/dashboard" element={<DashboardPengguna />} />
-        <Route path="/pengguna/tracerstudy" element={<TracerStudy />} />
-        <Route path="/pengguna/kampus" element={<InfoKampus />} />
-        <Route path="/pengguna/pusatbantuan" element={<PusatBantuanPengguna />} />
-        <Route path="/pengguna/profile" element={<ProfilePengguna />} />
-        <Route path="/pengguna/formtracer/:id_tracer" element={<FormTracer />} />
-      </Routes>
-      
-      {/* Hanya tampilkan Footer jika bukan halaman login/forgot-password */}
-      {!isAuthPage && <Footer />}
+        {/* Hanya tampilkan Footer jika bukan halaman login/forgot-password */}
+        {!isAuthPage && <Footer />}
+      </div>
     </>
   );
 }

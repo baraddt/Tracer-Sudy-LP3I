@@ -5,6 +5,7 @@ import axiosClient from '../../services/axiosClient';
 
 export default function () {
     const [tracerList, setTracerList] = useState(null);
+    const [respondenList, setRespondenList] = useState([]);
     const [error, setError] = useState(null);
 
 
@@ -22,7 +23,7 @@ export default function () {
         } catch (error) {
             console.error("Error feching data:", error.message);
             setError(error.message);
-            
+
         }
     };
 
@@ -33,12 +34,26 @@ export default function () {
         } catch (error) {
             console.error("Error feching detail data:", error.message);
             setError(error.message);
+
+        }
+    };
+
+    const fetchResponden = async () => {
+        try {
+            const response = await axiosClient.get('');
+            setRespondenList(response.data.data);
+
+            console.log(response.data);
+            
+        } catch (err) {
+            console.error("Error Feching Responden :", err.message);
             
         }
     };
 
     useEffect(() => {
         fetchData();
+        fetchResponden();
     }, []);
 
 
@@ -97,15 +112,27 @@ export default function () {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td colSpan="7" className="text-center bg-danger bg-opacity-50">Belum ada data Responden.</td>
-                                </tr>
+                                {respondenList.length > 0 ? (
+                                    respondenList.map((responden, index) => (
+                                        <tr key={responden._id}>
+                                            <td>{`#R${index + 201}`}</td>
+                                            {/* <td><img className='rounded-circle' src={responden.avatar} alt="Avatar" width="50" height="50" /></td> */}
+                                            <td>{responden.nama}</td>
+                                            <td>{responden.psdku || 'N/A'}</td>
+                                            <td>{responden.prodi || 'N/A'}</td>
+                                            <td className={`text-center ${responden.is_submited ? 'text-success' : 'text-danger'}`}>
+                                                {responden.is_submited ? 'Submited' : 'Not Yet'}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="7" className="text-center bg-danger bg-opacity-50">Belum ada data Responden.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
-
-
-
                     {/* Buttons */}
                     <div className="d-flex justify-content-between mt-4">
                         <div>

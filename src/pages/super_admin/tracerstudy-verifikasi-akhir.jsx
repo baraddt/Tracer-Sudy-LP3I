@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axiosClient from "../../services/axiosClient";
 import { Link, useNavigate } from 'react-router-dom';
+import ModalSuccess from "../../components/compModals/modalsuccess";
+import ModalFailed from "../../components/compModals/modalFailed";
+import ModalSuccessDraft from "../../components/compModals/draftModals";
 
 export default function () {
     const navigate = useNavigate();
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showSuccessDraftModal, setShowSuccessDraftModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
     const [dataTracerId, setDataTracerId] = useState(null);
     const [dataAtensi, setDataAtensi] = useState([]);
     const [dataHorizontal, setDataHorizontal] = useState([]);
@@ -75,8 +81,10 @@ export default function () {
                 newAtensi
             );
 
+            setShowSuccessModal(true);
             console.log("Atensi yang berhasil ditambahkan:", response.data);
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error adding atensi:", error.message);
         }
     };
@@ -113,25 +121,36 @@ export default function () {
             {/* Progress Steps */}
             <div className="row mb-4">
                 <div className="col">
-                    <ul className="mt-3 gap-3 text-white nav nav-pills justify-content-center">
+                    <ul className="nav mt-3 mb-4 justify-content-center gap-2">
                         <li className="nav-item">
-                            <span className="active border rounded bg-secondary bg-opacity-50 p-2">Detail Kegiatan</span>
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Detail Kegiatan
+                            </span>
+                        </li>
+                        <li className="nav-item mx-2">
+                            <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
+                                Skala Kegiatan
+                            </span>
                         </li>
                         <li className="nav-item">
-                            <span className="active border rounded bg-secondary bg-opacity-50 p-2">Golongan Kegiatan</span>
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Bank soal
+                            </span>
                         </li>
                         <li className="nav-item">
-                            <span className="active border rounded bg-secondary bg-opacity-50 p-2">Bank soal</span>
+                            <span className="badge btn-primary px-4 py-2 rounded-pill">
+                                Kriteria Atensi
+                            </span>
                         </li>
                         <li className="nav-item">
-                            <span className="active border rounded bg-primary bg-opacity-50 p-2">Kriteria Atensi</span>
-                        </li>
-                        <li className="nav-item">
-                            <span className="active border rounded bg-secondary bg-opacity-50 p-2">Preview</span>
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Preview
+                            </span>
                         </li>
                     </ul>
                 </div>
             </div>
+
 
             {/* heading */}
             <div className="form-group">
@@ -160,7 +179,7 @@ export default function () {
                                 dataHorizontal.map((item, index) => (
                                     <tr key={index}>
                                         <td
-                                            className={`text-white fw-normal text-center d-inline-block p-5 ${item.kriteria === "Sangat Tidak Selaras"
+                                            className={`text-white text-center d-inline-block p-5 ${item.kriteria === "Sangat Tidak Selaras"
                                                 ? "bg-danger"
                                                 : item.kriteria === "Tidak Selaras"
                                                     ? "bg-warning"
@@ -178,7 +197,7 @@ export default function () {
                                         </td>
 
                                         <td
-                                            className="fw-normal pb-5"
+                                            className="text-dark pb-5"
                                             style={{
                                                 wordWrap: "break-word",
                                                 whiteSpace: "normal",
@@ -190,7 +209,7 @@ export default function () {
                                             {item.deskripsi || "Tidak ada deskripsi"}
                                         </td>
                                         <td
-                                            className="fw-normal pb-5"
+                                            className="text-dark pb-5"
                                             style={{
                                                 wordWrap: "break-word",
                                                 whiteSpace: "normal",
@@ -202,7 +221,7 @@ export default function () {
                                             {item.min}
                                         </td>
                                         <td
-                                            className="fw-normal pb-5"
+                                            className="text-dark pb-5"
                                             style={{
                                                 wordWrap: "break-word",
                                                 whiteSpace: "normal",
@@ -214,7 +233,7 @@ export default function () {
                                             {item.max}
                                         </td>
                                         <td
-                                            className="fw-normal pb-5"
+                                            className="text-dark pb-5"
                                             style={{
                                                 wordWrap: "break-word",
                                                 whiteSpace: "normal",
@@ -229,7 +248,7 @@ export default function () {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="3" className="text-center">Data tidak ditemukan</td>
+                                    <td colSpan="6" className="text-center">Data tidak ditemukan</td>
                                 </tr>
                             )}
                         </tbody>
@@ -243,7 +262,9 @@ export default function () {
                             <tr>
                                 <th className='fw-semibold'>Kriteria</th>
                                 <th className='fw-semibold'>Deksripsi</th>
-                                <th className='fw-semibold'>Logika</th>
+                                <th className='fw-semibold'>Min</th>
+                                <th className='fw-semibold'>Max</th>
+                                {/* <th className='fw-semibold'>Logika</th> */}
                                 <th className='fw-semibold'>Atensi</th>
                             </tr>
                         </thead>
@@ -252,7 +273,7 @@ export default function () {
                                 dataAtensi.map((item, index) => (
                                     <tr key={index}>
                                         <td
-                                            className={`text-white fw-normal text-center d-inline-block p-5 ${item.kriteria === "Rendah"
+                                            className={`text-white text-center d-inline-block p-5 ${item.kriteria === "Rendah"
                                                 ? "bg-danger"
                                                 : item.kriteria === "Sama"
                                                     ? "bg-warning"
@@ -266,7 +287,7 @@ export default function () {
                                         </td>
 
                                         <td
-                                            className="fw-normal pb-5"
+                                            className="text-dark pb-5"
                                             style={{
                                                 wordWrap: "break-word",
                                                 whiteSpace: "normal",
@@ -277,8 +298,8 @@ export default function () {
                                         >
                                             {item.deskripsi || "Tidak ada deskripsi"}
                                         </td>
-                                        <td
-                                            className="fw-normal pb-5"
+                                        {/* <td
+                                            className="text-dark pb-5"
                                             style={{
                                                 wordWrap: "break-word",
                                                 whiteSpace: "normal",
@@ -288,9 +309,9 @@ export default function () {
                                             }}
                                         >
                                             {item.logika || "Tidak ada evaluasi"}
-                                        </td>
+                                        </td> */}
                                         <td
-                                            className="fw-normal pb-5"
+                                            className="text-dark pb-5"
                                             style={{
                                                 wordWrap: "break-word",
                                                 whiteSpace: "normal",
@@ -305,7 +326,7 @@ export default function () {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="3" className="text-center">Data tidak ditemukan</td>
+                                    <td colSpan="6" className="text-center">Data tidak ditemukan</td>
                                 </tr>
                             )}
                         </tbody>
@@ -324,7 +345,7 @@ export default function () {
             {/* Buttons */}
             <div className="d-flex justify-content-between mt-4">
                 <div>
-                    <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
+                    <button type="button" className="btn btn-primary mb-3" onClick={() => setShowSuccessDraftModal(true)}>Simpan ke Draft</button>
                 </div>
                 <div>
                     <Link to='/super_admin/tracerstudy-bank-soal'>
@@ -335,6 +356,26 @@ export default function () {
                     </Link>
                 </div>
             </div>
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Draft */}
+            <ModalSuccessDraft
+                show={showSuccessDraftModal}
+                message="Tracer to Draft Is Success !"
+                onClose={() => setShowSuccessDraftModal(false)}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
         </div>
     )
 }

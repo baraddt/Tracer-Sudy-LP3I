@@ -3,8 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import "react-quill/dist/quill.snow.css";
 import ReactQuill from "react-quill";
 import axiosClient from '../../services/axiosClient';
+import ModalSuccess from '../../components/compModals/modalsuccess';
+import ModalSuccessDraft from '../../components/compModals/draftModals';
+import ModalFailed from '../../components/compModals/modalFailed';
 
 export default function () {
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showSuccessDraftModal, setShowSuccessDraftModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
     const [error, setError] = useState(null);
     const [dataTracerId, setDataTracerId] = useState(null); // Menyimpan ID data_tracer
     const [newKegiatan, setNewKegiatan] = useState({
@@ -22,6 +28,7 @@ export default function () {
     // Fungsi menambah detail kegiatan ke API
     const addKegiatan = async () => {
         try {
+            // Kirim data kegiatan ke server, termasuk path gambar
             const response = await axiosClient.post(
                 '/tracerstudy/detailkegiatan/add',
                 newKegiatan);
@@ -49,9 +56,11 @@ export default function () {
                 manfaat_kegiatan: '',
             });
 
+            setShowSuccessModal(true);
             // Navigasi ke step 2
             navigate('/admin/tracerskala');
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error saat menambahkan kegiatan:", error.message);
             setError("Gagal menambahkan kegiatan. Silakan coba lagi.");
         }
@@ -105,9 +114,42 @@ export default function () {
             {/* Progress Steps */}
             <div className="row mb-4">
                 <div className="col">
+                    <ul className="nav mt-3 mb-4 justify-content-center gap-2">
+                        <li className="nav-item">
+                            <span className="badge btn-primary px-4 py-2 rounded-pill">
+                                Detail Kegiatan
+                            </span>
+                        </li>
+                        <li className="nav-item mx-2">
+                            <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
+                                Skala Kegiatan
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Bank soal
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Kriteria Atensi
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Preview
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {/* Progress Steps
+            <div className="row mb-4">
+                <div className="col">
                     <ul className="mt-3 gap-3 text-white nav nav-pills justify-content-center">
                         <li className="nav-item">
-                            <span className="active border rounded bg-primary bg-opacity-50 p-2">Detail Kegiatan</span>
+                            <span class="badge badge-label bg-primary"><i class="mdi mdi-circle-medium"></i> Detail Kegiatan</span>
                         </li>
                         <li className="nav-item">
                             <span className="active border rounded bg-secondary bg-opacity-50 p-2">Skala Kegiatan</span>
@@ -123,7 +165,7 @@ export default function () {
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div> */}
 
             {/* Form */}
             <form onSubmit={handleSubmit}>
@@ -203,17 +245,41 @@ export default function () {
                 <div className="form-group mt-3">
                     <label className="mb-3">Manfaat Kegiatan</label>
                     <ReactQuill
-                        value={newKegiatan.manfaat_kegiatan}
+                        value={
+                            newKegiatan.manfaat_kegiatan ||
+                            `
+                              <Strong>Manfaat Untuk Kampus:</Strong>
+                              <ol>
+                                <li></li>
+                                <li></li>
+                                <li>...</li>
+                              </ol>
+                              <Strong>Manfaat Untuk Mahasiswa:</Strong>
+                              <ol>
+                                <li></li>
+                                <li></li>
+                                <li>...</li>
+                              </ol>
+                              <Strong>Manfaat Untuk Industri:</Strong>
+                              <ol>
+                                <li></li>
+                                <li></li>
+                                <li>...</li>
+                              </ol>
+                            `
+                        }
                         onChange={(value) => handleInputChange('manfaat_kegiatan', value)}
-                        placeholder="Lengkapi deskripsi yang menjelaskan mengapa tracer study ini diadakan."
+                        placeholder="Manfaat Untuk Kampus"
                     />
                 </div>
 
                 {/* Buttons */}
                 <div className="d-flex justify-content-between mt-4">
-                    <div>
-                        <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
-                    </div>
+                    {/* <Link to='/super_admin/tracerstudy'> */}
+                        <div>
+                            <button type="button" className="btn btn-primary mb-3" onClick={() => setShowSuccessDraftModal(true)}>Simpan ke Draft</button>
+                        </div>
+                    {/* </Link> */}
                     <div>
                         <Link to='/admin/tracerstudy'>
                             <button type="button" className="btn btn-danger mb-3 me-3">Batalkan</button>
@@ -224,6 +290,27 @@ export default function () {
                     </div>
                 </div>
             </form>
+
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Draft */}
+            <ModalSuccessDraft
+                show={showSuccessDraftModal}
+                message="Tracer to Draft Is Success !"
+                onClose={() => setShowSuccessDraftModal(false)}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
         </div>
     );
 }

@@ -1,32 +1,56 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axiosClient from '../../services/axiosClient';
+import ModalSuccess from '../../components/compModals/modalsuccess';
+import ModalSuccessDraft from '../../components/compModals/draftModals';
+import ModalFailed from '../../components/compModals/modalFailed';
+import ModalSuccessSoal from '../../components/compModals/soalModals';
+
 
 export default function () {
     const navigate = useNavigate();
-    const [isEditMode, setIsEditMode] = useState(false); // Default mode adalah tambah
-    const [editSoalId, setEditSoalId] = useState(null); // ID soal yang sedang diedit    
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
+    const [showSuccessDraftModal, setShowSuccessDraftModal] = useState(false);
+    const [showSuccessSoal, setShowSuccessSoal] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editSoalId, setEditSoalId] = useState(null);
     const [dataTracerId, setDataTracerId] = useState(null);
     const [dataSoalId, setDataSoalId] = useState(null);
     const [bankSoalList, setBankSoalList] = useState([]);
     const [error, setError] = useState(null);
     const [newSoal, setNewSoal] = useState({
         soal: '',
-        jawaban: [] // Akan diisi array objek { jawaban, bobot_jawaban }
+        jawaban: []
     });
-    const [options, setOptions] = useState(['', '', '', '']); // Inisialisasi 4 opsi kosong
-    const [weights, setWeights] = useState(['1', '1', '1', '1']); // Inisialisasi bobot dengan 4 nilai 1
+    const [options, setOptions] = useState(['', '', '', '']);
+    const [weights, setWeights] = useState(['1', '1', '1', '1']);
 
-    useEffect(() => {
-        const tracerId = localStorage.getItem('tracerId');
-        if (!tracerId) {
-            console.error("Tracer ID tidak ditemukan di localStorage.");
-            navigate('/admin/tracerskala'); // Redirect ke step 1 jika ID tidak ditemukan
-        } else {
-            setDataTracerId(tracerId); // Simpan ke state
-            console.log("Tracer ID diambil dari localStorage:", tracerId);
-        }
-    }, [navigate]);
+    // useEffect(() => {
+    //     const tracerId = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+    //     if (!tracerId) {
+    //         console.error("Tracer ID tidak ditemukan di localStorage.");
+    //         navigate('/admin/tracerskala'); // Redirect ke step 1 jika ID tidak ditemukan
+    //     } else {
+    //         setDataTracerId(tracerId); // Simpan ke state
+    //         console.log("Tracer ID diambil dari localStorage:", tracerId);
+    //     }
+    // }, [navigate]);
+
+    // Fetch Tracer ID
+    // const fetchTracer = async () => {
+    //     try {
+    //         const response = await axiosClient.get('/tracerstudy/all');
+    //         if (response.data.data && response.data.data.length > 0) {
+    //             setDataTracerId(response.data.data[0]._id);
+    //             console.log("ID tracer yang diambil:", response.data.data[0]._id);
+    //         } else {
+    //             console.error("Data tracer kosong atau tidak ditemukan.");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error.message);
+    //     }
+    // };
 
     // fetch bank soal untuk preview soal
     const fetchBankSoal = async () => {
@@ -36,7 +60,8 @@ export default function () {
         }
         try {
             const response = await axiosClient.get(
-                `/tracerstudy/bank_soal/get/${dataTracerId}`);
+                `/tracerstudy/bank_soal/get/${dataTracerId}`
+                ,);
             if (response.data && response.data.data) {
                 console.log("Data soal berhasil diambil:", response.data.data);
                 setBankSoalList(response.data.data);
@@ -67,9 +92,11 @@ export default function () {
             const response = await axiosClient.post(
                 `/tracerstudy/banksoal/add/${dataTracerId}`,
                 soalToSubmit
-            );
+                ,);
+            setShowSuccessSoal(true);
             console.log("Data soal berhasil ditambahkan:", response.data);
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error adding soal:", error.message);
             setError("Gagal menambahkan soal. Coba lagi.");
         }
@@ -86,7 +113,8 @@ export default function () {
             const response = await axiosClient.put(
                 `/tracerstudy/bank_soal/edit/${editSoalId}`, // Gunakan editSoalId yang valid
                 soalToSubmit
-            );
+                ,);
+            setShowSuccessModal(true);
             console.log("Soal berhasil diperbarui:", response.data);
             setIsEditMode(false);
             setEditSoalId(null);
@@ -96,6 +124,7 @@ export default function () {
             });
             fetchBankSoal(); // Refresh data bank soal
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Gagal memperbarui soal:", error.message);
         }
     };
@@ -116,15 +145,16 @@ export default function () {
             // Mengirim request DELETE ke API
             const response = await axiosClient.delete(
                 `/tracerstudy/bank_soal/delete/${soalId}`
-            );
+                ,);
 
             // Update state bankSoalList dengan menghapus soal yang telah dihapus
             setBankSoalList((prevList) =>
                 prevList.filter((soal) => soal._id !== soalId)
             );
-
+            setShowSuccessModal(true);
             console.log("Soal Deleted Successfully", response.data);
         } catch (error) {
+            setShowFailedModal(true);
             // Menangani error jika request gagal
             console.error("Error deleting soal:", error.message);
         }
@@ -262,6 +292,39 @@ export default function () {
             {/* Progress Steps */}
             <div className="row mb-4">
                 <div className="col">
+                    <ul className="nav mt-3 mb-4 justify-content-center gap-2">
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Detail Kegiatan
+                            </span>
+                        </li>
+                        <li className="nav-item mx-2">
+                            <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
+                                Skala Kegiatan
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-primary px-4 py-2 rounded-pill">
+                                Bank soal
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Kriteria Atensi
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Preview
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {/* Progress Steps */}
+            {/* <div className="row mb-4">
+                <div className="col">
                     <ul className="mt-3 gap-3 text-white nav nav-pills justify-content-center">
                         <li className="nav-item">
                             <span className="active border rounded bg-secondary bg-opacity-50 p-2">Detail Kegiatan</span>
@@ -280,7 +343,7 @@ export default function () {
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div> */}
 
             {/* Form */}
             <form onSubmit={handleSubmit}>
@@ -321,6 +384,10 @@ export default function () {
                 </div>
 
                 {/* Render Options */}
+                <div className='mb-2 d-flex justify-content-between'>
+                    <span>Jawaban</span>
+                    <span>Bobot Jawaban</span>
+                </div>
                 {options.map((option, index) => (
                     <div className="row mb-2" key={index}>
                         <div className="col-8">
@@ -388,7 +455,7 @@ export default function () {
             {/* Buttons */}
             <div className="d-flex justify-content-between mt-4">
                 <div>
-                    <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
+                    <button type="button" className="btn btn-primary mb-3" onClick={() => setShowSuccessDraftModal(true)}>Simpan ke Draft</button>
                 </div>
                 <div>
                     <Link to='/admin/tracerskala'>
@@ -399,6 +466,33 @@ export default function () {
                     </Link>
                 </div>
             </div>
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Success Soal */}
+            <ModalSuccessSoal
+                show={showSuccessSoal}
+                message="Success Add Questions !"
+                onClose={() => setShowSuccessSoal(false)}
+            />
+
+            {/* Modal Draft */}
+            <ModalSuccessDraft
+                show={showSuccessDraftModal}
+                message="Tracer to Draft Is Success !"
+                onClose={() => setShowSuccessDraftModal(false)}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
         </div>
     )
 }

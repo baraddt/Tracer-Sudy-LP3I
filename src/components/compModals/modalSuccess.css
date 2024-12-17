@@ -1,0 +1,43 @@
+/* Modal spinner styling */
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Success icon styling */
+.success-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Checkmark icon animation */
+.checkmark-container {
+    width: 50px;
+    height: 50px;
+    background-color: #4caf50;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.checkmark {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

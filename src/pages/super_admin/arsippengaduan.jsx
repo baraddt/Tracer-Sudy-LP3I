@@ -2,7 +2,7 @@ export default function () {
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h4 className="text-black mb-4 fw-semibold">Arsip Pengaduan</h4>
+                <h4 className="mb-4 fw-semibold text-dark">Arsip Pengaduan</h4>
 
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
@@ -21,15 +21,15 @@ export default function () {
                     </button>
                 </div>
             </div>
-            <div className="rounded mt-4 bg-white p-3">
+            <div className="table-responsive-sm table-responsive-md rounded mt-4 bg-white p-3">
                 <table className="table">
-                    <thead>
+                    <thead className="table-secondary">
                         <tr>
-                            <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">#ID</th>
-                            <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Pengguna</th>
-                            <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Judul Permasalahan</th>
-                            <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Status</th>
-                            <th className='bg-secondary bg-opacity-25 text-center fw-semibold' scope="col">Aksi</th>
+                            <th className='text-dark text-center fw-semibold' scope="col">#ID</th>
+                            <th className='text-dark text-center fw-semibold' scope="col">Pengguna</th>
+                            <th className='text-dark text-center fw-semibold text-truncate' scope="col">Judul Permasalahan</th>
+                            <th className='text-dark text-center fw-semibold' scope="col">Status</th>
+                            <th className='text-dark text-center fw-semibold' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

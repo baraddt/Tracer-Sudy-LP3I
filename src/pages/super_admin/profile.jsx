@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import getRoleName from '../../services/roleCheck';
 
+
 export default function () {
     const [userName, setUserName] = useState('');
     const [roleName, setRoleName] = useState('');
@@ -11,31 +12,19 @@ export default function () {
         // Ambil data user dari localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
-            const user = JSON.parse(userData); // Urai JSON menjadi objek
-            setUserName(user.nama || 'Pengguna'); // Pastikan ada fallback jika nama tidak tersedia
-            setRoleName(getRoleName(user.role)); // Ambil role
-            setNip(user.nip || 'N/A'); // Fallback kalau nip nggak ada
-            setEmail(user.email || 'N/A'); // Fallback kalau email nggak ada
+            const user = JSON.parse(userData); 
+            setUserName(user.nama || 'Pengguna'); 
+            setRoleName(getRoleName(user.role)); 
+            setNip(user.nip || 'N/A'); 
+            setEmail(user.email || 'N/A'); 
         }
     }, []);
 
-
-    const [showModalEdit, setShowModalEdit] = useState(false);
-
-    const openEditModal = () => {
-        setShowModalEdit(true);
-    }
-    const closeEditModal = () => {
-        setShowModalEdit(false);
-    }
-
-
     return (
-        <div className="container mt-4">
+        <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
             <div
                 className="row rounded bg-white p-3 align-items-center"
                 style={{
-                    backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/covercampus.jpg')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
@@ -44,12 +33,12 @@ export default function () {
             >
                 {/* Foto di Kiri */}
                 <div className="d-flex mt-2 text-center justify-content-between">
-                    <h4>Profile</h4>
-                    <button className="mt-6 border rounded p-2  bg-success bg-opacity-75 text-light" type="button" onClick={() => openEditModal()}>Edit Informasi</button>
+                    <h4 className='text-dark'>Profile</h4>
+                    <button className="mt-6 btn btn-success" type="button">Edit Informasi</button>
                 </div>
             </div>
             <div className="container mt-2">
-                <div className="d-flex justify-content-between">
+                <div className="d-row d-md-flex d-sm-row justify-content-between">
                     {/* Info di Kiri */}
                     <div
                         className="align-items-center bg-light p-2 rounded me-3"
@@ -82,7 +71,7 @@ export default function () {
                     </div>
 
                     {/* About di Kanan */}
-                    <div className="bg-light p-2 rounded" style={{ flex: 2 }}>
+                    <div className="bg-light p-2 rounded mt-sm-4 mt-md-0 mt-4" style={{ flex: 2 }}>
                         <h4 className="mt-2">About</h4>
                         <h6
                             className="text-secondary"
@@ -111,79 +100,6 @@ export default function () {
                     </div>
                 </div>
             </div>
-            {/* Edit Profile */}
-            {showModalEdit && (
-                <div className="modal show fade" style={{ display: 'block' }} tabIndex="-1">
-                    <div className="modal-dialog modal-dialog-centered modal-lg mt-5 mb-5">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="editProfileModalLabel">Edit Profil</h5>
-                                <button type="button" onClick={() => closeEditModal()} class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                {/* <!-- Foto Profil --> */}
-                                <div class="text-center mb-4">
-                                    <img src="/photo-profil.jpg" className='rounded-circle me-2' alt="" width='150px' height='auto' />
-                                    <button class="btn btn-outline-secondary btn-sm">
-                                        <i class="bi bi-camera"></i>
-                                    </button>
-                                </div>
-
-                                {/* <!-- Form --> */}
-                                <form>
-                                    <div class="row mb-3">
-                                        {/* <!-- Nama --> */}
-                                        <div class="col-md-6">
-                                            <label for="name" class="form-label">Nama</label>
-                                            <input type="text" id="name" class="form-control" placeholder="Nama" value="Atep" />
-                                        </div>
-                                        {/* <!-- Role --> */}
-                                        <div class="col-md-6">
-                                            <label for="role" class="form-label">Role</label>
-                                            <input type="text" id="role" class="form-control" value="Super Admin" readonly />
-                                        </div>
-                                    </div>
-
-                                    <div class="row mb-3">
-                                        {/* <!-- Jabatan --> */}
-                                        <div class="col-md-6">
-                                            <label for="jabatan" class="form-label">Jabatan</label>
-                                            <input type="text" id="jabatan" class="form-control" placeholder="Jabatan" value="IT Support" />
-                                        </div>
-                                        {/* <!-- NIP --> */}
-                                        <div class="col-md-6">
-                                            <label for="nip" class="form-label">NIP</label>
-                                            <input type="text" id="nip" class="form-control" placeholder="NIP" value="19830930 201003 1 003" />
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        {/* <!-- Email --> */}
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="email" id="email" class="form-control" placeholder="Email" value="Atep@example.com" />
-                                    </div>
-
-                                    <div class="mb-3">
-                                        {/* <!-- Pendidikan --> */}
-                                        <label for="education" class="form-label">Pendidikan</label>
-                                        <input type="text" id="education" class="form-control" placeholder="Pendidikan" value="Universitas Indonesia" />
-                                    </div>
-
-                                    <div class="mb-3">
-                                        {/* <!-- About --> */}
-                                        <label for="about" class="form-label">About</label>
-                                        <textarea id="about" class="form-control" rows="3">IT Support Kampus bertugas untuk memastikan operasional teknologi informasi di lingkungan kampus berjalan lancar dan efisien. Tim ini memberikan dukungan teknis kepada dosen</textarea>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" onClick={() => closeEditModal()} class="btn btn-danger" data-bs-dismiss="modal">Batal</button>
-                                <button type="button" class="btn btn-success">Update</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
 
     );

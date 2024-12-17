@@ -21,7 +21,7 @@ export default function () {
     }, []);
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
             <div
                 className="row rounded bg-white p-3 align-items-center"
                 style={{
@@ -39,7 +39,7 @@ export default function () {
                 </div>
             </div>
             <div className="container mt-2">
-                <div className="d-flex justify-content-between">
+                <div className="d-row d-md-flex d-sm-row justify-content-between">
                     {/* Info di Kiri */}
                     <div
                         className="align-items-center bg-light p-2 rounded me-3"
@@ -72,7 +72,7 @@ export default function () {
                     </div>
 
                     {/* About di Kanan */}
-                    <div className="bg-light p-2 rounded" style={{ flex: 2 }}>
+                    <div className="bg-light p-2 rounded mt-sm-4 mt-md-0 mt-4" style={{ flex: 2 }}>
                         <h4 className="mt-2">About</h4>
                         <h6
                             className="text-secondary"

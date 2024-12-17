@@ -2,6 +2,14 @@
   font-family: 'Poppins', sans-serif;
 }
 
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+.mt-custom-5{
+  margin-top: 2.3rem;
+}
+
 .mt-6 {
   margin-top: 9rem;
 }
@@ -56,18 +64,60 @@
 }
 
 
+/* custom text */
+.text-light {
+  color: #fff5ee !important;
+}
+
 .text-primary {
   color: #00426D !important;
 }
-.text-secondary{
+
+.text-secondary {
   color: #A1A8AA !important;
 }
+
 .text-danger {
   color: #E80000 !important;
 }
+
 .text-success {
   color: #0AB39C !important;
 }
+
+.text-dark {
+  color: #666666 !important;
+}
+
+/* custom bg */
+.bg-primary {
+  color: #00426D !important;
+}
+
+.bg-secondary {
+  color: #A1A8AA !important;
+}
+
+.bg-danger {
+  color: #E80000 !important;
+}
+
+.bg-success {
+  color: #0AB39C !important;
+}
+
+
+/* custom table color */
+
+/* .table-secondary {
+  background-color: #4D4D4D !important;
+} */
+
+.table-responsive {
+  overflow-x: auto;
+  max-width: 100%; /* Biar tabel nggak terlalu melebar */
+}
+
 
 .body {
   background-color: #f3f3f9;
@@ -88,6 +138,12 @@ ul.dropdown-menu {
 
 .profile-dropdown {
   background-color: #f3f3f9 !important;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* styles.css atau file CSS terkait */
@@ -112,6 +168,72 @@ ul.dropdown-menu {
   animation: checkmark 1s ease-in-out forwards;
 }
 
+.form-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s, padding 0.3s;
+}
+
+.custom-input:focus {
+  border-color: #00426D;
+  padding: 1.25rem 1rem 0.75rem;
+}
+
+.custom-input::placeholder {
+  color: transparent;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.custom-input:focus::placeholder {
+  color: transparent;
+}
+
+.custom-label {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  background: white;
+  padding: 0 0.3rem;
+  color: #aaa;
+  font-size: 1rem;
+  transition: 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+.custom-input:focus + .custom-label,
+.custom-input:not(:placeholder-shown) + .custom-label {
+  top: -0.5rem;
+  left: 0.75rem;
+  color: #00426D;
+  font-size: 0.85rem;
+}
+
+/* .blinking-color-changing-text {
+  animation: blink 1s infinite, colorChange 3s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes colorChange {
+  0% { color: red; }
+  33% { color: blue; }
+  66% { color: green; }
+  100% { color: silver; }
+} */
+
+
 @keyframes checkmark {
   0% {
     transform: scale(0) rotate(0deg);
@@ -133,4 +255,3 @@ ul.dropdown-menu {
     opacity: 1;
   }
 }
-

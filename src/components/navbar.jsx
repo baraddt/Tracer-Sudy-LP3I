@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/AuthService';
 import { useEffect } from 'react';
 import getRoleName from '../services/roleCheck';
+import ModalLogout from '../components/compModals/modalLogout';
 
 export default function Navbar() {
   const [userName, setUserName] = useState('');
   const [roleName, setRoleName] = useState('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const toggleProfileDropdown = () => {
     setIsProfileOpen(!isProfileOpen);
@@ -102,16 +104,66 @@ export default function Navbar() {
               </ul>
             </li>
 
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <Link className="nav-link" to="./super_admin/pusatbantuan" style={{ color: '#00426D' }}>
                 <i className="bi bi-question-circle"></i> Pusat Bantuan
               </Link>
+            </li> */}
+            <li className="nav-item">
+              <Link className="nav-link" to="./super_admin/pusatbantuan" style={{ color: '#00426D' }}>
+                <i className="bi bi-question-circle"></i> FAQ
+              </Link>
+            </li>
+            <li>
+              <div className="d-flex d-md-none align-items-center justify-content-end profile-dropdown ms-auto rounded" onClick={toggleProfileDropdown} style={{ cursor: 'pointer' }}>
+                <img
+                  src="/photo-profil.jpg"
+                  alt="Profile"
+                  width="50"
+                  height="50"
+                  className="rounded-circle me-2 p-2"
+                />
+                <div className="d-flex flex-column">
+                  <span className="fw-semibold" style={{ color: '#00426D' }}>{userName}</span>
+                  <small className="text-muted">{roleName}</small>
+                </div>
+                <i className={`ms-2 bi bi-caret-down-fill ${isProfileOpen ? 'rotate' : ''}`}></i>
+
+                {/* Dropdown Content */}
+                {isProfileOpen && (
+                  <ul
+                    className="dropdown-menu show mt-1 p-2 shadow-sm rounded me-2"
+                    style={{
+                      position: "absolute",
+                      top: "100%", // Menempatkan dropdown tepat di bawah elemen profil
+                      right: 0,
+                      zIndex: 1000, // Memastikan dropdown berada di lapisan atas
+                      marginTop: "0.5rem", // Jarak kecil agar terlihat rapi
+                    }}
+                  >
+                    <li>
+                      <Link className="dropdown-item text-success" to="/super_admin/profile">
+                        <i className="bi bi-person"></i> Akun
+                      </Link>
+                    </li>
+                    <li>
+                      <hr className="dropdown-divider" />
+                    </li>
+                    <li>
+
+                      <Link className="dropdown-item text-danger" onClick={() => setShowLogoutModal(true)}>
+                        <i className="bi bi-box-arrow-right"></i> Logout
+                      </Link>
+                    </li>
+                  </ul>
+                )}
+              </div>
             </li>
           </ul>
         </div>
 
         {/* Profile dropdown tetap di kanan */}
-        <div className="d-flex align-items-center profile-dropdown ms-auto rounded" onClick={toggleProfileDropdown} style={{ cursor: 'pointer' }}>
+        <div className="d-none d-sm-none d-md-flex align-items-center profile-dropdown ms-auto rounded" onClick={toggleProfileDropdown} style={{ cursor: 'pointer' }}>
           <img
             src="/photo-profil.jpg"
             alt="Profile"
@@ -146,13 +198,19 @@ export default function Navbar() {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <Link className="dropdown-item text-danger" to="/" onClick={handleLogout}>
+
+                <Link className="dropdown-item text-danger" onClick={() => setShowLogoutModal(true)}>
                   <i className="bi bi-box-arrow-right"></i> Logout
                 </Link>
               </li>
             </ul>
           )}
         </div>
+        <ModalLogout
+          show={showLogoutModal}
+          onLogout={handleLogout}
+          onCancel={() => setShowLogoutModal(false)}
+        />
       </div>
     </nav>
   );

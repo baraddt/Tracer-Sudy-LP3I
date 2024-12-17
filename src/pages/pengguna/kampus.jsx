@@ -23,7 +23,7 @@ export default function () {
                 </div>
 
                 {/* Informasi di Kanan */}
-                <div className="col-md-9">
+                <div className="col-9 p-sm-4 p-md-5 p-4">
                     <div className="d-flex justify-content-between align-items-center">
                         <h1 className="mb-0">Politeknik LP3I Tasikmalaya</h1>
                     </div>
@@ -35,7 +35,7 @@ export default function () {
                     </p>
                 </div>
             </div>
-            <div className="mt-5">
+            <div className="mt-5 p-4 p-sm-0 p-md-0">
                 <div className="d-flex row gap-5 justify-content-center mt-4">
 
                     {/* Card Tracer */}

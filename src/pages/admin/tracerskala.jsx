@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
+import ModalSuccess from '../../components/compModals/modalsuccess';
+import ModalSuccessDraft from '../../components/compModals/draftModals';
+import ModalFailed from '../../components/compModals/modalFailed';
 
 export default function () {
     const [dataTracerId, setDataTracerId] = useState(null);
@@ -15,6 +18,9 @@ export default function () {
     });
 
     const [tahunOptions, setTahunOptions] = useState([]);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showSuccessDraftModal, setShowSuccessDraftModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,13 +33,13 @@ export default function () {
             console.log("Tracer ID diambil dari localStorage:", tracerId);
         }
     }, [navigate]);
-    
+
 
 
     // memanggil dulu data tracernya
     // const fetchTracer = async () => {
     //     try {
-    //         const response = await axios.get('/tracerstudy/all');
+    //         const response = await axiosClient.get('/tracerstudy/all');
     //         if (response.data.data && response.data.data.length > 0) {
     //             setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
     //             console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
@@ -51,7 +57,7 @@ export default function () {
     // memangil psdku lewat API
     const fetchPsdku = async () => {
         try {
-            // const response = await axios.get('/kampus/all');
+            // const response = await axiosClient.get('/kampus/all');
             const response = await axiosClient.get('/kampus/all');
             setPsdkuList(response.data.data);
 
@@ -89,21 +95,23 @@ export default function () {
                 throw new Error("ID tracer tidak ditemukan.");
             }
 
-    
+
             const response = await axiosClient.put(
                 `/tracerstudy/skalakegiatan/add/${dataTracerId}`,
                 newSkala
             );
-    
+
             console.log("Data skala kegiatan berhasil ditambahkan:", response.data);
+            setShowSuccessModal(true);
             navigate('/admin/tracerbanksoal'); // Navigasi ke step berikutnya
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error saat menambahkan skala kegiatan:", error.message);
             setError("Gagal menambahkan skala kegiatan. Silakan coba lagi.");
         }
     };
-    
-    
+
+
     // const addSkala = async () => {
     //     try {
     //         const response = await axiosClient.put(`/tracerstudy/skalakegiatan/add/${dataTracerId._id}`, newSkala);
@@ -126,14 +134,14 @@ export default function () {
 
 
 
-    // useEffect(() => {
-    //     if (tahunOptions.length > 0) {
-    //         setNewSkala(prevState => ({
-    //             ...prevState,
-    //             tahun_lulusan: tahunOptions[0]._id // Inisialisasi dengan ID pertama
-    //         }));
-    //     }
-    // }, [tahunOptions]);
+    useEffect(() => {
+        if (tahunOptions.length > 0) {
+            setNewSkala(prevState => ({
+                ...prevState,
+                tahun_lulusan: tahunOptions[0]._id // Inisialisasi dengan ID pertama
+            }));
+        }
+    }, [tahunOptions]);
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -170,12 +178,12 @@ export default function () {
         const tracerIdFromLocalStorage = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
         console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
         console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID yang ada di state
-    
+
         // Proses selanjutnya
         addSkala();
     };
-    
-    
+
+
 
 
 
@@ -184,6 +192,38 @@ export default function () {
         <div className="container rounded my-4 bg-white">
             {/* Progress Steps */}
             <div className="row mb-4">
+                <div className="col">
+                    <ul className="nav mt-3 mb-4 justify-content-center gap-2">
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Detail Kegiatan
+                            </span>
+                        </li>
+                        <li className="nav-item mx-2">
+                            <span className="badge btn-primary bg-opacity-50 px-4 py-2 rounded-pill">
+                                Skala Kegiatan
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Bank soal
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Kriteria Atensi
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Preview
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {/* Progress Steps */}
+            {/* <div className="row mb-4">
                 <div className="col">
                     <ul className="mt-3 gap-3 text-white nav nav-pills justify-content-center">
                         <li className="nav-item">
@@ -203,7 +243,7 @@ export default function () {
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div> */}
 
             {/* Form */}
             <form onSubmit={handleSubmit}>
@@ -221,7 +261,6 @@ export default function () {
                             required
                         >
                             <option value="" disabled>Pilih Skala</option>
-                            <option value="Nasional">Nasional</option>
                             <option value="PSDKU">PSDKU</option>
                         </select>
                     </div>
@@ -306,7 +345,7 @@ export default function () {
                 {/* Buttons */}
                 <div className="d-flex justify-content-between mt-4">
                     <div>
-                        <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
+                        <button type="button" className="btn btn-primary mb-3" onClick={() => setShowSuccessDraftModal(true)}>Simpan ke Draft</button>
                     </div>
                     <div>
                         <Link to='/admin/traceradd'>
@@ -318,6 +357,26 @@ export default function () {
                     </div>
                 </div>
             </form>
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Draft */}
+            <ModalSuccessDraft
+                show={showSuccessDraftModal}
+                message="Tracer to Draft Is Success !"
+                onClose={() => setShowSuccessDraftModal(false)}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
         </div>
     )
 }

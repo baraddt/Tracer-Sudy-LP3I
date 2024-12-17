@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.18.176:5000';
+const API_URL = 'http://192.168.18.223:5000';
 
 export const refreshToken = async (refreshToken) => {
     try {
@@ -49,21 +49,22 @@ const AuthService = {
            
             const response = await axios.post(
                 `${API_URL}/users/login`,
-                { email, password },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
+                { email, password }
+                // ,
+                // {
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                // }
             );
 
             console.log('Respons dari server:', response.data); 
 
             
-            if (response.data && response.data.message === 'Succesfully Login') {
-                
-                localStorage.setItem('accessToken', response.data.token.accessToken);
-                localStorage.setItem('refreshToken', response.data.token.refreshToken);
+            if (response.data && response.data.message === 'Login berhasil') {
+
+                sessionStorage.setItem('accessToken', response.data.token.accessToken);
+                sessionStorage.setItem('refreshToken', response.data.token.refreshToken);
                 localStorage.setItem('role', response.data.user.role); 
                 localStorage.setItem('user', JSON.stringify(response.data.user)); 
 
@@ -90,11 +91,12 @@ const AuthService = {
 
     logout: () => {
         // Hapus token dan role dari local storage
-        localStorage.removeItem('accessToken');
+        sessionStorage.removeItem('accessToken');
+        sessionStorage.removeItem('refreshToken');
         localStorage.removeItem('role');
+        localStorage.removeItem('formData');
         localStorage.removeItem('tracerId');
         localStorage.removeItem('user');
-        localStorage.removeItem('refreshToken');
     },
 };
 

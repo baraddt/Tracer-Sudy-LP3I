@@ -1,0 +1,10 @@
+.modal-content {
+    border-radius: 8px;
+}
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+.modal-footer {
+    justify-content: flex-end;
+}

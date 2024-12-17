@@ -77,7 +77,7 @@ export default function FormTracer() {
             console.log('Respons dari server:', response.data);
 
             // Redirect setelah submit jika berhasil
-            navigate('/pengguna/dashboard');
+            navigate('/pengguna/tracerstudy');
 
         } catch (error) {
             console.error("Error submitting answers:", error);

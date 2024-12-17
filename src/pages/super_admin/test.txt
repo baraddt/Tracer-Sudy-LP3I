@@ -1,187 +1,360 @@
-{/* Skala Kegiatan */}
-            <div>
-                <label className='border rounded bg-primary bg-opacity-25 p-1 me-2' style={{ color: '#00426D' }}>PSDKU</label>
-                <label className='border rounded bg-primary bg-opacity-25 p-1' style={{ color: '#00426D' }}>Nasional</label>
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+export default function () {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [jenisOptions, setJenisOptions] = useState([]);
+    const [posisiOptions, setPosisiOptions] = useState([]);
+    const [bidangOptions, setBidangOptions] = useState([]);
+    const [kondisiOptions, setKondisiOptions] = useState([]);
+    const storedUser = localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(storedUser) : {};
+    const [formData, setFormData] = useState({
+        id_mahasiswa: user.id || "",
+        pekerjaan: [
+            {
+                bidang: "",
+                jenis_pekerjaan: [
+                    {
+                        jenis: "",
+                        posisi: ""
+                    }
+                ]
+            }
+        ]
+    });
+    const fetchPekerjaan = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/pekerjaan/all');
+
+            setJenisOptions(response.data.data);
+            setPosisiOptions(response.data.data);
+            console.log(response.data.data);
+
+        } catch (err) {
+            console.error("Error feching data:", err.message);
+
+        }
+    };
+
+    const fetchBidang = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/pekerjaan/bidang');
+            setBidangOptions(response.data.data)
+            console.log(response.data);
+
+        } catch (err) {
+            console.error("Error feching data:", err.message);
+
+        }
+    };
+
+    const fetchKondisi = async () => {
+        try {
+            const response = await axios.get('http://192.168.18.176:5000/mahasiswa/get/kondisi');
+            setKondisiOptions(response.data.data);
+            console.log(response.data);
+
+        } catch (err) {
+            console.error("Error Feching Data:", err.message);
+
+        }
+    };
+
+    useEffect(() => {
+        fetchPekerjaan();
+        fetchBidang();
+        fetchKondisi();
+    }, []);
+
+    useEffect(() => {
+        const storedFormData = localStorage.getItem("formData");
+
+        console.log("Data di localStorage:", storedFormData);  // Memastikan data yang disimpan di localStorage
+
+        if (storedFormData) {
+            try {
+                const parsedFormData = JSON.parse(storedFormData);
+
+                console.log("Parsed formData:", parsedFormData);  // Memastikan data yang di-parse
+
+                // Mengecek apakah id_mahasiswa ada di dalam formData
+                if (parsedFormData && parsedFormData.id_mahasiswa) {
+                    console.log("id_mahasiswa ditemukan:", parsedFormData.id_mahasiswa);
+                    setIsModalOpen(false); // Menutup modal jika id_mahasiswa ada
+                } else {
+                    console.log("id_mahasiswa tidak ditemukan, menampilkan modal.");
+                    setIsModalOpen(true); // Menampilkan modal jika id_mahasiswa tidak ada
+                }
+
+                // Cek apakah pekerjaan ada dan dalam format yang benar
+                if (parsedFormData.pekerjaan && Array.isArray(parsedFormData.pekerjaan)) {
+                    console.log("Pekerjaan ditemukan:", parsedFormData.pekerjaan);
+                    const bidang = parsedFormData.pekerjaan[0].bidang;  // Mengambil bidang dari pekerjaan
+                    const jenisPekerjaan = parsedFormData.pekerjaan[0].jenis_pekerjaan[0].jenis;  // Mengambil jenis pekerjaan
+                    const posisiPekerjaan = parsedFormData.pekerjaan[0].jenis_pekerjaan[0].posisi;  // Mengambil posisi pekerjaan
+
+                    console.log("Bidang Pekerjaan:", bidang);
+                    console.log("Jenis Pekerjaan:", jenisPekerjaan);
+                    console.log("Posisi Pekerjaan:", posisiPekerjaan);
+                }
+            } catch (error) {
+                console.error("Error parsing formData:", error);  // Menangani error jika parsing gagal
+                setIsModalOpen(true);  // Tampilkan modal jika terjadi error
+            }
+        } else {
+            console.log("formData tidak ditemukan di localStorage, menampilkan modal.");
+            setIsModalOpen(true);  // Tampilkan modal jika tidak ada data di localStorage
+        }
+    }, []);
+
+
+    useEffect(() => {
+        const fetchJenisPekerjaan = async () => {
+            try {
+                const response = await axios.get('http://192.168.18.176:5000/pekerjaan/jenis');
+                if (response.status === 200) {
+                    setJenisOptions(response.data.data); // Menyimpan jenis pekerjaan dalam state
+                } else {
+                    console.error("Gagal mendapatkan data jenis pekerjaan");
+                }
+            } catch (error) {
+                console.error("Error fetching jenis pekerjaan:", error);
+            }
+        };
+
+        fetchJenisPekerjaan();
+    }, []);
+
+    const handleClickOutside = (event) => {
+        const modalElement = document.querySelector('.modal-dialog');
+        if (modalElement && !modalElement.contains(event.target)) {
+            setIsModalOpen(false);  // Menutup modal jika klik di luar modal
+        }
+    };
+
+    useEffect(() => {
+        // Menambahkan event listener ketika modal terbuka
+        if (isModalOpen) {
+            document.addEventListener('click', handleClickOutside);
+        }
+
+        // Membersihkan event listener ketika modal ditutup
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [isModalOpen]);
+
+    const handleChangeBidang = (e) => {
+        const { value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            pekerjaan: prevData.pekerjaan.map((pekerjaan, index) => {
+                if (index === 0) { // Misalkan hanya ingin update pekerjaan pertama
+                    return {
+                        ...pekerjaan,
+                        bidang: value
+                    };
+                }
+                return pekerjaan;
+            })
+        }));
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            // Simpan ke localStorage jika diperlukan
+            localStorage.setItem("formData", JSON.stringify(formData));
+
+            const accessToken = localStorage.getItem('accessToken');
+            console.log('Token yang ditemukan:', accessToken);
+            if (!accessToken) {
+                console.error('Token tidak ditemukan');
+                return;
+            };
+
+            console.log("Data yang akan dikirim:", formData);
+
+
+            const response = await axios.post(`http://192.168.18.176:5000/mahasiswa/addmahasiswakondisi`, formData, {
+                headers: {
+                    'Content-Type': "application/json",
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.status === 200) {
+                console.log("Data berhasil dikirim ke API:", response.data);
+                setIsModalOpen(false);  // Tutup modal setelah submit
+            } else {
+                console.log("Terjadi kesalahan di API:", response.data);
+            }
+        } catch (error) {
+            if (error.response) {
+                console.error("Gagal mengirim data ke API:", error.response.data);
+            } else {
+                console.error("Gagal mengirim data:", error.message);
+            }
+        }
+    };
+
+    return (
+        <div className="container mt-1">
+            <div className="row rounded bg-white p-3 align-items-center"
+                style={{
+                    backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/background-pengguna.jpg')",
+                    backgroundSize: 'cover',
+                    width: 'auto',
+                    height: '520px',
+                    backgroundPosition: "top",
+                    color: "white",
+                }}>
+
+                <div>
+                    <h3>Ayo Berpartisipasi di <br />
+                        Tracer Study LP3I !
+                    </h3>
+                    <p>"Masa Lalu Tercatat, Masa Depan Terarah"</p>
+                </div>
             </div>
-
-            {/* Button Navigasi*/}
-            <div className='d-flex gap-5 mt-4'>
-
-                <Link to='/super_admin/tracerstudy-preview'>
-                    <button className='border-0 border-bottom bg-transparent'>Detail Kegiatan</button>
-                </Link>
-
-                <Link to='/super_admin/tracerstudy-preview-kuesioner'>
-                    <button className='border-0 bg-transparent'>Kuesioner</button>
-                </Link>
-
-                <Link to='/super_admin/tracerstudy-preview-responden'>
-                    <button className='border-0 bg-transparent'>Responden</button>
-                </Link>
-            </div>
-
-            {/* Deskripsi */}
-            <div className='ms-2 mt-4'>
-                <h6>Latar Belakang Kegiatan</h6>
-                {/* <p className="text-secondary">{formData.latarBelakang.replace(/<[^>]*>/g, '')}</p> */}
-                <p className="text-secondary"></p>
-                <h6 className='mt-4'>Tujuan Kegiatan</h6>
-                <p className='text-secondary'><br />
-                </p>
-
-                <h6>Manfaat Kegiatan</h6>
-                <p>Bagi Politeknik LP3I :</p>
-                <p className='text-secondary'><br />
-                </p>
-
-                <p>Bagi Alumni :</p>
-                <p className='text-secondary'><br />
-                </p>
-
-                <p>Bagi Industri :</p>
-                <p className='text-secondary'><br />
-                </p>
-            </div>
-
-            {/* Table Responden */}
             <div className="mt-4">
-                <h5>Sasaran Responden</h5>
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>Nama Lembaga</th>
-                            <th className='text-center'>Jenjang</th>
-                            <th>Program Studi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <label>Politeknik LP3I</label>
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column text-center">
-                                    <label>D2</label>
-                                    <label>D3</label>
-                                    <label>D4</label>
-                                </div>
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column">
-                                    <label>Manajemen Informatika</label>
-                                    <label>Akuntansi</label>
-                                    <label>Bisnis Digital</label>
-                                    <label>Hubungan Masyarakat</label>
-                                </div>
-                            </td>
-                        </tr>
-                        {/* Repeat this <tr> for each institution as needed */}
-                        <tr>
-                            <td>
-                                Politeknik LP3I Kampus Bandung
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column text-center">
-                                    <label>D2</label>
-                                    <label>D3</label>
-                                    <label>D4</label>
-                                </div>
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column">
-                                    <label>Administrasi Bisnis</label>
-                                    <label>Manajemen Informatika</label>
-                                    <label>Akuntansi</label>
-                                    <label>Bisnis Digital</label>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                Politeknik LP3I Kampus Tasikmalaya
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column text-center">
-                                    <label>D2</label>
-                                    <label>D3</label>
-                                </div>
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column">
-                                    <label>Manajement Pemasaran</label>
-                                    <label>Manajement Keuangan Perbangkan</label>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                Politeknik LP3I Kampus Pekanbaru
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column text-center">
-                                    <label>D2</label>
-                                    <label>D2</label>
-                                    <label>D2</label>
-                                </div>
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column">
-                                    <label>Administrasi Bisnis</label>
-                                    <label>Manajemen Informatika</label>
-                                    <label>Komputerisansi Akuntasi</label>
-                                    <label>Hubungan Masyarakat</label>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                Politeknik LP3I Kampus Cirebon
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column text-center">
-                                    <label>D3</label>
-                                    <label>D3</label>
-                                </div>
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column">
-                                    <label>Manajemen Informatika</label>
-                                    <label>Teknik Komputer</label>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                Politeknik LP3I Kampus Cirebon
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column text-center">
-                                    <label>D3</label>
-                                    <label>D3</label>
-                                </div>
-                            </td>
-                            <td>
-                                <div className="d-flex flex-column">
-                                    <label>Manajemen Informatika</label>
-                                    <label>Teknik Komputer</label>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <h4>Daftar Kegiatan Tracer Study</h4>
             </div>
+            {isModalOpen && (
+                <div className="modal show fade" style={{ display: 'block' }} tabIndex="-1">
+                    <div className="modal-dialog modal-lg">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Sebelum Melanjutkan Isi Formulir Dulu YA</h5>
+                                <button type="button" className="btn-close" onClick={() => setIsModalOpen(false)} aria-label="Close"></button>
+                            </div>
+                            <div className="modal-body">
+                                <form onSubmit={handleSubmit}>
+                                    <div className="row">
+                                        {/* Kolom Kiri */}
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label htmlFor="kondisi" className="form-label">Kondisi Saat Ini :</label>
+                                                <select
+                                                    className="form-select"
+                                                    id="kondisi"
+                                                    name="kondisi"
+                                                    value={formData.kondisi || ""}
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="">Pilih Kondisi</option>
+                                                    {Array.isArray(kondisiOptions) &&
+                                                        kondisiOptions.map((option) => (
+                                                            <option key={option._id} value={option._id}>
+                                                                {option.kondisi}
+                                                            </option>
+                                                        ))}
+                                                </select>
+                                            </div>
+                                        </div>
 
-            {/* Buttons */}
-            <div className="d-flex justify-content-between mt-4">
-                <div>
-                    <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
+                                        {/* Kolom Kanan */}
+                                        <div className="col-md-6">
+                                            <label htmlFor="bidangpekerjaan" className="form-label">Bidang Pekerjaan :</label>
+                                            <select
+                                                className="form-select"
+                                                id="bidangpekerjaan"
+                                                name="bidang"
+                                                value={formData.pekerjaan?.[0]?.bidang || ""}
+                                                onChange={handleChangeBidang}
+                                            >
+                                                <option value="">Pilih Bidang</option>
+                                                {Array.isArray(bidangOptions) &&
+                                                    bidangOptions.map((option, index) => (
+                                                        <option key={index} value={option}>
+                                                            {option}
+                                                        </option>
+                                                    ))}
+                                            </select>
+
+                                            <label className="mt-2 mb-2">Jenis Pekerjaan :</label>
+                                            <select
+                                                className="form-select"
+                                                id="jenispekerjaan"
+                                                name="jenispekerjaan"
+                                                value={formData.pekerjaan?.[0]?.jenis_pekerjaan?.[0]?.jenis || ""}
+                                                onChange={(e) => {
+                                                    setFormData((prevData) => ({
+                                                        ...prevData,
+                                                        pekerjaan: [
+                                                            {
+                                                                ...prevData.pekerjaan?.[0],
+                                                                jenis_pekerjaan: [
+                                                                    {
+                                                                        ...prevData.pekerjaan?.[0]?.jenis_pekerjaan?.[0],
+                                                                        jenis: e.target.value,
+                                                                    },
+                                                                ],
+                                                            },
+                                                        ],
+                                                    }));
+                                                }}
+                                            >
+                                                <option value="">Pilih Jenis</option>
+                                                {Array.isArray(jenisOptions) &&
+                                                    jenisOptions.map((jenis, index) => (
+                                                        <option key={index} value={jenis}>
+                                                            {jenis}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                            <label className="mt-2 mb-2">Posisi Pekerjaan :</label>
+                                            <select
+                                                className="form-select"
+                                                id="posisipekerjaan"
+                                                name="posisipekerjaan"
+                                                value={formData.pekerjaan?.[0]?.jenis_pekerjaan?.[0]?.posisi || ""}
+                                                onChange={(e) =>
+                                                    setFormData((prevData) => ({
+                                                        ...prevData,
+                                                        pekerjaan: prevData.pekerjaan?.map((item, index) =>
+                                                            index === 0
+                                                                ? {
+                                                                    ...item,
+                                                                    jenis_pekerjaan: [
+                                                                        {
+                                                                            ...item.jenis_pekerjaan?.[0],
+                                                                            posisi: e.target.value,
+                                                                        },
+                                                                    ],
+                                                                }
+                                                                : item
+                                                        ) || [],
+                                                    }))
+                                                }
+                                            >
+                                                <option value="">Pilih Posisi</option>
+                                                {Array.isArray(posisiOptions) &&
+                                                    posisiOptions.map((option) =>
+                                                        option.pekerjaan?.[0]?.jenisPekerjaan?.map((jenis) =>
+                                                            jenis.posisi?.map((posisi, idx) => (
+                                                                <option key={idx} value={posisi}>
+                                                                    {posisi}
+                                                                </option>
+                                                            ))
+                                                        )
+                                                    )}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="btn btn-primary">Submit</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <Link to='/super_admin/tracerstudy-verifikasi-akhir'>
-                        <button type="button" className="btn btn-danger mb-3 me-3">Batalkan</button>
-                    </Link>
-                    <Link to='/super_admin/tracerstudy'>
-                        <button type="submit" className="btn btn-success mb-3">Publikasi</button>
-                    </Link>
-                </div>
-            </div>
+            )}
+        </div>
+    )
+}

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
+import ProdyDelete from '../../components/compModals/prodyDelete';
+import ModalFailed from '../../components/compModals/modalFailed';
+import ModalSuccess from '../../components/compModals/modalsuccess';
 
 export default function ProgramList() {
     const [programList, setProgramList] = useState([]);
@@ -15,10 +18,15 @@ export default function ProgramList() {
     const [akreditasiOptions, setAkreditasiOptions] = useState([]);
     const [jenjangOptions, setJenjangOptions] = useState([]);
     const [editProgram, setEditProgram] = useState(null);
+    const [programToDelete, setProgramToDelete] = useState(null);
     const [previewProgram, setPreviewProgram] = useState(null);
     const [showModalTambah, setShowModalTambah] = useState(false);
     const [showModalEdit, setShowModalEdit] = useState(false);
     const [showModalPreview, setShowModalPreview] = useState(false);
+    const [showModalDelete, setShowModalDelete] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
+    const [showFiltersModal, setShowFiltersModal] = useState(false);
 
     // const dummyProgram = [
     //     { kodePs: '450052', programStudy: 'Administrasi Bisnis', jenjang: 'D3', akreditasi: 'Baik Sekali', status: 'Aktif' },
@@ -111,12 +119,14 @@ export default function ProgramList() {
         try {
             const token = localStorage.getItem
             // const response = await axiosClient.post('/prodi/add', newProgram)
-            const response = await axiosClient.post('/prodi/add', newProgram )
+            const response = await axiosClient.post('/prodi/add', newProgram)
             setProgramList((prevList) => [...prevList, response.data]);
             fetchData();
             setNewProgram({ kode: '', nama: '', jenjang: '', akreditasi: '', status: '' });
             setShowModalTambah(false);
+            setShowSuccessModal(true);
         } catch (error) {
+            setShowFailedModal(true);
             console.log('Response data:', error.response.data);
             console.error("Error Adding Program Study:", error.message);
             setError("Failed to add Program. Please Try Again..");
@@ -133,11 +143,18 @@ export default function ProgramList() {
             setProgramList((prevList) => prevList.filter((program) => program._id !== programId));
 
             console.log('Program Study deleted successfully:', response.data);
+            setShowSuccessModal(true);
 
         } catch (error) {
+            setShowFailedModal(true);
             console.error('Error Delete Program Study');
 
         }
+    };
+
+    const handleDeleteClick = (programId) => {
+        setProgramToDelete(programId); // Menyimpan data pengguna yang akan dihapus
+        setShowModalDelete(true); // Menampilkan modal konfirmasi
     };
 
     // fungsi melihat detail program study dari API
@@ -152,7 +169,7 @@ export default function ProgramList() {
             console.error("Error feching Program Study By ID:", error.message);
 
         }
-    }
+    };
 
 
     //fungsi untuk mengedit data melalui API
@@ -166,15 +183,13 @@ export default function ProgramList() {
             console.log("data yang terkirim:", editProgram);
             console.log('ProgramStudy updated Successfuly:', response.data);
             setShowModalEdit(false);
+            setShowSuccessModal(true);
         } catch (error) {
-
+            setShowFailedModal(true);
             console.error("Error updating Program Study:", error.message);
             setError(error.response?.data?.message || 'An error occurred');
         }
     };
-
-
-
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -240,21 +255,20 @@ export default function ProgramList() {
                         height="150"
                     />
                 </div>
-
-                <div className="col-md-9">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <h4 className="mb-0">Politeknik Lembaga Pendidikan dan Pengembangan Profesi Indonesia</h4>
-                        <p className="mb-0 ms-3 me-5 col-md-2">
+                <div className="col-9">
+                    <div className="d-row d-md-flex d-sm-row justify-content-between align-items-center">
+                        <h4 className="mb-3 mb-sm-3 mb-md-0 text-light">Politeknik Lembaga Pendidikan dan Pengembangan Profesi Indonesia</h4>
+                        <p className="mb-0 ms-md-3 me-md-5 col-md-2 text-light">
                             318/KPT/I/2019 <br /> No. SK Pendirian
                         </p>
-                        <p className="mb-0">
+                        <p className="mb-0 text-light">
                             Baik <br /> Akreditasi
                         </p>
                     </div>
 
-                    <p className="mt-3">046053</p>
-                    <p className="mt-5">
-                        <i className="bi bi-geo-alt-fill"></i> Jl. Pahlawan No.59, Sukaluyu, <br />
+                    <p className="mt-3 text-light">046053</p>
+                    <p className="mt-5 text-light">
+                        <i className="bi bi-geo-alt-fill text-light"></i> Jl. Pahlawan No.59, Sukaluyu, <br />
                         Kec. Cibeunying Kaler, Kota Bandung, Jawa Barat 40123
                     </p>
                 </div>
@@ -269,23 +283,25 @@ export default function ProgramList() {
                 </div>
             </div>
             <div className="container mt-4">
-                <div className="row rounded bg-white p-3 align-items-center">
+                <div className="row rounded table-reponsive-sm table-responsive-md bg-white p-3 align-items-center">
                     <div className="d-flex justify-content-between">
-                        <h4>Daftar Program Study</h4>
+                        <h4 className='text-dark'>Daftar Program Study</h4>
                         <button className="btn btn-success mb-2" onClick={() => setShowModalTambah(true)}>
-                            <i className="bi bi-plus"></i> Tambah
+                            <i className="bi bi-plus text-light"></i> Tambah
                         </button>
+                        {/* <button className='btn btn-info' onClick={() => setShowModalPreview(true)}>Cek Modal Preview</button>
+                        <button className='btn btn-info' onClick={() => setShowModalDelete(true)}>Cek Modal Delete</button> */}
                     </div>
                     <table className="table mt-4">
-                        <thead>
+                        <thead className='table table-secondary'>
                             <tr>
-                                <th className="text-white bg-secondary bg-opacity-50 text-start">No</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-start">Kode</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-start">Program Study</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-center">Jenjang</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-center">Akreditasi</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-center">Status</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-center">Action</th>
+                                <th className="fw-semibold text-dark text-start">No</th>
+                                <th className="fw-semibold text-dark text-start">Kode</th>
+                                <th className="fw-semibold text-dark text-start text-truncate">Program Study</th>
+                                <th className="fw-semibold text-dark text-center">Jenjang</th>
+                                <th className="fw-semibold text-dark text-center">Akreditasi</th>
+                                <th className="fw-semibold text-dark text-center">Status</th>
+                                <th className="fw-semibold text-dark text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -294,7 +310,7 @@ export default function ProgramList() {
                                     <tr key={index}>
                                         <td>{index + 1}</td>
                                         <td>{program.kode}</td>
-                                        <td>{program.nama || 'N/A'}</td>
+                                        <td className='text-truncate'>{program.nama || 'N/A'}</td>
                                         <td className='text-center'>{program.jenjang?.jenjang || 'N/A'}</td>
                                         <td className='text-center'>{program.akreditasi?.akreditasi || 'N/A'}</td>
                                         <td className={`text-center ${program.status === 'Aktif' ? 'text-success' : 'text-danger'}`}>
@@ -309,14 +325,14 @@ export default function ProgramList() {
                                                 <i className="bi bi-pencil-fill text-primary"></i>
                                             </button>
                                             <button className="btn-sm border-0 bg-transparent">
-                                                <i className="bi bi-trash-fill text-danger" onClick={() => deleteProgram(program._id)}></i>
+                                                <i className="bi bi-trash-fill text-danger" onClick={() => handleDeleteClick(program._id)}></i>
                                             </button>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center">
+                                    <td colSpan="7" className="text-center text-dark">
                                         Tidak ada data Program Study.
                                     </td>
                                 </tr>
@@ -328,73 +344,129 @@ export default function ProgramList() {
             {showModalTambah && (
                 <div className="modal fade show d-block">
                     <div className="modal-dialog">
-                        <div className="modal-content">
+                        <div className="modal-content" style={{ width: '600px' }}>
                             <div className="modal-header">
                                 <h5 className="modal-title">Tambah Program Study</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowModalTambah(false)}></button>
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit}>
-                                    <input
-                                        type="text"
-                                        name="kode"
-                                        value={newProgram.kode}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        placeholder="Kode PS"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        name="nama"
-                                        value={newProgram.nama}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        placeholder="Program Study"
-                                        required
-                                    />
-                                    <select
-                                        name="jenjang"
-                                        value={newProgram.jenjang}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        required
-                                    >
-                                        <option value="">Pilih Jenjang</option>
-                                        {Array.isArray(jenjangOptions) && jenjangOptions.map((option) => (
-                                            <option key={option._id} value={option._id}>
-                                                {option.jenjang} {/* Menampilkan nama jenjang */}
-                                            </option>
-                                        ))}
+                                    <div className='d-flex justify-content-between'>
+                                        <div className="w-50 me-4">
+                                            <label htmlFor="kode">Kode Prody :</label>
+                                            <input
+                                                type="number"
+                                                name="kode"
+                                                value={newProgram.kode}
+                                                onChange={handleInputChange}
+                                                className="form-control mb-2"
+                                                placeholder="Kode PS"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="w-100">
+                                            <label htmlFor="nama">Nama Prody :</label>
+                                            <input
+                                                type="text"
+                                                name="nama"
+                                                value={newProgram.nama}
+                                                onChange={handleInputChange}
+                                                className="form-control mb-2"
+                                                placeholder="Program Study"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <label htmlFor="kaprodi" className="form-label">Kaprodi:</label>
+                                        <div className="input-group">
+                                            <select
+                                                name="kaprodi"
+                                                value={newProgram.kaprodi}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Kaprodi</option>
+                                                {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                                    <option key={option._id} value={option._id}>
+                                                        {option.akreditasi} {/* Menampilkan nama akreditasi */}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
 
-                                    </select>
-                                    <select
-                                        name="akreditasi"
-                                        value={newProgram.akreditasi}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        required
-                                    >
-                                        <option value="">Pilih Akreditasi</option>
-                                        {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
-                                            <option key={option._id} value={option._id}>
-                                                {option.akreditasi} {/* Menampilkan nama akreditasi */}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        name="status"
-                                        value={newProgram.status}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        required
-                                    >
-                                        <option value="">Pilih Status</option>
-                                        <option value="Aktif">Aktif</option>
-                                        <option value="Non-Aktif">Non-Aktif</option>
-                                    </select>
-                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(programList)}>
-                                        Simpan
+                                    <div className="mb-2">
+                                        <label htmlFor="jenjang" className="form-label">Jenjang:</label>
+                                        <div className="input-group">
+                                            <select
+                                                name="jenjang"
+                                                value={newProgram.jenjang}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Jenjang</option>
+                                                {Array.isArray(jenjangOptions) && jenjangOptions.map((option) => (
+                                                    <option key={option._id} value={option._id}>
+                                                        {option.jenjang} {/* Menampilkan nama jenjang */}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <label htmlFor="akreditasi" className="form-label">Akreditasi:</label>
+                                        <div className="input-group">
+                                            <select
+                                                name="akreditasi"
+                                                value={newProgram.akreditasi}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Akreditasi</option>
+                                                {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                                    <option key={option._id} value={option._id}>
+                                                        {option.akreditasi} {/* Menampilkan nama akreditasi */}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label htmlFor="status" className="form-label">Status:</label>
+                                        <div className="input-group">
+                                            <select
+                                                name="status"
+                                                value={newProgram.status}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Status</option>
+                                                <option value="Aktif">Aktif</option>
+                                                <option value="Non-Aktif">Non-Aktif</option>
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="btn btn-success" onClick={() => handleSaveData(programList)}>
+                                        Tambah
                                     </button>
                                 </form>
                             </div>
@@ -493,28 +565,79 @@ export default function ProgramList() {
             )}
             {/* Modal Priview */}
             {showModalPreview && (
-                <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-hidden="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                    <div className="modal-dialog modal-dialog-centered" role="document"> {/* Gunakan kelas modal-dialog-centered */}
+                <div className="modal fade show d-block">
+                    <div className="modal-dialog">
                         <div className="modal-content">
-                            <div className="modal-header d-flex justify-content-between">
-                                <h5 className="modal-title">Detail Program Study</h5>
-                                <button type="button" className="close" aria-label="Close" onClick={closePreviewModal}>
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                <p><strong>Kode Program Study:</strong> {previewProgram.kode}</p>
-                                <p><strong>Nama Program Study:</strong> {previewProgram.nama}</p>
-                                <p><strong>Jenjang:</strong> {previewProgram.jenjang?.jenjang}</p>
-                                <p><strong>Akreditasi:</strong> {previewProgram.akreditasi?.akreditasi}</p>
-                                <p><strong>Status:</strong> {previewProgram.status}</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={closePreviewModal}>Close</button>
+                            <div className="modal-content shadow-lg">
+                                <div className="modal-body p-4">
+                                    <div className="text-center">
+                                        {/* Nama */}
+                                        <h5 className="fw-semibold mb-1">Manajement Informatika</h5>
+                                        {/* Jabatan */}
+                                        <p className="text-muted mb-4">Aripin S.Pd</p>
+                                    </div>
+                                    {/* Info Tambahan */}
+                                    <hr />
+                                    <p className="text-center text-uppercase text-muted fw-bold mb-3">
+                                        More Info
+                                    </p>
+                                    <div className="d-flex justify-content-between">
+                                        <span className="fw-bold">Kode PS</span>
+                                        <span>406064</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Jenjang</span>
+                                        <span>D3</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Akreditasi</span>
+                                        <span>Baik</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Status</span>
+                                        <span className='text-success'>Active</span>
+                                    </div>
+                                </div>
+                                <div className="modal-footer border-0">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary w-100 rounded-pill"
+                                        onClick={() => setShowModalPreview(false)}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            )}
+
+
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
+
+
+            {/* Modal Konfirmasi Delete */}
+            {programToDelete && (
+                <ProdyDelete
+                    show={showModalDelete}
+                    onClose={() => setShowModalDelete(false)}
+                    message="Apakah Anda yakin ingin menghapus Prody ini? Tindakan ini tidak bisa dibatalkan."
+                    program={programToDelete}
+                    deleteProgram={deleteProgram} // Mengirimkan fungsi deleteUser ke modal
+                />
             )}
         </div>
     );

@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
+// import axios from 'axios';
+import PsdkuDelete from '../../components/compModals/psdkuDelete';
+import ModalFailed from '../../components/compModals/modalFailed';
+import ModalSuccess from '../../components/compModals/modalsuccess';
 
 export default function Psdku() {
     const [psdkuList, setPsdkuList] = useState([]); // State untuk menyimpan data PSDKU
@@ -20,11 +24,15 @@ export default function Psdku() {
     const [akreditasiOptions, setAkreditasiOptions] = useState([]); // State untuk menyimpan opsi akreditasi
     const [penggunaOptions, setPenggunaOptions] = useState([]); // State untuk menyimpan opsi pengguna
     const [prodiOptions, setProdiOptions] = useState([]); // State untuk menyimpan opsi prodi
+    const [psdkuToDelete, setPsdkuToDelete] = useState(null);
     const [editPsdku, setEditPsdku] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showModalEdit, setShowModalEdit] = useState(false);
     const [previewPsdku, setPreviewPsdku] = useState(null);
-    const [showModalPreview, setShowModalPreview] = useState(false); // State untuk kontrol modal
+    const [showModalPreview, setShowModalPreview] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showModalDelete, setShowModalDelete] = useState(false);
 
     // Fungsi untuk mengambil data dari API
     const fetchData = async () => {
@@ -116,9 +124,12 @@ export default function Psdku() {
             setPsdkuList((prevList) => [...prevList, response.data]); // Update list
             fetchData();
             setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', prodi: [], pengguna: [], akreditasi: '' }); // Reset form
-            setShowModal(false); // Tutup modal
+            setShowModal(false);
+            setShowSuccessModal(true);
 
         } catch (error) {
+
+            setShowFailedModal(true);
             console.log("Response data:", error.response.data);
             console.error("Error adding PSDKU:", error.message);
             setError("Failed to add PSDKU. Please try again.");
@@ -156,7 +167,9 @@ export default function Psdku() {
             console.log("data yang di kirim :", editPsdku);
             console.log('Psdku updated successfully:', response.data);
             setShowModalEdit(false);
+            setShowSuccessModal(true);
         } catch (error) {
+            setShowFailedModal(true);
             console.error('Error updating PSDKU:', error);
             setError(error.response?.data?.message || 'An error occurred');
         }
@@ -172,9 +185,16 @@ export default function Psdku() {
             setPsdkuList((prevList) => prevList.filter((psdku) => psdku._id !== psdkuId));
 
             console.log('Psdku deleted successfully:', response.data);
+            setShowSuccessModal(true);
         } catch (error) {
+            setShowFailedModal(true);
             console.error('Error deleting psdku:', error.message);
         }
+    };
+
+    const handleDeleteClick = (psdku) => {
+        setPsdkuToDelete(psdku); // Menyimpan data pengguna yang akan dihapus
+        setShowModalDelete(true); // Menampilkan modal konfirmasi
     };
 
     // fungsi melihat detail psdku
@@ -284,6 +304,83 @@ export default function Psdku() {
 
 
 
+    // const [provinces, setProvinces] = useState([]);
+    // const [regencies, setRegencies] = useState([]);
+    // const [districts, setDistricts] = useState([]);
+    // const [villages, setVillages] = useState([]);
+    // const [selectedProvince, setSelectedProvince] = useState(null);
+    // const [selectedRegency, setSelectedRegency] = useState(null);
+    // const [selectedDistrict, setSelectedDistrict] = useState(null);
+
+    // // Fungsi untuk mengambil kabupaten berdasarkan id provinsi
+    // const fetchProvinces = async () => {
+    //     try {
+    //         const response = await axios.get('/api/provinces.json');
+    //         console.log('API Response:', response);
+    //         setProvinces(response.data);
+    //     } catch (error) {
+    //         console.error('Error fetching provinces:', error.message);
+    //     }
+    // };
+
+
+    // const fetchRegencies = async (provinceId) => {
+    //     try {
+    //         const response = await axios.get(`/api-wilayah-indonesia/api/regencies/${provinceId}.json`);
+    //         setRegencies(response.data);  // Simpan data kabupaten
+    //     } catch (error) {
+    //         console.error("Error fetching regencies:", error.message);
+    //     }
+    // };
+
+    // // Fungsi untuk mengambil kecamatan berdasarkan id kabupaten
+    // const fetchDistricts = async (regencyId) => {
+    //     try {
+    //         const response = await axios.get(`/api-wilayah-indonesia/api/districts/${regencyId}.json`);
+    //         setDistricts(response.data);  // Simpan data kecamatan
+    //     } catch (error) {
+    //         console.error("Error fetching districts:", error.message);
+    //     }
+    // };
+
+    // // Fungsi untuk mengambil kelurahan berdasarkan id kecamatan
+    // const fetchVillages = async (districtId) => {
+    //     try {
+    //         const response = await axios.get(`/api-wilayah-indonesia/api/villages/${districtId}.json`);
+    //         setVillages(response.data);  // Simpan data kelurahan
+    //     } catch (error) {
+    //         console.error("Error fetching villages:", error.message);
+    //     }
+    // };
+
+    // // Mengambil semua data ketika komponen dimuat pertama kali
+    // useEffect(() => {
+    //     fetchProvinces();  // Ambil data provinsi
+    // }, []);
+
+    // // Fungsi untuk menangani perubahan provinsi
+    // const handleProvinceChange = (e) => {
+    //     const provinceId = e.target.value;
+    //     setSelectedProvince(provinceId);  // Simpan id provinsi yang dipilih
+    //     fetchRegencies(provinceId);  // Ambil kabupaten berdasarkan provinsi
+    // };
+
+    // // Fungsi untuk menangani perubahan kabupaten
+    // const handleRegencyChange = (e) => {
+    //     const regencyId = e.target.value;
+    //     setSelectedRegency(regencyId);  // Simpan id kabupaten yang dipilih
+    //     fetchDistricts(regencyId);  // Ambil kecamatan berdasarkan kabupaten
+    // };
+
+    // // Fungsi untuk menangani perubahan kecamatan
+    // const handleDistrictChange = (e) => {
+    //     const districtId = e.target.value;
+    //     setSelectedDistrict(districtId);  // Simpan id kecamatan yang dipilih
+    //     fetchVillages(districtId);  // Ambil kelurahan berdasarkan kecamatan
+    // };
+
+
+
 
     return (
         <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
@@ -308,20 +405,20 @@ export default function Psdku() {
                         height="150"
                     />
                 </div>
-                <div className="col-md-9">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <h4 className="mb-0">Politeknik Lembaga Pendidikan dan Pengembangan Profesi Indonesia</h4>
-                        <p className="mb-0 ms-3 me-5 col-md-2">
+                <div className="col-9">
+                    <div className="d-row d-md-flex d-sm-row justify-content-between align-items-center">
+                        <h4 className="mb-3 mb-sm-3 mb-md-0 text-light">Politeknik Lembaga Pendidikan dan Pengembangan Profesi Indonesia</h4>
+                        <p className="mb-0 ms-md-3 me-md-5 col-md-2 text-light">
                             318/KPT/I/2019 <br /> No. SK Pendirian
                         </p>
-                        <p className="mb-0">
+                        <p className="mb-0 text-light">
                             Baik <br /> Akreditasi
                         </p>
                     </div>
 
-                    <p className="mt-3">046053</p>
-                    <p className="mt-5">
-                        <i className="bi bi-geo-alt-fill"></i> Jl. Pahlawan No.59, Sukaluyu, <br />
+                    <p className="mt-3 text-light">046053</p>
+                    <p className="mt-5 text-light">
+                        <i className="bi bi-geo-alt-fill text-light"></i> Jl. Pahlawan No.59, Sukaluyu, <br />
                         Kec. Cibeunying Kaler, Kota Bandung, Jawa Barat 40123
                     </p>
                 </div>
@@ -344,22 +441,24 @@ export default function Psdku() {
 
             {/* Table Section */}
             <div className="container mt-4">
-                <div className="row rounded bg-white p-3 align-items-center">
+                <div className="row rounded table-responsive-sm table-responsive-md bg-white p-3 align-items-center">
                     <div className="d-flex justify-content-between">
-                        <h4>Daftar PSDKU</h4>
+                        <h4 className='text-dark'>Daftar PSDKU</h4>
                         <button className="btn btn-success mb-2" onClick={() => setShowModal(true)}>
-                            <i className="bi bi-plus"></i> Tambah
+                            <i className="bi bi-plus text-light"></i> Tambah
                         </button>
+                        {/* <button className='btn btn-info' onClick={() => openEditModal(true)}>Cek Modal Edit</button>
+                        <button className='btn btn-info' onClick={() => setShowModalPreview(true)}>Cek Modal Preview</button> */}
                     </div>
                     <table className="table mt-4">
-                        <thead>
+                        <thead className='table table-secondary'>
                             <tr>
-                                <th className="text-white bg-secondary bg-opacity-50 text-start">No</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-start">Kode PT</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-start">PSDKU</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-center">Akreditasi</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-center">Status</th>
-                                <th className="text-white bg-secondary bg-opacity-50 text-center">Action</th>
+                                <th className="fw-semibold text-dark text-start">No</th>
+                                <th className="fw-semibold text-dark text-start">Kode PT</th>
+                                <th className="fw-semibold text-dark text-start text-truncate">PSDKU</th>
+                                <th className="fw-semibold text-dark text-center">Akreditasi</th>
+                                <th className="fw-semibold text-dark text-center">Status</th>
+                                <th className="fw-semibold text-dark text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -368,8 +467,8 @@ export default function Psdku() {
                                     <tr key={psdku._id}>
                                         <td>{index + 1}</td>
                                         <td>{psdku.kode_pt}</td>
-                                        <td>{psdku.psdku || 'N/A'}</td>
-                                        <td className='text-center'>{psdku.akreditasi?.akreditasi || 'N/A'}</td>
+                                        <td className='text-truncate'>{psdku.psdku || 'N/A'}</td>
+                                        <td className='text-center text-truncate'>{psdku.akreditasi?.akreditasi || 'N/A'}</td>
                                         <td className={`text-center ${psdku.status === 'Aktif' ? 'text-success' : 'text-danger'}`}>
                                             {psdku.status || 'N/A'}
                                         </td>
@@ -381,14 +480,14 @@ export default function Psdku() {
                                                 <i className="bi bi-pencil-fill text-primary"></i>
                                             </button>
                                             <button className="btn-sm border-0 bg-transparent">
-                                                <i className="bi bi-trash-fill text-danger" onClick={() => deletePsdku(psdku._id)}></i>
+                                                <i className="bi bi-trash-fill text-danger" onClick={() => handleDeleteClick(psdku._id)}></i>
                                             </button>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="text-center">
+                                    <td colSpan="6" className="text-center text-dark">
                                         Tidak ada data PSDKU.
                                     </td>
                                 </tr>
@@ -400,403 +499,629 @@ export default function Psdku() {
 
             {/* Modal Tambah PSDKU */}
             {showModal && (
-                <div className="modal fade show d-block">
+                <div className="modal fade show d-block" style={{ position: 'fixed', top: '50%', left: '45%', transform: 'translate(-50%, -50%)' }}>
                     <div className="modal-dialog">
-                        <div className="modal-content" style={{ width: '750px' }}>
+                        <div className="modal-content" style={{ width: '800px' }}>
                             <div className="modal-header">
                                 <h5 className="modal-title">Tambah PSDKU</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit}>
-
-                                    <input
-                                        type="number"
-                                        name="kode_pt"
-                                        className="form-control mb-2"
-                                        value={newPsdku.kode_pt}
-                                        onChange={handleInputChange}
-                                        placeholder="Kode PT"
-                                        required
-                                    />
                                     <div className='d-flex justify-content-between'>
-                                        <input
-                                            type="date"
-                                            name="tanggal_berdiri"
-                                            value={newPsdku.tanggal_berdiri}
-                                            onChange={handleInputChange}
-                                            className="form-control mb-2 w-75 me-4"
-                                            placeholder="Tanggal Berdiri"
-                                            required
-                                        />
-
-                                        <input
-                                            type="text"
-                                            name="tanggal_sk"
-                                            value={newPsdku.tanggal_sk}
-                                            onChange={handleInputChange}
-                                            className="form-control mb-2"
-                                            placeholder="Tanggal SK"
-                                            required
-                                        />
+                                        <div className="w-100 w-80 me-4">
+                                            <label htmlFor="kode_pt" className="form-label">Kode PT :</label>
+                                            <input
+                                                type="number"
+                                                name="kode_pt"
+                                                className="form-control mb-2"
+                                                value={newPsdku.kode_pt}
+                                                onChange={handleInputChange}
+                                                placeholder="Kode PT"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="w-100">
+                                            <label htmlFor="psdku" className="form-label">PSDKU :</label>
+                                            <input
+                                                type="text"
+                                                name="psdku"
+                                                value={newPsdku.psdku}
+                                                onChange={handleInputChange}
+                                                className="form-control mb-2"
+                                                placeholder="PSDKU"
+                                                required
+                                            />
+                                        </div>
                                     </div>
                                     <div className='d-flex justify-content-between'>
-                                        <input
-                                            type="text"
-                                            name="alamat"
-                                            value={newPsdku.alamat}
-                                            onChange={handleInputChange}
-                                            className="form-control mb-2 w-75 me-4"
-                                            placeholder="Alamat"
-                                            required
-                                        />
-                                        <input
-                                            type="text"
-                                            name="psdku"
-                                            value={newPsdku.psdku}
-                                            onChange={handleInputChange}
-                                            className="form-control mb-2"
-                                            placeholder="PSDKU"
-                                            required
-                                        />
+                                        <div className="w-100 w-80 me-4">
+                                            <label htmlFor="tanggal_berdiri" className="form-label">Tanggal Berdiri :</label>
+                                            <input
+                                                type="date"
+                                                name="tanggal_berdiri"
+                                                value={newPsdku.tanggal_berdiri}
+                                                onChange={handleInputChange}
+                                                className="form-control mb-2"
+                                                placeholder="Tanggal Berdiri"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="w-100">
+                                            <label htmlFor="tanggal_sk" className="form-label">Tanggal SK :</label>
+                                            <input
+                                                type="text"
+                                                name="tanggal_sk"
+                                                value={newPsdku.tanggal_sk}
+                                                onChange={handleInputChange}
+                                                className="form-control mb-2"
+                                                placeholder="Tanggal SK"
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                    {/* Dropdown atau checkbox untuk memilih prodi */}
+                                    <div className='d-flex justify-content-between'>
+                                        <div className="w-100 w-80 me-4">
+                                            <label htmlFor="alamat" className="form-label">Provinsi :</label>
+                                            <div className="input-group mb-2">
+                                                <select
+                                                    id='provinsi'
+                                                    // value={selectedProvince || ''}
+                                                    className="form-control"
+                                                    // onChange={handleProvinceChange}
+                                                    required
+                                                >
+                                                    <option value="">Pilih Provinsi</option>
+                                                    {/* Periksa apakah provinces adalah array sebelum menggunakan map */}
+                                                    {/* {Array.isArray(provinces) && provinces.map(province => (
+                                                        <option key={province.id} value={province.id}>{province.name}</option>
+                                                    ))} */}
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="w-100">
+                                            <label htmlFor="alamat" className="form-label">Kota :</label>
+                                            <div className="input-group mb-2">
+                                                <select
+                                                    id="kota"
+                                                    // value={selectedRegency || ''}
+                                                    className='form-control'
+                                                    // onChange={handleRegencyChange}
+                                                    // disabled={!selectedProvince}
+                                                    required
+                                                >
+                                                    <option value="">Pilih Kota</option>
+                                                    {/* Periksa apakah regencies adalah array sebelum menggunakan map */}
+                                                    {/* {Array.isArray(regencies) && regencies.map(regency => (
+                                                        <option key={regency.id} value={regency.id}>{regency.name}</option>
+                                                    ))} */}
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className='d-flex justify-content-between'>
+                                        <div className="w-100 w-80 me-4">
+                                            <label htmlFor="alamat" className="form-label">Kabupaten :</label>
+                                            <div className="input-group mb-2">
+                                                <select
+                                                    id="kabupaten"
+                                                    // value={selectedDistrict || ''}
+                                                    className='form-control'
+                                                // onChange={handleDistrictChange}
+                                                // disabled={!selectedRegency}
+                                                >
+                                                    <option value="">Pilih Kabupaten</option>
+                                                    {/* Periksa apakah districts adalah array sebelum menggunakan map */}
+                                                    {/* {Array.isArray(districts) && districts.map(district => (
+                                                        <option key={district.id} value={district.id}>{district.name}</option>
+                                                    ))} */}
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="w-100">
+                                            <label htmlFor="alamat" className="form-label">Kelurahan :</label>
+                                            <div className="input-group">
+                                                <select
+                                                    id="kelurahan"
+                                                    // value={newPsdku.alamat || ''}
+                                                    className='form-control'
+                                                // disabled={!selectedDistrict}
+                                                >
+                                                    <option value="">Pilih Kelurahan</option>
+                                                    {/* Periksa apakah villages adalah array sebelum menggunakan map */}
+                                                    {/* {Array.isArray(villages) && villages.map(village => (
+                                                        <option key={village.id} value={village.id}>{village.name}</option>
+                                                    ))} */}
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='d-flex justify-content-between mb-2'>
+                                        <div className="form-group w-50 me-4">
+                                            <label htmlFor="prodi" className="form-label">Pilih Prodi :</label>
+                                            <div className="input-group mb-2">
+                                                <select
+                                                    id="prodi"
+                                                    value={newPsdku.prodi}
+                                                    className="form-control"
+                                                    onChange={(e) => handleAddProdi(e.target.value)}
+                                                >
+                                                    <option value=""> Pilih Prodi </option>
+                                                    {prodiOptions.map((option) => (
+                                                        <option key={option._id} value={option._id}>
+                                                            {option.nama}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-2">
+                                            <span>Prodi yang Ditambahkan :</span>
+                                            <ul>
+                                                {newPsdku.prodi.map((prodiId, index) => {
+                                                    const prodi = prodiOptions.find(option => option._id === prodiId);
+                                                    return prodi ? (
+                                                        <li key={index}>
+                                                            {prodi.nama}
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-sm btn-danger ml-2 ms-5"
+                                                                onClick={() => handleNewRemoveProdi(prodiId)}
+                                                            >
+                                                                -
+                                                            </button>
+                                                        </li>
+                                                    ) : null;
+                                                })}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div className='d-flex justify-content-between mb-2'>
+                                        <div className="form-group w-50 me-4">
+                                            <label htmlFor="pengguna" className="form-label">Pilih Pengguna</label>
+                                            <div className="input-group mb-2">
+                                                <select
+                                                    id="pengguna"
+                                                    value={newPsdku.pengguna}
+                                                    className="form-control"
+                                                    onChange={(e) => handleAddPengguna(e.target.value)}
+                                                >
+                                                    <option value="">Pilih Pengguna</option>
+                                                    {penggunaOptions.map((option) => (
+                                                        <option key={option._id} value={option._id}>
+                                                            {option.nama}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-2">
+                                            <span>Pengguna yang Ditambahkan :</span>
+                                            <ul>
+                                                {newPsdku.pengguna.map((penggunaId, index) => {
+                                                    const pengguna = penggunaOptions.find(option => option._id === penggunaId);
+                                                    return pengguna ? (
+                                                        <li key={index}>
+                                                            {pengguna.nama}
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-sm btn-danger ml-2 ms-5"
+                                                                onClick={() => handleNewRemovePengguna(penggunaId)}
+                                                            >
+                                                                -
+                                                            </button>
+                                                        </li>
+                                                    ) : null;
+                                                })}
+                                            </ul>
+                                        </div>
+                                    </div>
+
                                     <div className="form-group">
-                                        <select
-                                            id="prodi"
-                                            value={newPsdku.prodi}
-                                            className="form-control"
-                                            onChange={(e) => handleAddProdi(e.target.value)}
-                                        >
-                                            <option value="">-- Pilih Prodi --</option>
-                                            {prodiOptions.map((option) => (
-                                                <option key={option._id} value={option._id}>
-                                                    {option.nama}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <label htmlFor="akreditasi" className="form-label">Pilih Akreditasi :</label>
+                                        <div className="input-group mb-4">
+                                            <select
+                                                name="akreditasi"
+                                                value={newPsdku.akreditasi}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Akreditasi</option>
+                                                {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                                    <option key={option._id} value={option._id}>
+                                                        {option.akreditasi}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="mt-2">
-                                        <strong>Prodi yang Ditambahkan:</strong>
-                                        <ul>
-                                            {newPsdku.prodi.map((prodiId, index) => {
-                                                const prodi = prodiOptions.find(option => option._id === prodiId);
-                                                return prodi ? (
-                                                    <li key={index}>
-                                                        {prodi.nama}
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-sm btn-danger ml-2 ms-5"
-                                                            onClick={() => handleNewRemoveProdi(prodiId)}
-                                                        >
-                                                            -
-                                                        </button>
-                                                    </li>
-                                                ) : null;
-                                            })}
-                                        </ul>
-                                    </div>
-                                    {/* Dropdown atau checkbox untuk memilih pengguna */}
-                                    <div className="form-group">
-                                        <select
-                                            id="pengguna"
-                                            value={newPsdku.pengguna}
-                                            className="form-control"
-                                            onChange={(e) => handleAddPengguna(e.target.value)}
-                                        >
-                                            <option value="">-- Pilih Pengguna --</option>
-                                            {penggunaOptions.map((option) => (
-                                                <option key={option._id} value={option._id}>
-                                                    {option.nama}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="mt-2">
-                                        <strong>Pengguna yang Ditambahkan:</strong>
-                                        <ul>
-                                            {newPsdku.pengguna.map((penggunaId, index) => {
-                                                const pengguna = penggunaOptions.find(option => option._id === penggunaId);
-                                                return pengguna ? (
-                                                    <li key={index}>
-                                                        {pengguna.nama}
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-sm btn-danger ml-2 ms-5"
-                                                            onClick={() => handleNewRemovePengguna(penggunaId)}
-                                                        >
-                                                            -
-                                                        </button>
-                                                    </li>
-                                                ) : null;
-                                            })}
-                                        </ul>
-                                    </div>
-                                    <select
-                                        name="akreditasi"
-                                        value={newPsdku.akreditasi}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        required
-                                    >
-                                        <option value="">Pilih Akreditasi</option>
-                                        {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
-                                            <option key={option._id} value={option._id}>
-                                                {option.akreditasi} {/* Menampilkan nama akreditasi */}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {/* <select
-                                        name="status"
-                                        value={newPsdku.status}
-                                        onChange={handleInputChange}
-                                        className="form-control mb-2"
-                                        required
-                                    >
-                                        <option value="">Pilih Status</option>
-                                        <option value="Aktif">Aktif</option>
-                                        <option value="Non-Aktif">Non-Aktif</option>
-                                    </select> */}
                                     <button type="submit" className="btn btn-success" onClick={() => handleSaveData(psdkuList)}>Tambahkan</button>
                                 </form>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                </div >
+            )
+            }
             {/* Edit Modal */}
-            {showModalEdit && (
-                <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog" aria-hidden="true">
-                    <div className="modal-dialog" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Edit PSDKU</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowModalEdit(false)}
-                                    aria-label="Close"
-                                ></button>
+            {
+                showModalEdit && (
+                    <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog" aria-hidden="true">
+                        <div className="modal-dialog" role="document">
+                            <div className="modal-content" style={{ width: '600px' }}>
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Edit PSDKU</h5>
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        onClick={() => setShowModalEdit(false)}
+                                        aria-label="Close"
+                                    ></button>
+                                </div>
+                                <div className="modal-body">
+                                    <form onSubmit={handleEditSubmit}>
+                                        <div className='d-flex gap-2'>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>Kode PT</label>
+                                                <input
+                                                    type="text"
+                                                    name="kode_pt"
+                                                    value={editPsdku.kode_pt} // Mengambil nilai dari state
+                                                    onChange={handleEditChange}
+                                                    className="form-control"
+                                                    disabled
+                                                />
+                                            </div>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>PSDKU</label>
+                                                <input
+                                                    type="text"
+                                                    name="psdku"
+                                                    value={editPsdku.psdku}
+                                                    onChange={handleEditChange}
+                                                    className="form-control"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='d-flex gap-2'>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>Tanggal Berdiri</label>
+                                                <input
+                                                    type="text"
+                                                    name="tanggal_berdiri"
+                                                    value={editPsdku.tanggal_berdiri}
+                                                    onChange={handleEditChange}
+                                                    className="form-control"
+                                                    disabled
+                                                />
+                                            </div>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>Tanggal SK</label>
+                                                <input
+                                                    type="text"
+                                                    name="tanggal_sk"
+                                                    value={editPsdku.tanggal_sk}
+                                                    onChange={handleEditChange}
+                                                    className="form-control"
+                                                    disabled
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='d-flex justify-content-between'>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>Prodi</label>
+                                                <div className='input-group'>
+                                                    <select
+                                                        name="prodi"
+                                                        value={editPsdku.prodi}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                    >
+                                                        {Array.isArray(prodiOptions) && prodiOptions.map((option) => (
+                                                            <option key={option._id} value={option._id}>
+                                                                {option.nama}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-2">
+                                                <span>Prodi yang Ditambahkan:</span>
+                                                <ul>
+                                                    {editPsdku.prodi.map((prodiId, index) => {
+                                                        const prodi = prodiOptions.find(option => option._id === prodiId);
+                                                        return prodi ? (
+                                                            <li key={index}>
+                                                                {prodi.nama}
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-sm btn-danger ml-2 ms-4"
+                                                                    onClick={() => handleEditRemoveProdi(prodiId)}
+                                                                >
+                                                                    -
+                                                                </button>
+                                                            </li>
+                                                        ) : null;
+                                                    })}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div className='d-flex justify-content-between'>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>Pengguna</label>
+                                                <div className='input-group'>
+                                                    <select
+                                                        name="pengguna"
+                                                        value={editPsdku.pengguna}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                        required
+                                                    >
+                                                        {Array.isArray(penggunaOptions) && penggunaOptions.map((option) => (
+                                                            <option key={option._id} value={option._id}>
+                                                                {option.nama} {/* Menampilkan nama pengguna */}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-2">
+                                                <span>Pengguna yang Ditambahkan:</span>
+                                                <ul>
+                                                    {editPsdku.pengguna.map((penggunaId, index) => {
+                                                        const pengguna = penggunaOptions.find(option => option._id === penggunaId);
+                                                        return pengguna ? (
+                                                            <li key={index}>
+                                                                {pengguna.nama}
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-sm btn-danger ml-2 ms-4"
+                                                                    onClick={() => handleEditRemovePengguna(penggunaId)}
+                                                                >
+                                                                    -
+                                                                </button>
+                                                            </li>
+                                                        ) : null;
+                                                    })}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div className='d-flex justify-content-between'>
+                                            <div className="mb-2 w-50 me-3">
+                                                <label className='mb-2'>Provinsi</label>
+                                                <div className="input-group">
+                                                    <input
+                                                        type="text"
+                                                        name="alamat"
+                                                        value={editPsdku.alamat}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                    />
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>Kota</label>
+                                                <div className='input-group'>
+                                                    <input
+                                                        type="text"
+                                                        name="alamat"
+                                                        value={editPsdku.alamat}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                    />
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className='d-flex justify-content-between'>
+                                            <div className="mb-2 w-50 me-3">
+                                                <label className='mb-2'>Kabupaten</label>
+                                                <div className="input-group">
+                                                    <input
+                                                        type="text"
+                                                        name="alamat"
+                                                        value={editPsdku.alamat}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                    />
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="mb-2 w-50">
+                                                <label className='mb-2'>Kecamatan</label>
+                                                <div className="input-group">
+                                                    <input
+                                                        type="text"
+                                                        name="alamat"
+                                                        value={editPsdku.alamat}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                    />
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mb-2">
+                                            <label className='mb-2'>Akreditasi</label>
+                                            <div className="input-group">
+                                                <select
+                                                    name="akreditasi"
+                                                    value={editPsdku.akreditasi}
+                                                    onChange={handleEditChange} // Gunakan fungsi yang baru
+                                                    className="form-control"
+                                                    required
+                                                >
+                                                    {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
+                                                        <option key={option._id} value={option._id}>
+                                                            {option.akreditasi}  {/* Menampilkan nama pengguna */}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="">
+                                            <label className='mb-2'>Status</label>
+                                            <div className="input-group mb-3">
+                                                <select
+                                                    name="status"
+                                                    value={editPsdku.status}
+                                                    onChange={handleEditChange}
+                                                    className="form-control"
+                                                    required
+                                                >
+                                                    <option value="">Pilih Status</option>
+                                                    <option value="Aktif">Aktif</option>
+                                                    <option value="Non Aktif">Non-Aktif</option>
+                                                </select>
+                                                <span className="input-group-text">
+                                                    <i className="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(psdkuList)} >
+                                            Update
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                            <div className="modal-body">
-                                <form onSubmit={handleEditSubmit}>
-                                    <div className="mb-2">
-                                        <label>Kode PT</label>
-                                        <input
-                                            type="text"
-                                            name="kode_pt"
-                                            value={editPsdku.kode_pt} // Mengambil nilai dari state
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                            disabled
-                                        />
-                                    </div>
-                                    <div className="mb-2">
-                                        <label>Tanggal Berdiri</label>
-                                        <input
-                                            type="text"
-                                            name="tanggal_berdiri"
-                                            value={editPsdku.tanggal_berdiri}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                            disabled
-                                        />
-                                    </div>
-                                    <div className="mb-2">
-                                        <label>Tanggal SK</label>
-                                        <input
-                                            type="text"
-                                            name="tanggal_sk"
-                                            value={editPsdku.tanggal_sk}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                            disabled
-                                        />
-                                    </div>
-                                    <div className="mb-2">
-                                        <label>Prodi</label>
-                                        <select
-                                            name="prodi"
-                                            value={editPsdku.prodi}
-                                            onChange={handleEditChange}
-                                            className="form-control mb-2"
-                                        >
-                                            {Array.isArray(prodiOptions) && prodiOptions.map((option) => (
-                                                <option key={option._id} value={option._id}>
-                                                    {option.nama}
-                                                </option>
-                                            ))}
-                                        </select>
+                        </div>
+                    </div>
+                )
+            }
 
+            {/* Modal Priview */}
+            {showModalPreview && (
+                <div className="modal fade show d-block">
+                    <div className="modal-dialog">
+                        <div className="modal-content" style={{ width: '800px' }}>
+                            <div className="modal-content shadow-lg">
+                                <div className="modal-body p-4">
+                                    <div className="text-center">
+                                        {/* Nama */}
+                                        <h5 className="fw-bold mb-1">Politeknik LP3I Bandung</h5>
+                                        {/* Jabatan */}
+                                        <p className="text-muted mb-4">460052</p>
                                     </div>
-                                    <div className="mt-2">
-                                        <strong>Prodi yang Ditambahkan:</strong>
-                                        <ul>
-                                            {editPsdku.prodi.map((prodiId, index) => {
-                                                const prodi = prodiOptions.find(option => option._id === prodiId);
-                                                return prodi ? (
-                                                    <li key={index}>
-                                                        {prodi.nama}
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-sm btn-danger ml-2 ms-4"
-                                                            onClick={() => handleEditRemoveProdi(prodiId)}
-                                                        >
-                                                            -
-                                                        </button>
-                                                    </li>
-                                                ) : null;
-                                            })}
-                                        </ul>
+                                    {/* Info Tambahan */}
+                                    <hr />
+                                    <p className="text-center text-uppercase text-muted fw-bold mb-3">
+                                        More Info
+                                    </p>
+                                    <div className="d-flex justify-content-between">
+                                        <span className="fw-bold">Tgl Berdiri</span>
+                                        <span>20 Desember 2024</span>
                                     </div>
-
-                                    <div className="mb-2">
-                                        <label>Pengguna</label>
-                                        <select
-                                            name="pengguna"
-                                            value={editPsdku.pengguna}
-                                            onChange={handleEditChange}
-                                            className="form-control mb-2"
-                                            required
-                                        >
-                                            {Array.isArray(penggunaOptions) && penggunaOptions.map((option) => (
-                                                <option key={option._id} value={option._id}>
-                                                    {option.nama} {/* Menampilkan nama pengguna */}
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Tgl SK</span>
+                                        <span>SK/10/19/2004</span>
                                     </div>
-                                    <div className="mt-2">
-                                        <strong>Pengguna yang Ditambahkan:</strong>
-                                        <ul>
-                                            {editPsdku.pengguna.map((penggunaId, index) => {
-                                                const pengguna = penggunaOptions.find(option => option._id === penggunaId);
-                                                return pengguna ? (
-                                                    <li key={index}>
-                                                        {pengguna.nama}
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-sm btn-danger ml-2 ms-4"
-                                                            onClick={() => handleEditRemovePengguna(penggunaId)}
-                                                        >
-                                                            -
-                                                        </button>
-                                                    </li>
-                                                ) : null;
-                                            })}
-                                        </ul>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Alamat</span>
+                                        <span>Jawa Barat, Bandung, Cibiru, Sukarno Hatta 11</span>
                                     </div>
-                                    <div className="mb-2">
-                                        <label>Alamat</label>
-                                        <input
-                                            type="text"
-                                            name="alamat"
-                                            value={editPsdku.alamat}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                    <hr />
+                                    <p className="text-center text-uppercase text-muted fw-bold mb-3">
+                                        Prodi And Kaprodi
+                                    </p>
+                                    <div className="d-flex justify-content-between">
+                                        <span className="fw-bold">Manajement Informatika</span>
+                                        <span>Rita S.Pd</span>
                                     </div>
-                                    <div className="mb-2">
-                                        <label>PSDKU</label>
-                                        <input
-                                            type="text"
-                                            name="psdku"
-                                            value={editPsdku.psdku}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                        />
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Administrasi Bisnis</span>
+                                        <span>Nijar S.Pd</span>
                                     </div>
-                                    <div className="mb-2">
-                                        <label>Akreditasi</label>
-                                        <select
-                                            name="akreditasi"
-                                            value={editPsdku.akreditasi}
-                                            onChange={handleEditChange} // Gunakan fungsi yang baru
-                                            className="form-control mb-2"
-                                            required
-                                        >
-                                            {Array.isArray(akreditasiOptions) && akreditasiOptions.map((option) => (
-                                                <option key={option._id} value={option._id}>
-                                                    {option.akreditasi}  {/* Menampilkan nama pengguna */}
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Manajement Keuangan Perbangkan</span>
+                                        <span>Aripin S.Pd</span>
                                     </div>
-                                    <div className="mb-2">
-                                        <label>Status</label>
-                                        <select
-                                            name="status"
-                                            value={editPsdku.status}
-                                            onChange={handleEditChange}
-                                            className="form-control"
-                                            required
-                                        >
-                                            <option value="">Pilih Status</option>
-                                            <option value="Aktif">Aktif</option>
-                                            <option value="Non Aktif">Non-Aktif</option>
-                                        </select>
-                                    </div>
-
-                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(psdkuList)} >
-                                        Update
+                                </div>
+                                <div className="modal-footer border-0">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary w-100 rounded-pill"
+                                        onClick={() => setShowModalPreview(false)}
+                                    >
+                                        Close
                                     </button>
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Modal Preview */}
-            {showModalPreview && previewPsdku && (
-                <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-hidden="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                    <div className="modal-dialog modal-dialog-centered" role="document"> {/* Gunakan kelas modal-dialog-centered */}
-                        <div className="modal-content">
-                            <div className="modal-header d-flex justify-content-between">
-                                <h5 className="modal-title">Detail PSDKU</h5>
-                                <button type="button" className="close" aria-label="Close" onClick={closePreviewModal}>
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                <p><strong>Kode PT:</strong> {previewPsdku.kode_pt}</p>
-                                <p><strong>Tanggal Berdiri:</strong> {previewPsdku.tanggal_berdiri}</p>
-                                <p><strong>Tanggal SK:</strong> {previewPsdku.tanggal_sk}</p>
-                                <p><strong>Alamat:</strong> {previewPsdku.alamat}</p>
-                                <p><strong>PSDKU:</strong> {previewPsdku.psdku}</p>
-                                <p><strong>Akreditasi:</strong> {previewPsdku.akreditasi?.akreditasi || 'N/A'}</p>
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
 
-                                {/* Render Prodi */}
-                                <p><strong>Prodi:</strong></p>
-                                <ul>
-                                    {previewPsdku.prodi && previewPsdku.prodi.length > 0 ? (
-                                        previewPsdku.prodi.map((prodi) => (
-                                            <li key={prodi._id}>{prodi.nama || 'N/A'}</li>
-                                        ))
-                                    ) : (
-                                        <li>Tidak ada Prodi</li>
-                                    )}
-                                </ul>
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
 
-                                {/* Render Pengguna */}
-                                <p><h4>Pengguna:</h4></p>
-                                <ul>
-                                    {previewPsdku.pengguna && previewPsdku.pengguna.length > 0 ? (
-                                        previewPsdku.pengguna.map((pengguna) => (
-                                            <li key={pengguna._id}>{pengguna.nama || 'N/A'}</li>
-                                        ))
-                                    ) : (
-                                        <li>Tidak ada pengguna</li>
-                                    )}
-                                </ul>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={closePreviewModal}>Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+            {/* Modal Konfirmasi Delete */}
+            {psdkuToDelete && (
+                <PsdkuDelete
+                    show={showModalDelete}
+                    onClose={() => setShowModalDelete(false)}
+                    message="Apakah Anda yakin ingin menghapus Psdku ini? Tindakan ini tidak bisa dibatalkan."
+                    psdku={psdkuToDelete}
+                    deletePsdku={deletePsdku} // Mengirimkan fungsi deleteUser ke modal
+                />
             )}
-        </div>
+        </div >
     );
 }

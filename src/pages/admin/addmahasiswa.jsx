@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
+import _ from 'lodash';
 import axiosClient from '../../services/axiosClient';
+import axios from 'axios';
+import ModalSuccess from '../../components/compModals/modalsuccess';
+import ModalFailed from '../../components/compModals/modalFailed';
+import MahasiswaDelete from '../../components/compModals/mahasiswaDelete';
+import ModalFilter from '../../components/compModals/modalFilter';
+
 
 export default function User() {
     const [mahasiswaList, setMahasiswaList] = useState([]); // State untuk menyimpan data pengguna
@@ -23,20 +30,52 @@ export default function User() {
         }
     });
 
-    const [showModal, setShowModal] = useState(false);
     const [prodiOptions, setProdiOptions] = useState([]);
     const [kampusOptions, setKampusOptions] = useState([]);
     const [tahunOptions, setTahunOptions] = useState([]);
     const [roleIdOptions, setRoleIdOptions] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
     const [editMahasiswa, setEditMahasiswa] = useState(null);
-    const [showModalEdit, setShowModalEdit] = useState(false);
-    const [showModalPreview, setShowModalPreview] = useState(false);
     const [selectedMahasiswa, setSelectedMahasiswa] = useState(null);
     const [previewData, setPreviewData] = useState(null);
+    const [mahasiswaToDelete, setMahasiswaToDelete] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [showModalEdit, setShowModalEdit] = useState(false);
+    const [showModalPreview, setShowModalPreview] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
+    const [showModalDelete, setShowModalDelete] = useState(false);
+    const [showFiltersModal, setShowFiltersModal] = useState(false);
     const [currentPage, setCurrentPage] = useState(1); // Halaman aktif
     const [totalPages, setTotalPages] = useState(0); // Total halaman
     const [totalMahasiswa, setTotalMahasiswa] = useState(0); // Total mahasiswa
     const [pageSize] = useState(10); // Ukuran halaman (jumlah data per halaman)
+
+    const fetchSearchResults = async (query) => {
+        try {
+            const response = await axios.get(`https://api.example.com/mahasiswa?q=${query}`);
+            setSearchResults(response.data.results);
+        } catch (error) {
+            console.error("Error saat mencari data:", error);
+            setSearchResults([]);
+        }
+    };
+
+    const debouncedSearch = _.debounce((query) => {
+        fetchSearchResults(query);
+    }, 500);
+
+    useEffect(() => {
+        if (searchQuery) {
+            debouncedSearch(searchQuery);
+        } else {
+            setSearchResults([]); // Kosongkan hasil jika query kosong
+        }
+
+        // Cleanup untuk debounce
+        return () => debouncedSearch.cancel();
+    }, [searchQuery]);
 
 
     // Fungsi API Memanggil Data mahasiswa
@@ -114,17 +153,17 @@ export default function User() {
     };
 
     // Fetch RoleId
-    const fetchRoleId = async () => {
-        try {
+    // const fetchRoleId = async () => {
+    //     try {
 
-            const response = await axiosClient.get('/users/role/all');
-            setRoleIdOptions(response.data.data);
-            console.log(response.data);
+    //         const response = await axiosClient.get('/users/role/all');
+    //         setRoleIdOptions(response.data.data);
+    //         console.log(response.data);
 
-        } catch (error) {
-            console.error('Error fetching RoleId:', error.response ? error.response.data : error.message);
-        }
-    };
+    //     } catch (error) {
+    //         console.error('Error fetching RoleId:', error.message);
+    //     }
+    // };
 
     const refreshData = async () => {
         try {
@@ -155,13 +194,13 @@ export default function User() {
         fetchProdi();
         fetchKampus();
         fetchTahun();
-        fetchRoleId();
+        // fetchRoleId();
     }, []);
 
     // fungsi menambah data menggunakan API
     const addMahasiswa = async () => {
         try {
-            const token = localStorage.getItem('token')
+            // const token = localStorage.getItem('token')
             const response = await axiosClient.post(
                 '/mahasiswa/add',
                 newMahasiswa
@@ -179,9 +218,12 @@ export default function User() {
                 akun: { email: '', password: '' },
             });
 
+            setShowSuccessModal(true);
+
             console.log("Mahasiswa berhasil ditambahkan:", response.data);
             setShowModal(false);
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error adding mahasiswa:", error.message);
             if (error.response?.data) {
                 console.log("Response data:", error.response.data);
@@ -196,9 +238,12 @@ export default function User() {
         try {
             const response = await axiosClient.put(`/mahasiswa/edit/${editMahasiswa.id}`, editMahasiswa);
 
+
+            setShowSuccessModal(true);
             console.log('Mahasiswa updated successfully:', response.data);
             setShowModalEdit(false);
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error updating Mahasiswa:", error.message);
             setError(error.response?.data?.message || 'An error occurred');
         }
@@ -207,13 +252,20 @@ export default function User() {
     const handleDeleteMahasiswa = async (id) => {
         try {
             const response = await axiosClient.delete(`/mahasiswa/delete/${id}`);
-
+            setShowSuccessModal(true);
             console.log('Mahasiswa deleted successfully:', response.data);
             // Lakukan tindakan setelah berhasil menghapus mahasiswa, misalnya memperbarui tampilan
         } catch (error) {
+            setShowModalDelete(false);
+            setShowFailedModal(true);
             console.error('Error deleting mahasiswa:', error.message);
             // Tangani error, misalnya tampilkan pesan error
         }
+    };
+
+    const handleDeleteClick = (mahasiswa) => {
+        setMahasiswaToDelete(mahasiswa); // Menyimpan data pengguna yang akan dihapus
+        setShowModalDelete(true); // Menampilkan modal konfirmasi
     };
 
     const getMahasiswaById = async (id) => {
@@ -222,8 +274,8 @@ export default function User() {
             const response = await axiosClient.get(`/mahasiswa/${id}`);
 
             console.log('Data mahasiswa berhasil dimuat:', response.data);
-            setPreviewData(response.data.data); // Simpan data untuk ditampilkan di modal
-            setShowModalPreview(true); // Tampilkan modal
+            setPreviewData(response.data.data); 
+            setShowModalPreview(true); 
         } catch (error) {
             console.error('Gagal memuat data mahasiswa:', error.response?.data || error.message);
         }
@@ -234,8 +286,9 @@ export default function User() {
         getMahasiswaById(mahasiswaId);
     };
 
-
-
+    const handleApplyFilters = (filters) => {
+        console.log("Filters applied:", filters);
+    };
 
     // Fungsi untuk menangani perubahan pada form input
     const handleInputChange = (e, section) => {
@@ -248,6 +301,7 @@ export default function User() {
                 [name]: value,
             },
         }));
+
     };
 
 
@@ -304,14 +358,14 @@ export default function User() {
     return (
         <div className="container mt-4">
             <div className="rounded bg-white p-3">
-                <h4 className="text-black mb-4 fw-semibold">Mahasiswa</h4>
+                <h4 className="text-dark mb-4 fw-semibold">Mahasiswa</h4>
 
                 {/* Tombol untuk membuka modal */}
                 <div className="d-flex flex-column align-items-end mb-3">
-                    <button className="btn btn-success mb-2" onClick={() => setShowModal(true)}>
+                    <button className="btn btn-success mb-2 text-light" onClick={() => setShowModal(true)}>
                         <i className="bi bi-plus"></i>Tambah
                     </button>
-                    <button className="btn btn-primary"><i className="bi bi-filter"></i> Filter</button>
+                    <button className="btn btn-primary text-light" onClick={() => setShowFiltersModal(true)}><i className="bi bi-filter"></i> Filter</button>
                 </div>
 
                 {/* Form pencarian pengguna */}
@@ -320,59 +374,94 @@ export default function User() {
                         type="search"
                         className="form-control me-2"
                         placeholder="Cari User"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)} // Update query saat mengetik
                     />
-                    <button className="btn btn-secondary d-flex align-items-center">
+                    {/* <button className="btn btn-secondary d-flex align-items-center">
                         <i className="bi bi-search me-2"></i> Cari
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
             {/* Tabel data pengguna */}
-            <div className="rounded mt-4 bg-white p-3">
+            <div className="table-responsive-sm table-responsive-md rounded mt-4 bg-white p-3">
                 <table className="table">
-                    <thead>
+                    <thead className='table-secondary'>
                         <tr>
-                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">NIM</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Nama Lengkap</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Jenis Kelamin</th>
-                            <th className='bg-secondary bg-opacity-25' scope="col">Program Study</th>
-                            {/* <th className='bg-secondary bg-opacity-25' scope="col">Tahun Lulusan</th> */}
-                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">Status</th>
-                            <th className='bg-secondary bg-opacity-25 text-center' scope="col">Aksi</th>
+                            <th className='text-dark fw-semibold text-center' scope="col">NIM</th>
+                            <th className='text-dark fw-semibold text-truncate' scope="col">Nama Lengkap</th>
+                            <th className='text-dark fw-semibold text-truncate' scope="col">Jenis Kelamin</th>
+                            <th className='text-dark fw-semibold text-truncate' scope="col">Program Study</th>
+                            {/* <th className='text-dark fw-semibold' scope="col">Tahun Lulusan</th> */}
+                            <th className='text-dark fw-semibold text-center' scope="col">Status</th>
+                            <th className='text-dark fw-semibold text-center' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {mahasiswaList.length > 0 ? (
-                            mahasiswaList.map((mahasiswa) => (
-                                <tr key={mahasiswa._id}>
-                                    <td>{mahasiswa.pribadi?.nim || 'N/A'}</td>
-                                    <td>{mahasiswa.pribadi?.nama || 'N/A'}</td>
-                                    <td>{mahasiswa.pribadi?.jk || 'N/A'}</td>
-                                    <td>{mahasiswa.kampus?.prodi?.nama || 'N/A'}</td>
-                                    <td className={`text-center ${mahasiswa.status ? 'text-success' : 'text-danger'}`}>
-                                        {mahasiswa.status ? 'Aktif' : 'Tidak Aktif'}
-                                    </td>
-                                    <td className='text-center'>
-                                        <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => handlePreviewMahasiswa(mahasiswa._id)}>
-                                            <i className="bi bi-eye-fill text-info"></i>
-                                        </button>
-                                        <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(mahasiswa)}>
-                                            <i className="bi bi-pencil-fill text-primary"></i>
-                                        </button>
-                                        <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteMahasiswa(mahasiswa._id)}>
-                                            <i className="bi bi-trash-fill text-danger"></i>
-                                        </button>
-                                    </td>
+                        {searchQuery && searchQuery.length > 0 ? (
+                            // Jika ada query pencarian, tampilkan hasil pencarian (searchResults)
+                            searchResults.length > 0 ? (
+                                searchResults.map((mahasiswa) => (
+                                    <tr key={mahasiswa._id}>
+                                        <td>{mahasiswa.pribadi?.nim || 'N/A'}</td>
+                                        <td>{mahasiswa.pribadi?.nama || 'N/A'}</td>
+                                        <td>{mahasiswa.pribadi?.jk || 'N/A'}</td>
+                                        <td>{mahasiswa.kampus?.prodi?.nama || 'N/A'}</td>
+                                        <td className={`text-center ${mahasiswa.status ? 'text-success' : 'text-danger'}`}>
+                                            {mahasiswa.status ? 'Aktif' : 'Tidak Aktif'}
+                                        </td>
+                                        <td className="text-center">
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => handlePreviewMahasiswa(mahasiswa._id)}>
+                                                <i className="bi bi-eye-fill text-info"></i>
+                                            </button>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(mahasiswa)}>
+                                                <i className="bi bi-pencil-fill text-primary"></i>
+                                            </button>
+                                            <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(mahasiswa._id)}>
+                                                <i className="bi bi-trash-fill text-danger"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="text-center text-dark">Tidak ada hasil pencarian.</td>
                                 </tr>
-                            ))
+                            )
                         ) : (
-                            <tr>
-                                <td colSpan="7" className="text-center">Tidak ada data pengguna.</td>
-                            </tr>
+                            // Jika tidak ada query pencarian, tampilkan data awal (mahasiswaList)
+                            mahasiswaList.length > 0 ? (
+                                mahasiswaList.map((mahasiswa) => (
+                                    <tr key={mahasiswa._id}>
+                                        <td>{mahasiswa.pribadi?.nim || 'N/A'}</td>
+                                        <td>{mahasiswa.pribadi?.nama || 'N/A'}</td>
+                                        <td>{mahasiswa.pribadi?.jk || 'N/A'}</td>
+                                        <td>{mahasiswa.kampus?.prodi?.nama || 'N/A'}</td>
+                                        <td className={`text-center ${mahasiswa.status ? 'text-success' : 'text-danger'}`}>
+                                            {mahasiswa.status ? 'Aktif' : 'Tidak Aktif'}
+                                        </td>
+                                        <td className="text-center">
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => handlePreviewMahasiswa(mahasiswa._id)}>
+                                                <i className="bi bi-eye-fill text-info"></i>
+                                            </button>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(mahasiswa)}>
+                                                <i className="bi bi-pencil-fill text-primary"></i>
+                                            </button>
+                                            <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(mahasiswa._id)}>
+                                                <i className="bi bi-trash-fill text-danger"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="text-center text-dark">Tidak ada data pengguna.</td>
+                                </tr>
+                            )
                         )}
                     </tbody>
                 </table>
-                
+
                 <nav>
                     <ul className="pagination justify-content-end">
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
@@ -429,6 +518,8 @@ export default function User() {
                                                 className="form-control"
                                                 value={newMahasiswa.pribadi.nim}
                                                 onChange={(e) => handleInputChange(e, 'pribadi')}
+                                                minLength={6}
+                                                maxLength={12}
                                             />
                                         </div>
                                         <div className="form-group">
@@ -736,26 +827,99 @@ export default function User() {
             {showModalPreview && previewData && previewData.pribadi && (
                 <div className="modal fade show d-block">
                     <div className="modal-dialog">
-                        <div className="modal-content">
+                        <div className="modal-content" style={{ width: '700px' }}>
                             <div className="modal-header">
                                 <h5 className="modal-title">Preview Mahasiswa</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowModalPreview(false)}></button>
                             </div>
-                            <div className="modal-body">
-                                {/* Menampilkan data mahasiswa */}
-                                <p><strong>Nama:</strong> {previewData.pribadi.nama}</p>
-                                <p><strong>NIM:</strong> {previewData.pribadi.nim}</p>
-                                <p><strong>Jenis Kelamin:</strong> {previewData.pribadi.jk}</p>
-                                <p><strong>Tempat & Tanggal Lahir:</strong> {previewData.pribadi.ttl}</p>
-                                <p><strong>Prodi:</strong> {previewData.kampus.prodi._id}</p> {/* Ini dapat disesuaikan jika prodi perlu ditampilkan lebih lengkap */}
-                                <p><strong>Email:</strong> {previewData.akun.email}</p>
-                                <p><strong>Role ID:</strong> {previewData.akun.role_id}</p>
+                            <div className="modal-body p-4">
+                                <div className="modal-body p-4">
+                                    <div className="text-center">
+                                        {/* Foto Profil */}
+                                        <img
+                                            src="/profile.jpg"
+                                            alt='Gambar'
+                                            className="rounded-circle border mb-3"
+                                            style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                                        />
+                                        {/* Nama */}
+                                        <h5 className="fw-bold mb-1">{previewData.pribadi.nama}</h5>
+                                        {/* Jabatan */}
+                                        <p className="text-muted mb-4">Mahasiswa</p>
+                                    </div>
+                                    {/* Info Tambahan */}
+                                    <hr />
+                                    <p className="text-center text-uppercase text-muted fw-bold mb-3">
+                                        More Info
+                                    </p>
+                                    <div className="d-flex justify-content-between">
+                                        <span className="fw-bold">Program Study</span>
+                                        <span>{previewData.kampus.prodi._id}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">NIM</span>
+                                        <span>{previewData.pribadi.nim}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Email</span>
+                                        <span>{previewData.akun.email}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Jenis Kelamin</span>
+                                        <span>{previewData.pribadi.jk}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mt-2">
+                                        <span className="fw-bold">Tempat Tgl Lahir</span>
+                                        <span>{previewData.pribadi.ttl}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="modal-footer border-0">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary w-100 rounded-pill"
+                                    onClick={() => setShowModalPreview(false)}
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
+
+
+            {/* Modal Konfirmasi Delete */}
+            {mahasiswaToDelete && (
+                <MahasiswaDelete
+                    show={showModalDelete}
+                    onClose={() => setShowModalDelete(false)}
+                    message="Apakah Anda yakin ingin menghapus Mahasiswa ini? Tindakan ini tidak bisa dibatalkan."
+                    users={mahasiswaToDelete}
+                    handleDeleteMahasiswa={handleDeleteMahasiswa} // Mengirimkan fungsi deleteUser ke modal
+                />
+            )}
+
+            <ModalFilter
+                show={showFiltersModal}
+                onClose={() => setShowFiltersModal(false)}
+                onApply={handleApplyFilters}
+            />
+
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
         </div>
     );
 }
