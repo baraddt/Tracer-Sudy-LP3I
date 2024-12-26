@@ -43,10 +43,21 @@ export default function ProgramList() {
     // fungsi untuk get data dari API
     const fetchData = async () => {
         try {
+            const storedData = localStorage.getItem("prodyData");
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
+                setProgramList(parsedData.data.data);
+                console.log("Data loaded from ls:", parsedData);
+                return;
+
+            }
             // const response = await axiosClient.get('/prodi/all');
             const response = await axiosClient.get('/prodi/all');
 
             setProgramList(response.data.data);
+            console.log("Data fetch by API:", response.data);
+            localStorage.setItem("prodyData", JSON.stringify(response.data))
+
         } catch (error) {
             console.error("Error feching data:", error.message);
         }
@@ -117,7 +128,6 @@ export default function ProgramList() {
     // fungsi untuk menambah data programstudy lewat API
     const AddProgram = async () => {
         try {
-            const token = localStorage.getItem
             // const response = await axiosClient.post('/prodi/add', newProgram)
             const response = await axiosClient.post('/prodi/add', newProgram)
             setProgramList((prevList) => [...prevList, response.data]);
@@ -295,30 +305,29 @@ export default function ProgramList() {
                         </button>
                     </div>
                     <table className="table mt-4">
-                        <thead className='table table-secondary'>
+                        <thead className='table'>
                             <tr>
-                                <th className="fw-semibold text-dark text-start">No</th>
-                                <th className="fw-semibold text-dark text-start">Kode</th>
-                                <th className="fw-semibold text-dark text-start">Program Study</th>
-                                <th className="fw-semibold text-dark text-center">Jenjang</th>
-                                <th className="fw-semibold text-dark text-center">Akreditasi</th>
-                                <th className="fw-semibold text-dark text-center">Status</th>
-                                <th className="fw-semibold text-dark text-center">Action</th>
+                                <th className="cstm-bg fw-semibold text-dark text-start">No</th>
+                                <th className="cstm-bg fw-semibold text-dark text-start">Kode</th>
+                                <th className="cstm-bg fw-semibold text-dark text-start">Program Study</th>
+                                <th className="cstm-bg fw-semibold text-dark text-center">Jenjang</th>
+                                <th className="cstm-bg fw-semibold text-dark text-center">Akreditasi</th>
+                                <th className="cstm-bg fw-semibold text-dark text-center">Status</th>
+                                <th className="cstm-bg fw-semibold text-dark text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {programList.length > 0 ? (
-                                programList.map((program, index) => (
+                            {programList?.prodiData?.length > 0 ? (
+                                programList.prodiData.map((program, index) => (
                                     <tr key={index}>
                                         <td>{index + 1}</td>
                                         <td>{program.kode}</td>
                                         <td>{program.nama || 'N/A'}</td>
                                         <td className='text-center'>{program.jenjang?.jenjang || 'N/A'}</td>
-                                        <td className='text-center'>{program.akreditasi?.akreditasi || 'N/A'}</td>
+                                        <td className='text-center'>{program.akreditasi || 'N/A'}</td>
                                         <td className={`text-center ${program.status === 'Aktif' ? 'text-success' : 'text-danger'}`}>
                                             {program.status || 'N/A'}
                                         </td>
-
                                         <td className='text-center'>
                                             <button className="btn-sm border-0 bg-transparent" onClick={() => openPreviewModal(program._id)}>
                                                 <i className="bi bi-eye-fill text-info"></i>
@@ -401,7 +410,6 @@ export default function ProgramList() {
                                             </span>
                                         </div>
                                     </div>
-
                                     <div className="mb-2">
                                         <label htmlFor="jenjang" className="form-label">Jenjang:</label>
                                         <div className="input-group">
@@ -575,7 +583,11 @@ export default function ProgramList() {
                                     {/* Nama */}
                                     <h5 className="fw-semibold mb-1">{previewProgram.nama}</h5>
                                     {/* Jabatan */}
-                                    <p className="text-muted mb-4">Aripin S.Pd</p>
+                                    <p className="text-muted mb-4">
+                                        {previewProgram.id_pengguna && previewProgram.id_pengguna.length > 0
+                                            ? previewProgram.id_pengguna[0].nama
+                                            : 'Belum Menambahkan Kaprodi'}
+                                    </p>
                                 </div>
                                 {/* Info Tambahan */}
                                 <hr />

@@ -2,7 +2,11 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 // import './services/axios';
 
 // component
-import Pdf from './components/pdf';
+import PdfHrz from './components/pdfHrz';
+import PdfVrtc from './components/pdfVrtc';
+import PdfViewer from './components/pdf-viewer';
+import NewPw from './components/newPw';
+import VerifiedPw from './components/verifiedPw';
 
 // Import Bagian Super Admin
 import Navbar from './components/navbar';
@@ -58,6 +62,9 @@ import ArsipTracerAdmin from './pages/admin/arsiptracer';
 import ProfileAdmin from './pages/admin/profile';
 import PusatBantuanAdmin from './pages/admin/pusatbantuan';
 
+// import bagian PA
+import PaProgramStudy from './pages/PA/paprogramstudy';
+
 // Import Bagian Pengguna
 import LoginPengguna from './components/loginPengguna';
 import DashboardPengguna from './pages/pengguna/dashboard';
@@ -70,11 +77,13 @@ import ProfilePengguna from './pages/pengguna/profile';
 import NavbarPengguna from './components/navbarPengguna';
 import loginPengguna from './components/loginPengguna';
 
+
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/' || location.pathname === '/super_admin/forgot-password' || location.pathname === '/pengguna/formtracer' || location.pathname === '/pdf' || location.pathname === '/p';
+  const isAuthPage = location.pathname === '/' || location.pathname === '/super_admin/forgot-password' || location.pathname === '/verifiedPw' || location.pathname === '/newPw' || location.pathname === '/pengguna/formtracer' || location.pathname === '/pdf' || location.pathname === '/p';
   const isSuperAdminPage = location.pathname.startsWith('/super_admin');
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isPAPage = location.pathname.startsWith('/PA');
   const isPenggunaPage = location.pathname.startsWith('/pengguna');
 
   return (
@@ -82,18 +91,23 @@ function AppContent() {
       {/* Menampilkan Navbar yang berbeda berdasarkan halaman */}
       {!isAuthPage && isSuperAdminPage && <Navbar />}
       {!isAuthPage && isAdminPage && <NavbarAdmin />}
+      {!isAuthPage && isPAPage && <NavbarAdmin />}
       {!isAuthPage && isPenggunaPage && <NavbarPengguna />}
 
       <div className="d-flex flex-column min-vh-100"> {/* Flexbox untuk layout vertikal */}
         <div className="flex-grow-1"> {/* Bagian konten utama */}
           <Routes>
             {/* component route */}
-            <Route path="pdf" element={<Pdf />} />
+            <Route path="pdfHrz" element={<PdfHrz />} />
+            <Route path="pdfVrtc" element={<PdfVrtc />} />
+            <Route path="pdf-viewer" element={<PdfViewer />} />
+            <Route path="/newPw" element={<NewPw />} />
+            <Route path="/verifiedPw" element={<VerifiedPw />} />
 
             {/* Route Super Admin */}
             <Route path="/" element={<Login />} /> {/* Halaman login di URL default */}
             <Route path="/loginPengguna" element={<loginPengguna />} /> {/* Halaman login di URL default */}
-            <Route path="/super_admin/forgot-password" element={<ForgotPassword />} /> {/* Route untuk halaman lupa password */}
+            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Route untuk halaman lupa password */}
             <Route path="/super_admin/dashboard" element={<Dashboard />} />
             <Route path="/super_admin/tracerstudy" element={<Tracer />} />
             <Route path="/super_admin/tracerstudyadd" element={<TracerAdd />} />
@@ -105,11 +119,11 @@ function AppContent() {
             <Route path="/super_admin/tracerstudy-getpreview-kuesioner/:id" element={<GetTracerPreviewKuesioner />} />
             <Route path="/super_admin/tracerstudy-getpreview-responden/:id" element={<GetTracerPreviewResponden />} />
             <Route path="/super_admin/tracerstudy-getpreview-kriteria/:id" element={<GetTracerPreviewKriteria />} />
-            {/* <Route path="/super_admin/tracerstudy-edit/:id" element={<TracerEdit />} /> */}
-            <Route path="/super_admin/tracerstudy-edit" element={<TracerEdit />} />
-            <Route path="/super_admin/tracerstudy-editskala" element={<TracerEditSkala />} />
-            <Route path="/super_admin/tracerstudy-editbank" element={<TracerEditBank />} />
-            <Route path="/super_admin/tracerstudy-editatensi" element={<TracerEditAtensi />} />
+            {/* <Route path="/super_admin/tracerstudy-edit/" element={<TracerEdit />} /> */}
+            <Route path="/super_admin/tracerstudy-edit/:id" element={<TracerEdit />} />
+            <Route path="/super_admin/tracerstudy-editskala/:id" element={<TracerEditSkala />} />
+            <Route path="/super_admin/tracerstudy-editbank/:id" element={<TracerEditBank />} />
+            <Route path="/super_admin/tracerstudy-editatensi/:id" element={<TracerEditAtensi />} />
             <Route path="/super_admin/tracerstudy-preview-kuesioner" element={<TracerPreviewKuesioner />} />
             <Route path="/super_admin/tracerstudy-preview-responden" element={<TracerPreviewResponden />} />
             <Route path="/super_admin/kampus" element={<Kampus />} />
@@ -142,6 +156,9 @@ function AppContent() {
             <Route path="/admin/arsiptracer" element={<ArsipTracerAdmin />} />
             <Route path="/admin/pusatbantuan" element={<PusatBantuanAdmin />} />
             <Route path="/admin/profile" element={<ProfileAdmin />} />
+
+            {/* route PA */}
+            <Route path="/PA/paprogramstudy" element={<PaProgramStudy />} />
 
             {/* Route Pengguna */}
             <Route path="/p" element={<LoginPengguna />} />

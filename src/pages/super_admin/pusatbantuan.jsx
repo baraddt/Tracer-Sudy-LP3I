@@ -1,167 +1,154 @@
-import axiosClient from "../../services/axiosClient";
-import _ from 'lodash';
-import axios from 'axios';
-import { useState, useEffect } from "react";
-import ModalFilter from "../../components/compModals/modalFilter";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
 
+const AdminFAQ = () => {
+    const [faqList, setFaqList] = useState([]);
+    const [question, setQuestion] = useState("");
+    const [answer, setAnswer] = useState("");
+    const [editIndex, setEditIndex] = useState(null);
 
-export default function () {
-    const [pusatBantuanList, setPusatBantuanList] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
-    const [showFiltersModal, setShowFiltersModal] = useState(false);
+    const handleRemoveClick = (index) => {
+        Swal.fire({
+            title: "Yakin ingin menghapus?",
+            text: "Data FAQ ini akan dihapus permanen!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Panggil fungsi hapus jika user konfirmasi
+                handleDeleteFAQ(index);
 
-    const fetchSearchResults = async (query) => {
-        try {
-            const response = await axios.get(`https://api.example.com/mahasiswa?q=${query}`);
-            setSearchResults(response.data.results);
-        } catch (error) {
-            console.error("Error saat mencari data:", error);
-            setSearchResults([]);
+                // Tampilkan alert sukses
+                Swal.fire({
+                    title: "Dihapus!",
+                    text: "Data FAQ telah dihapus.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
+    };
+
+    // Tambah atau Simpan FAQ
+    const handleAddOrSaveFAQ = () => {
+        if (question && answer) {
+            if (editIndex !== null) {
+                // Mode Edit
+                const updatedFAQ = [...faqList];
+                updatedFAQ[editIndex] = { que: question, answ: answer };
+                setFaqList(updatedFAQ);
+                setEditIndex(null);
+            } else {
+                // Mode Tambah
+                setFaqList([...faqList, { que: question, answ: answer }]);
+            }
+            setQuestion(""); // Reset input pertanyaan
+            setAnswer(""); // Reset input jawaban
         }
     };
 
-    const debouncedSearch = _.debounce((query) => {
-        fetchSearchResults(query);
-    }, 500);
-
-    useEffect(() => {
-        if (searchQuery) {
-            debouncedSearch(searchQuery);
-        } else {
-            setSearchResults([]); // Kosongkan hasil jika query kosong
-        }
-
-        // Cleanup untuk debounce
-        return () => debouncedSearch.cancel();
-    }, [searchQuery]);
-
-
-    // const fetchpusatBantuan = async () => {
-    //     try {
-    //         const response = await axios.get('http://192.168.18.223:5000/pusatBantuan/all');
-    //         setpusatBantuanList(response.data.data);
-    //     } catch (err) {
-    //         console.error("error feching data:", err.message);
-    //     }
-    // };
-
-    const fetchPusatBantuan = async () => {
-        try {
-            // const response = await axios.get('http://192.168.18.223:5000/users/role/all');
-            const response = await axios.get('http://192.168.18.223:5000/pusatBantuan/all');
-            setPusatBantuanList(response.data.data); // Update state dengan data Role ID
-        } catch (error) {
-            console.error("Error fetching pusatBantuan:", error.message);
-        }
+    // Fungsi Edit FAQ
+    const handleEditFAQ = (index) => {
+        setQuestion(faqList[index].que);
+        setAnswer(faqList[index].answ);
+        setEditIndex(index);
     };
 
-    useEffect(() => {
-        fetchPusatBantuan();
-    }, []);
-
-    const handleApplyFilters = (filters) => {
-        console.log("Filters applied:", filters);
+    // Fungsi Delete FAQ
+    const handleDeleteFAQ = (index) => {
+        const updatedFAQ = faqList.filter((_, i) => i !== index);
+        setFaqList(updatedFAQ);
     };
-
-
 
     return (
         <div className="container mt-4">
+            {/* Bagian Judul */}
             <div className="rounded bg-white p-3">
-                <h4 className="mb-4 fw-semibold text-dark">Pusat Bantuan</h4>
+                <h4 className="mb-4 fw-semibold text-dark">
+                    {editIndex !== null ? "Edit FAQ" : "Tambah FAQ"}
+                </h4>
 
-                {/* Tombol untuk membuka modal */}
-                <div className="d-flex flex-column align-items-end mb-3">
-                    <button className="btn btn-primary" onClick={() => setShowFiltersModal(true)}><i className="bi bi-filter"></i> Filter</button>
-                </div>
-
-                {/* Form pencarian pengguna */}
-                <div className="d-flex mb-3 col-sm-4">
+                {/* Form Input Pertanyaan dan Jawaban */}
+                <div className="mb-3">
+                    <label className="form-label">Pertanyaan</label>
                     <input
-                        type="search"
-                        className="form-control me-2"
-                        placeholder="Cari Pengadu"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)} // Update query saat mengetik
+                        type="text"
+                        className="form-control"
+                        placeholder="Masukkan pertanyaan"
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
                     />
-                    {/* <button className="btn btn-secondary d-flex align-items-center">
-                        <i className="bi bi-search me-2"></i> Cari
-                    </button> */}
+                </div>
+                <div className="mb-3">
+                    <label className="form-label">Jawaban</label>
+                    <textarea
+                        className="form-control"
+                        placeholder="Masukkan jawaban"
+                        value={answer}
+                        onChange={(e) => setAnswer(e.target.value)}
+                    ></textarea>
+                </div>
+
+                {/* Tombol Tambah atau Simpan FAQ */}
+                <div className="d-flex justify-content-end">
+                    <button
+                        className={`btn ${editIndex !== null ? "btn-warning" : "btn-success"}`}
+                        onClick={handleAddOrSaveFAQ}
+                    >
+                        <i className={`bi ${editIndex !== null ? "bi-pencil" : "bi-plus"}`}></i>
+                        {editIndex !== null ? " Simpan Perubahan" : " Tambah FAQ"}
+                    </button>
                 </div>
             </div>
+
+            {/* Bagian Tabel FAQ */}
             <div className="rounded mt-4 bg-white p-3">
-                <table className="table">
-                    <thead className="table-secondary">
-                        <tr>
-                            <th className='text-dark text-center fw-semibold' scope="col">#ID</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Pengadu</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Role</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Email</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Status</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {searchQuery && searchQuery.length > 0 ? (
-                            // Jika ada query pencarian, tampilkan hasil pencarian (searchResults)
-                            searchResults.length > 0 ? (
-                                searchResults.map((pusatBantuan) => (
-                                    <tr key={pusatBantuan._id}>
-                                        <td>{`#PG${index + 201}`}</td>
-                                        <td>{pusatBantuan.Pengadu}</td>
-                                        <td>{pusatBantuan.role || 'N/A'}</td>
-                                        <td>{pusatBantuan.email || 'N/A'}</td>
-                                        <td>{pusatBantuan.status}</td>
-                                        <td className='text-center'>
-                                            <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(pusatBantuan._id)}></i>
-                                            </button>
-                                            <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(pusatBantuan._id)}></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="7" className="text-center text-dark">Tidak ada hasil pencarian.</td>
+                <h5 className="mb-3 fw-semibold">Daftar FAQ</h5>
+                {faqList.length === 0 ? (
+                    <p className="text-muted">Belum ada FAQ yang ditambahkan.</p>
+                ) : (
+                    <table className="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Pertanyaan</th>
+                                <th>Jawaban</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {faqList.map((item, index) => (
+                                <tr key={index}>
+                                    <td>{index + 1}</td>
+                                    <td>{item.que}</td>
+                                    <td>{item.answ}</td>
+                                    <td>
+                                        <button
+                                            className="btn btn-warning btn-sm me-2"
+                                            onClick={() => handleEditFAQ(index)}
+                                        >
+                                            <i className="bi bi-pencil"></i> Edit
+                                        </button>
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => handleRemoveClick(index)}
+                                        >
+                                            <i className="bi bi-trash"></i> Hapus
+                                        </button>
+                                    </td>
                                 </tr>
-                            )
-                        ) : (
-                            // Jika tidak ada query pencarian, tampilkan data awal
-                            pusatBantuanList.length > 0 ? (
-                                pusatBantuanList.map((pusatBantuan, index) => (
-                                    <tr key={pusatBantuan._id}>
-                                        <td>{`#PG${index + 201}`}</td>
-                                        <td>{pusatBantuan.Pengadu}</td>
-                                        <td>{pusatBantuan.role || 'N/A'}</td>
-                                        <td>{pusatBantuan.email || 'N/A'}</td>
-                                        <td>{pusatBantuan.status}</td>
-                                        <td className='text-center'>
-                                            <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(pusatBantuan._id)}></i>
-                                            </button>
-                                            <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(pusatBantuan._id)}></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="8" className="text-center text-dark">Tidak ada Data Pengadu.</td>
-                                </tr>
-                            )
-                        )}
-                    </tbody>
-                </table>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
-            <ModalFilter
-                show={showFiltersModal}
-                onClose={() => setShowFiltersModal(false)}
-                onApply={handleApplyFilters}
-            />
         </div>
-    )
-}
+    );
+};
+
+export default AdminFAQ;

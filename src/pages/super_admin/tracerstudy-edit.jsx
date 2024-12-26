@@ -3,12 +3,35 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
 import "react-quill/dist/quill.snow.css";
 import ReactQuill from "react-quill";
+import ModalSuccess from '../../components/compModals/modalsuccess';
+import ModalSuccessDraft from '../../components/compModals/draftModals';
+import ModalFailed from '../../components/compModals/modalFailed';
 
 export default function TracerStudyDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [tracerDetail, setTracerDetail] = useState(null);
     const [error, setError] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showSuccessDraftModal, setShowSuccessDraftModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
+
+    const handleNavigateAndUpdate = async () => {
+        try {
+            // Fetch data terbaru
+            const response = await axiosClient.get('/tracerstudy/all');
+            const updatedTracerData = response.data;
+
+            // Update localStorage
+            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+            console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+            // Redirect ke halaman /super_admin/tracerstudy
+            navigate('/super_admin/tracerstudy');
+        } catch (error) {
+            console.error("Error updating tracer data:", error.message);
+        }
+    };
 
 
     useEffect(() => {
@@ -39,18 +62,22 @@ export default function TracerStudyDetail() {
         event.preventDefault();
 
         try {
-            const updatedDetail = tracerDetail.id_detail; // Data yang akan diperbarui
+            // Data detail yang akan di-update
+            const updatedDetail = tracerDetail.id_detail;
 
+            // Kirim data ke API untuk update detail
             const response = await axiosClient.put(
-                `/tracerstudy/detail/${tracerDetail.id_detail._id}`,
+                `/tracerstudy/edit/${tracerDetail.id_detail._id}`,
                 updatedDetail
             );
 
             console.log("Response dari API:", response.data);
+            setShowSuccessModal(true);
 
-            // Setelah sukses, arahkan ke step berikutnya
-            navigate(`/super_admin/tracerstudy-skala-kegiatan`);
+            // Redirect ke halaman edit skala kegiatan dengan membawa tracerId
+            navigate(`/super_admin/tracerstudy-editskala/${id}`);
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Error saat mengedit detail kegiatan:", error.message);
             setError("Gagal memperbarui detail kegiatan.");
         }
@@ -58,11 +85,65 @@ export default function TracerStudyDetail() {
 
 
 
+
     return (
         <div className="container rounded my-4 bg-white p-4">
+            <div className="row mb-4">
+                <div className="col">
+                    <ul className="nav mt-3 mb-4 justify-content-center gap-2">
+                        <li className="nav-item">
+                            <span className="badge btn-primary px-4 py-2 rounded-pill">
+                                Detail Kegiatan
+                            </span>
+                        </li>
+                        <Link to={`/super_admin/tracerstudy-editskala/${id}`}>
+                            <li className="nav-item mx-2">
+                                <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
+                                    Skala Kegiatan
+                                </span>
+                            </li>
+                        </Link>
+                        <Link to={`/super_admin/tracerstudy-editbank/${id}`}>
+                            <li className="nav-item">
+                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                    Bank soal
+                                </span>
+                            </li>
+                        </Link>
+                        <Link to={`/super_admin/tracerstudy-editatensi/${id}`}>
+                            <li className="nav-item">
+                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                    Kriteria Atensi
+                                </span>
+                            </li>
+                        </Link>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Preview
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             <h2 className='mb-5'>Edit Tracer Study</h2>
 
             <form onSubmit={handleEditDetail}>
+                <div className="form-group">
+                    {tracerDetail.id_detail.banner && (
+                        <div className="preview-container mb-2" style={{ marginTop: "10px" }}>
+                            <img
+                                src={tracerDetail.id_detail.banner}
+                                alt="Banner Preview"
+                                style={{
+                                    maxWidth: "150px",
+                                    maxHeight: "150px",
+                                    borderRadius: "8px",
+                                    border: "1px solid #ddd",
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
                 <div className="form-group">
                     <label style={{ fontSize: '19px' }}>Masukan Banner/Flyer Yang Baru</label>
                     <p className="text-secondary" style={{ fontSize: '13px' }}>Ukuran banner maksimal 396x202</p>
@@ -172,18 +253,40 @@ export default function TracerStudyDetail() {
                 </div>
                 {/* Buttons untuk aksi */}
                 <div className="d-flex justify-content-between mt-4">
-                    <Link to="/super_admin/tracerstudy">
-                        <div>
-                            <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
-                        </div>
-                    </Link>
                     <div>
-                        <button type="button" className="btn btn-danger mb-3 me-3">Kembali</button>
-
+                        <button type="button" className="btn btn-primary mb-3" onClick={() => setShowSuccessDraftModal(true)}>Simpan ke Draft</button>
+                    </div>
+                    <div>
+                        <Link to='/super_admin/tracerstudy'>
+                            <button type="button" className="btn btn-danger mb-3 me-3">Kembali</button>
+                        </Link>
                         <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
                     </div>
                 </div>
             </form>
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal Draft */}
+            <ModalSuccessDraft
+                show={showSuccessDraftModal}
+                message="Tracer to Draft Is Success !"
+                onClose={() => {
+                    setShowSuccessDraftModal(false);
+                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
+                }}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
         </div>
     );
 }

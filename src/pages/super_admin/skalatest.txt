@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
 import ModalSuccess from '../../components/compModals/modalsuccess';
 import ModalSuccessDraft from '../../components/compModals/draftModals';
 import ModalFailed from '../../components/compModals/modalFailed';
 
 export default function () {
-    const { id } = useParams(); // Ambil ID dari params
-    const [dataTracerId, setDataTracerId] = useState(id || null); // Set state dengan ID dari params
+    const [dataTracerId, setDataTracerId] = useState(null);
     const [psdkuList, setPsdkuList] = useState([]);
     const [tahunList, setTahunList] = useState([]);
     const [error, setError] = useState(null);
@@ -24,74 +23,89 @@ export default function () {
     const [showFailedModal, setShowFailedModal] = useState(false);
     const navigate = useNavigate();
 
-
-    const handleNavigateAndUpdate = async () => {
-        try {
-            // Fetch data terbaru
-            const response = await axiosClient.get('/tracerstudy/all');
-            const updatedTracerData = response.data;
-
-            // Update localStorage
-            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
-            console.log("Tracer data updated in localStorage:", updatedTracerData);
-
-            // Redirect ke halaman /super_admin/tracerstudy
-            navigate('/super_admin/tracerstudy');
-        } catch (error) {
-            console.error("Error updating tracer data:", error.message);
+    useEffect(() => {
+        const tracerId = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        if (!tracerId) {
+            console.error("Tracer ID tidak ditemukan di localStorage.");
+            navigate('/super_admin/tracerstudyadd'); // Redirect ke step 1 jika ID tidak ditemukan
+        } else {
+            setDataTracerId(tracerId); // Simpan ke state
+            console.log("Tracer ID diambil dari localStorage:", tracerId);
         }
-    };
+    }, [navigate]);
 
+
+
+    // memanggil dulu data tracernya
+    // const fetchTracer = async () => {
+    //     try {
+    //         const response = await axiosClient.get('/tracerstudy/all');
+    //         if (response.data.data && response.data.data.length > 0) {
+    //             setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
+    //             console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
+    //         } else {
+    //             console.error("Data tracer kosong atau tidak ditemukan");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error.message);
+    //     }
+    // };
+
+
+
+
+    // memangil psdku lewat API
     const fetchPsdku = async () => {
         try {
+            // const response = await axiosClient.get('/kampus/all');
             const response = await axiosClient.get('/kampus/all');
             setPsdkuList(response.data.data);
+            // console.log("ini data psdku list:", response.data.data);
+
+
         } catch (error) {
-            console.error("Error fetching data:", error.message);
+            console.error("Error feching data:", error.message);
+
         }
     };
 
+    // memanggil tahun lulusan melalui API
     const fetchTahun = async () => {
         try {
-            const response = await axiosClient.get('/mahasiswa/tahun_lulusan/all');
+            // const response = await axiosClient.get('/mahasiswa/tahun_lulu')
+            const response = await axiosClient.get('/mahasiswa/tahun_lulusan/all')
+
             setTahunOptions(response.data.data || []);
+
         } catch (error) {
-            console.error("Error fetching data:", error.message);
+            console.error("Error feching data:", error.message);
+
         }
-    };
+    }
+
 
     useEffect(() => {
         fetchPsdku();
         fetchTahun();
+    }, []);
 
-        // Kalau ada ID dari params, set state
-        if (id) {
-            setDataTracerId(id);
-        }
-    }, [id]);
 
+    // fungsi mengirim data dari form ke API
     const addSkala = async () => {
         try {
             if (!dataTracerId) {
                 throw new Error("ID tracer tidak ditemukan.");
             }
 
-            // Ambil hanya prodiId dari kombinasi
-            const prodiIds = newSkala.prodi.map((id) => id.split('-')[1]);
-
-            const payload = {
-                ...newSkala,
-                prodi: prodiIds // Ganti prodi dengan array prodiId saja
-            };
 
             const response = await axiosClient.put(
                 `/tracerstudy/skalakegiatan/add/${dataTracerId}`,
-                payload
+                newSkala
             );
 
-            console.log("Data skala kegiatan berhasil diedit:", response.data);
+            console.log("Data skala kegiatan berhasil ditambahkan:", response.data);
             setShowSuccessModal(true);
-            navigate(`/super_admin/tracerstudy-editbank/${id}`); // Kirim ID ke halaman berikutnya
+            navigate('/super_admin/tracerstudy-bank-soal'); // Navigasi ke step berikutnya
         } catch (error) {
             setShowFailedModal(true);
             console.error("Error saat menambahkan skala kegiatan:", error.message);
@@ -99,6 +113,47 @@ export default function () {
         }
     };
 
+
+    // const addSkala = async () => {
+    //     try {
+    //         const response = await axiosClient.put(`/tracerstudy/skalakegiatan/add/${dataTracerId._id}`, newSkala);
+    //         if (response.data && response.data.data) {
+    //             setDataTracerId(response.data.data);
+    //         }
+    //         setNewSkala({
+    //             skala_kegiatan: '',
+    //             tahun_lulusan: '',
+    //             kampus: [],
+    //             prodi: [],
+    //         });
+    //         console.log("Data kegiatan yang berhasil ditambahkan:", response.data);
+    //         navigate('/super_admin/tracerstudy-bank-soal');
+    //     } catch (error) {
+    //         console.error("Error adding skala:", error.message);
+    //         setError("Failed to add kegiatan. Please try again.");
+    //     }
+    // };
+
+
+
+    useEffect(() => {
+        if (tahunOptions.length > 0) {
+            setNewSkala(prevState => ({
+                ...prevState,
+                tahun_lulusan: tahunOptions[0]._id // Inisialisasi dengan ID pertama
+            }));
+        }
+    }, [tahunOptions]);
+
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setNewSkala((prevState) => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    // Fungsi untuk menangani perubahan checkbox kampus
     const handleKampusChange = (e, kampusId) => {
         setNewSkala((prevState) => {
             const kampus = prevState.kampus.includes(kampusId)
@@ -108,57 +163,57 @@ export default function () {
         });
     };
 
-    // Fungsi untuk menangani perubahan checkbox prodi
-    const handleProdiChange = (e, psdkuId, prodiId) => {
-        const uniqueId = `${psdkuId}-${prodiId}`;
-        setNewSkala((prevState) => {
-            const prodi = prevState.prodi.includes(uniqueId)
-                ? prevState.prodi.filter((id) => id !== uniqueId) // Hapus jika sudah ada
-                : [...prevState.prodi, uniqueId]; // Tambahkan jika belum ada
-            return { ...prevState, prodi };
-        });
+    // Menggabungkan nama psdku dalam prodi untuk membedakan
+    const getProdiWithPsdku = (psdku) => {
+        return psdku.prodi.map((prodi) => ({
+            ...prodi,
+            psdkuId: psdku._id, // Menambahkan id psdku
+            psdkuName: psdku.psdku // Menambahkan nama psdku
+        }));
     };
 
-    const handleInputChange = (event) => {
-        const { name, value } = event.target;
+    // Mengambil semua prodi dari berbagai psdku
+    const allProdi = psdkuList.map(getProdiWithPsdku).flat();
 
-        if (name === "skala_kegiatan" && value === "Nasional") {
-            // Ambil semua ID PSDKU
-            const allKampusIds = psdkuList.map((psdku) => psdku._id);
-            // Ambil semua kombinasi ID PSDKU dan Prodi
-            const allProdiIds = psdkuList.flatMap((psdku) =>
-                psdku.prodi.map((prodi) => `${psdku._id}-${prodi._id}`)
-            );
 
-            setNewSkala((prevState) => ({
+    // Fungsi untuk menangani perubahan checkbox prodi
+    const handleProdiChange = (e, prodiId, psdkuId) => {
+        const { checked } = e.target;
+        const prodiIdentifier = `${prodiId}_${psdkuId}`; // Membuat identifier unik
+
+        if (checked) {
+            // Jika dicentang, simpan identifier dalam array
+            setNewSkala(prevState => ({
                 ...prevState,
-                skala_kegiatan: value,
-                kampus: allKampusIds, // Masukkan semua ID PSDKU
-                prodi: allProdiIds,  // Masukkan semua kombinasi ID PSDKU-Prodi
-            }));
-        } else if (name === "skala_kegiatan" && value === "PSDKU") {
-            // Reset pilihan untuk manual check
-            setNewSkala((prevState) => ({
-                ...prevState,
-                skala_kegiatan: value,
-                kampus: [],
-                prodi: [],
+                prodi: [...prevState.prodi, prodiIdentifier]
             }));
         } else {
-            // Update field lainnya
-            setNewSkala((prevState) => ({
+            // Jika diuncheck, hapus identifier
+            setNewSkala(prevState => ({
                 ...prevState,
-                [name]: value,
+                prodi: prevState.prodi.filter(item => item !== prodiIdentifier)
             }));
         }
     };
 
 
+
+
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Tracer ID yang diambil dari params:", id);
+        const tracerIdFromLocalStorage = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
+        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
+        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID yang ada di state
+
+        // Proses selanjutnya
         addSkala();
     };
+
+
+
+
+
 
     return (
         <div className="container rounded my-4 bg-white">
@@ -166,32 +221,26 @@ export default function () {
             <div className="row mb-4">
                 <div className="col">
                     <ul className="nav mt-3 mb-4 justify-content-center gap-2">
-                        <Link to={`/super_admin/tracerstudy-edit/${id}`}>
-                            <li className="nav-item">
-                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
-                                    Detail Kegiatan
-                                </span>
-                            </li>
-                        </Link>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Detail Kegiatan
+                            </span>
+                        </li>
                         <li className="nav-item mx-2">
                             <span className="badge btn-primary bg-opacity-50 px-4 py-2 rounded-pill">
                                 Skala Kegiatan
                             </span>
                         </li>
-                        <Link to={`/super_admin/tracerstudy-editbank/${id}`}>
-                            <li className="nav-item">
-                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
-                                    Bank soal
-                                </span>
-                            </li>
-                        </Link>
-                        <Link to={`/super_admin/tracerstudy-editatensi/${id}`}>
-                            <li className="nav-item">
-                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
-                                    Kriteria Atensi
-                                </span>
-                            </li>
-                        </Link>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Bank soal
+                            </span>
+                        </li>
+                        <li className="nav-item">
+                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                Kriteria Atensi
+                            </span>
+                        </li>
                         <li className="nav-item">
                             <span className="badge btn-secondary px-4 py-2 rounded-pill">
                                 Preview
@@ -296,18 +345,15 @@ export default function () {
                                         </td>
                                         <td>
                                             <div className="d-flex flex-column">
-                                                {Array.isArray(psdku.prodi) && psdku.prodi.map((prodiItem) => {
-                                                    const uniqueId = `${psdku._id}-${prodiItem._id}`; // Kombinasi unik
-                                                    return (
-                                                        <label key={uniqueId}>
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={newSkala.prodi.includes(uniqueId)} // Cek status unik
-                                                                onChange={(e) => handleProdiChange(e, psdku._id, prodiItem._id)} // Kirim kombinasi unik
-                                                            /> {prodiItem.nama}
-                                                        </label>
-                                                    );
-                                                })}
+                                                {Array.isArray(psdku.prodi) && psdku.prodi.map((prodiItem) => (
+                                                    <label key={prodiItem._id}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={newSkala.prodi.includes(`${prodiItem._id}_${psdku._id}`)} // Cek ID gabungan
+                                                            onChange={(e) => handleProdiChange(e, prodiItem._id, psdku._id)} // Pass ID prodi dan psdku
+                                                        /> {prodiItem.nama}
+                                                    </label>
+                                                ))}
                                             </div>
                                         </td>
                                     </tr>
@@ -320,6 +366,7 @@ export default function () {
                                 </tr>
                             )}
                         </tbody>
+
                     </table>
                 </div>
 
@@ -349,10 +396,7 @@ export default function () {
             <ModalSuccessDraft
                 show={showSuccessDraftModal}
                 message="Tracer to Draft Is Success !"
-                onClose={() => {
-                    setShowSuccessDraftModal(false);
-                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
-                }}
+                onClose={() => setShowSuccessDraftModal(false)}
             />
 
             {/* Modal Failed */}

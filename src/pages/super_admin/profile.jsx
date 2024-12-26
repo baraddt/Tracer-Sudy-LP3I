@@ -12,13 +12,25 @@ export default function () {
         // Ambil data user dari localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
-            const user = JSON.parse(userData); 
-            setUserName(user.nama || 'Pengguna'); 
-            setRoleName(getRoleName(user.role)); 
-            setNip(user.nip || 'N/A'); 
-            setEmail(user.email || 'N/A'); 
+            const user = JSON.parse(userData);
+            setUserName(user.nama || 'Pengguna');
+            setRoleName(getRoleName(user.role));
+            setNip(user.nip || 'N/A');
+            setEmail(user.email || 'N/A');
         }
     }, []);
+
+    const [showModal, setShowModal] = useState(false);
+
+    // Function untuk membuka modal
+    const openEditModal = () => {
+        setShowModal(true);
+    };
+
+    // Function untuk menutup modal
+    const closeEditModal = () => {
+        setShowModal(false);
+    };
 
     return (
         <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
@@ -34,7 +46,7 @@ export default function () {
                 {/* Foto di Kiri */}
                 <div className="d-flex mt-2 text-center justify-content-between">
                     <h4 className='text-dark'>Profile</h4>
-                    <button className="mt-6 btn btn-success" type="button">Edit Informasi</button>
+                    <button className="mt-6 btn btn-success" type="button" onClick={openEditModal}>Edit Informasi</button>
                 </div>
             </div>
             <div className="container mt-2">
@@ -100,7 +112,120 @@ export default function () {
                     </div>
                 </div>
             </div>
-        </div>
 
+            {showModal && (
+                <div className="modal fade show d-block" tabIndex="-1">
+                    <div className="modal-dialog modal-lg">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Edit Profil</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={closeEditModal}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                {/* Form Edit Profil */}
+                                <form>
+                                    <div className="mb-3 w-50">
+                                        <label htmlFor="fileUpload" className="form-label">Upload Foto</label>
+                                        <input
+                                            type="file"
+                                            className="form-control"
+                                            id="fileUpload"
+                                        />
+                                    </div>
+                                    <div className="d-flex justify-content-between">
+                                        <div className="mb-3 w-50 me-3">
+                                            <label htmlFor="name" className="form-label">Nama</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Nama"
+                                                id="name"
+                                            />
+                                        </div>
+
+                                        <div className="mb-3 w-50">
+                                            <label htmlFor="role" className="form-label">Role</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Role"
+                                                id="role"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="d-flex justify-content-between">
+                                        <div className="mb-3 w-50 me-3">
+                                            <label htmlFor="nip" className="form-label">NIP</label>
+                                            <input
+                                                type="number"
+                                                className="form-control"
+                                                placeholder="NIP"
+                                                id="nip"
+                                            />
+                                        </div>
+
+                                        <div className="mb-3 w-50">
+                                            <label htmlFor="email" className="form-label">Email</label>
+                                            <input
+                                                type="email"
+                                                className="form-control"
+                                                placeholder="E-mail"
+                                                id="email"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="d-flex justify-content-between">
+                                        <div className="mb-3">
+                                            <label htmlFor="jabatan" className="form-label">Jabatan</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Jabatan"
+                                                id="jabatan"
+                                            />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="pendidikan" className="form-label">Pendidikan</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Pendidikan"
+                                                id="pendidikan"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label htmlFor="about" className="form-label">About</label>
+                                        <textarea
+                                            className="form-control"
+                                            placeholder="Tentang Anda"
+                                            id="about"
+                                            rows="3"
+                                        ></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-danger"
+                                    onClick={closeEditModal}
+                                >
+                                    Batal
+                                </button>
+                                <button type="button" className="btn btn-success">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axiosClient from '../../services/axiosClient';
 import getRoleName from '../../services/roleCheck';
 import { Link } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
@@ -11,75 +10,16 @@ ChartJS.register(BarElement, ArcElement, LineElement, PointElement, CategoryScal
 
 export default function Dashboard() {
 
-  const [totalResponden, setTotalResponden] = useState([]);
-  const [kondisi, setKondisi] = useState([]);
   const [roleName, setRoleName] = useState('');
   const [userName, setUserName] = useState('');
-  const [dataHorizontal, setDataHorizontal] = useState([]);
-  const [dataVertical, setDataVertical] = useState([]);
-
-  const fetchHorizontal = async () => {
-    try {
-      const response = await axiosClient.get('/dashboard/output_horizontal');
-      setDataHorizontal(response.data.data);
-      console.log("horiontal data:", response.data.data);
-
-    } catch (error) {
-      console.error("error feching data:", error.message);
-
-    }
-  };
-
-  const fetchVertical = async () => {
-    try {
-      const response = await axiosClient.get('/dashboard/output_vertikal');
-      setDataVertical(response.data.data);
-      console.log("vertical data:", response.data.data);
-
-    } catch (error) {
-      console.error("error feching data:", error.message);
-
-    }
-  };
-
-  const fetchResponden = async () => {
-    try {
-      const response = await axiosClient.get('/dashboard/total_responden');
-      setTotalResponden(response.data.data);
-      console.log("responden from api:", response.data.data);
-
-    } catch (error) {
-      console.error("error fehcing data:", error.message);
-
-    }
-  };
-
-  const fetchKondisi = async () => {
-    try {
-      const response = await axiosClient.get('/dashboard/data_kondisi')
-      setKondisi(response.data);
-      console.log("kondisi frm API:", response.data);
-
-    } catch (err) {
-      console.error("error feching data:", err.message);
-
-    }
-  };
-
-  useEffect(() => {
-    // fetchHorizontal();
-    // fetchVertical();
-    fetchResponden();
-    fetchKondisi();
-  }, []);
 
   useEffect(() => {
     // Ambil data user dari localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
-      const user = JSON.parse(userData);
-      setUserName(user.nama || 'Pengguna');
-      setRoleName(getRoleName(user.role));
+      const user = JSON.parse(userData); // Urai JSON menjadi objek
+      setUserName(user.nama || 'Pengguna'); // Pastikan ada fallback jika nama tidak tersedia
+      setRoleName(getRoleName(user.role)); // Ambil role
     }
   }, []);
 
@@ -92,6 +32,7 @@ export default function Dashboard() {
     { name: 'S1 Bisnis Digital', label: 'Jumlah Lulusan', selaras: [0, 0, 0, 0, 0, 0], tidakSelaras: [0, 0, 0, 0, 0, 0] }
   ];
 
+  // State
   const [prodis, setProdis] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedProdi, setSelectedProdi] = useState('Pilih Program Study');
@@ -182,259 +123,174 @@ export default function Dashboard() {
     }
   }, [chartData]);
 
-  // ini api donut
-  const [donutsData, setDonutsData] = useState({
-    labels: [],
+
+  const donugsData = {
+    labels: ['MP', 'MKP', 'TO', 'AK', 'OM', 'BD'], // Label singkat untuk legenda
+    fullLabels: [
+      'Manajement Pemasaran',
+      'Manajement Keuangan dan Perbangkan',
+      'Teknik Otomotif',
+      'Akuntansi',
+      'Office Management',
+      'Bisnis Digital',
+    ], // Label penuh untuk tooltip
     datasets: [
       {
-        data: [],
-        backgroundColor: [],
-        hoverBackgroundColor: [],
+        data: [10, 15, 25, 10, 12, 15],
+        backgroundColor: [
+          '#00c49f', 
+          '#4f4fbc', 
+          '#005f7f', 
+          '#ff6361', 
+          '#c2c2c2', 
+          '#3b3b3b' 
+        ],
+        hoverBackgroundColor: [
+          '#00c49f',
+          '#4f4fbc',
+          '#005f7f',
+          '#ff6361',
+          '#c2c2c2',
+          '#3b3b3b'
+        ],
+        borderWidth: 2,
       },
     ],
-  });
+  };
 
-  const [options] = useState({
-    responsive: true,
+  const options = {
+    cutout: '70%', // Membuat lubang di tengah
     plugins: {
       legend: {
         position: 'bottom',
         labels: {
-          usePointStyle: true,
-          pointStyle: 'circle',
+          usePointStyle: true, // Membuat simbol bulat di legenda
+          pointStyle: 'circle', // Bentuk bulat
         },
       },
       tooltip: {
         callbacks: {
           label: function (tooltipItem) {
-            const dataset = tooltipItem.dataset;
-            const index = tooltipItem.dataIndex;
-            return `Tinggi: ${dataset.tinggi[index]}, Sama: ${dataset.sama[index]}, Rendah: ${dataset.rendah[index]}`;
+            // Mengambil label panjang (fullLabels)
+            const fullLabel =
+              donugsData.fullLabels[tooltipItem.dataIndex];
+            const value = tooltipItem.raw;
+            return `${fullLabel}: ${value}%`; // Menampilkan nama lengkap dan nilai
           },
         },
       },
     },
-  });
-
-
-
-  const fetchChartData = async () => {
-    try {
-      const response = await axiosClient.get('/dashboard/data_cycle');
-      const chartData = response.data.data;
-
-      const labels = chartData.map((item) => item.prodi); // Labels = nama prodi
-      const tinggi = chartData.map((item) => item.keselarasan.tinggi.jumlah);
-      const sama = chartData.map((item) => item.keselarasan.sama.jumlah);
-      const rendah = chartData.map((item) => item.keselarasan.rendah.jumlah);
-
-      setDonutsData({
-        labels,
-        datasets: [
-          {
-            data: tinggi, // Data utama (tinggi)
-            backgroundColor: ['#4CAF50', '#FF9800', '#F44336'], // Warna sesuai indeks
-            hoverBackgroundColor: ['#388E3C', '#FB8C00', '#D32F2F'],
-            tinggi, // Tambahkan data tinggi untuk tooltip
-            sama, // Tambahkan data sama untuk tooltip
-            rendah, // Tambahkan data rendah untuk tooltip
-          },
-        ],
-      });
-    } catch (error) {
-      console.error('Error fetching chart data:', error);
-    }
   };
 
-  useEffect(() => {
-    fetchChartData();
-  }, []);
+  const [data, setData] = useState([
+    {
+      tahun: "2020",
+      jenjang: "S1",
+      program: "Sarjana Terapan Bisnis Digital",
+      tinggiJumlah: 100,
+      tinggiPersen: "100%",
+      samaJumlah: 50,
+      samaPersen: "50%",
+      rendahJumlah: 30,
+      rendahPersen: "30%",
+    },
+    {
+      tahun: "2020",
+      jenjang: "D3",
+      program: "Akuntansi",
+      tinggiJumlah: 130,
+      tinggiPersen: "100%",
+      samaJumlah: 100,
+      samaPersen: "77%",
+      rendahJumlah: 70,
+      rendahPersen: "54%",
+    },
+    {
+      tahun: "2020",
+      jenjang: "D3",
+      program: "Manajemen Pemasaran",
+      tinggiJumlah: 75,
+      tinggiPersen: "85%",
+      samaJumlah: 60,
+      samaPersen: "80%",
+      rendahJumlah: 55,
+      rendahPersen: "73%",
+    },
+  ]);
 
-
-  // const [donutsData, setDonutsData] = useState(null); // State untuk data chart
-
-  // Fetch data API
-  // const donugsData = {
-  //   labels: ['MP', 'MKP', 'TO', 'AK', 'OM', 'BD'], // Label singkat untuk legenda
-  //   fullLabels: [
-  //     'Manajement Pemasaran',
-  //     'Manajement Keuangan dan Perbangkan',
-  //     'Teknik Otomotif',
-  //     'Akuntansi',
-  //     'Office Management',
-  //     'Bisnis Digital',
-  //   ], // Label penuh untuk tooltip
-  //   datasets: [
-  //     {
-  //       data: [10, 15, 25, 10, 12, 15],
-  //       backgroundColor: [
-  //         '#00c49f',
-  //         '#4f4fbc',
-  //         '#005f7f',
-  //         '#ff6361',
-  //         '#c2c2c2',
-  //         '#3b3b3b'
-  //       ],
-  //       hoverBackgroundColor: [
-  //         '#00c49f',
-  //         '#4f4fbc',
-  //         '#005f7f',
-  //         '#ff6361',
-  //         '#c2c2c2',
-  //         '#3b3b3b'
-  //       ],
-  //       borderWidth: 2,
-  //     },
-  //   ],
-  // };
-
-  // const options = {
-  //   cutout: '70%', // Membuat lubang di tengah
-  //   plugins: {
-  //     legend: {
-  //       position: 'bottom',
-  //       labels: {
-  //         usePointStyle: true, // Membuat simbol bulat di legenda
-  //         pointStyle: 'circle', // Bentuk bulat
-  //       },
-  //     },
-  //     tooltip: {
-  //       callbacks: {
-  //         label: function (tooltipItem) {
-  //           // Mengambil label panjang (fullLabels)
-  //           const fullLabel =
-  //             donugsData.fullLabels[tooltipItem.dataIndex];
-  //           const value = tooltipItem.raw;
-  //           return `${fullLabel}: ${value}%`; // Menampilkan nama lengkap dan nilai
-  //         },
-  //       },
-  //     },
-  //   },
-  // };
-
-
-  // dummy vertical
-  // const [data, setData] = useState([
-  //   {
-  //     tahun: "2020",
-  //     jenjang: "S1",
-  //     program: "Sarjana Terapan Bisnis Digital",
-  //     tinggiJumlah: 100,
-  //     tinggiPersen: "100%",
-  //     samaJumlah: 50,
-  //     samaPersen: "50%",
-  //     rendahJumlah: 30,
-  //     rendahPersen: "30%",
-  //   },
-  //   {
-  //     tahun: "2020",
-  //     jenjang: "D3",
-  //     program: "Akuntansi",
-  //     tinggiJumlah: 130,
-  //     tinggiPersen: "100%",
-  //     samaJumlah: 100,
-  //     samaPersen: "77%",
-  //     rendahJumlah: 70,
-  //     rendahPersen: "54%",
-  //   },
-  //   {
-  //     tahun: "2020",
-  //     jenjang: "D3",
-  //     program: "Manajemen Pemasaran",
-  //     tinggiJumlah: 75,
-  //     tinggiPersen: "85%",
-  //     samaJumlah: 60,
-  //     samaPersen: "80%",
-  //     rendahJumlah: 55,
-  //     rendahPersen: "73%",
-  //   },
-  // ]);
-
-  // dummy horizontal
-  // const [dataHorizontall, setDataHorizontall] = useState([
-  //   {
-  //     tahun: "2020",
-  //     jenjang: "S1",
-  //     programStudy: "Manajemen Informatika",
-  //     selarasJumlah: 76,
-  //     selarasPersentase: "100%",
-  //     tidakSelarasJumlah: 30,
-  //     tidakSelarasPersentase: "100%",
-  //   },
-  //   {
-  //     tahun: "2021",
-  //     jenjang: "D3",
-  //     programStudy: "Akuntansi",
-  //     selarasJumlah: 85,
-  //     selarasPersentase: "95%",
-  //     tidakSelarasJumlah: 15,
-  //     tidakSelarasPersentase: "5%",
-  //   },
-  //   {
-  //     tahun: "2022",
-  //     jenjang: "D3",
-  //     programStudy: "Manajemen Keuangan",
-  //     selarasJumlah: 90,
-  //     selarasPersentase: "90%",
-  //     tidakSelarasJumlah: 10,
-  //     tidakSelarasPersentase: "10%",
-  //   },
-  //   {
-  //     tahun: "2023",
-  //     jenjang: "S1",
-  //     programStudy: "Teknik Informatika",
-  //     selarasJumlah: 120,
-  //     selarasPersentase: "80%",
-  //     tidakSelarasJumlah: 30,
-  //     tidakSelarasPersentase: "20%",
-  //   },
-  //   {
-  //     tahun: "2020",
-  //     jenjang: "D3",
-  //     programStudy: "Sistem Informasi",
-  //     selarasJumlah: 100,
-  //     selarasPersentase: "100%",
-  //     tidakSelarasJumlah: 0,
-  //     tidakSelarasPersentase: "0%",
-  //   },
-  //   {
-  //     tahun: "2021",
-  //     jenjang: "S1",
-  //     programStudy: "Teknik Mesin",
-  //     selarasJumlah: 70,
-  //     selarasPersentase: "75%",
-  //     tidakSelarasJumlah: 25,
-  //     tidakSelarasPersentase: "25%",
-  //   },
-  // ]);
+  const [dataHorizontal, setDataHorizontal] = useState([
+    {
+      tahun: "2020",
+      jenjang: "S1",
+      programStudy: "Manajemen Informatika",
+      selarasJumlah: 76,
+      selarasPersentase: "100%",
+      tidakSelarasJumlah: 30,
+      tidakSelarasPersentase: "100%",
+    },
+    {
+      tahun: "2021",
+      jenjang: "D3",
+      programStudy: "Akuntansi",
+      selarasJumlah: 85,
+      selarasPersentase: "95%",
+      tidakSelarasJumlah: 15,
+      tidakSelarasPersentase: "5%",
+    },
+    {
+      tahun: "2022",
+      jenjang: "D3",
+      programStudy: "Manajemen Keuangan",
+      selarasJumlah: 90,
+      selarasPersentase: "90%",
+      tidakSelarasJumlah: 10,
+      tidakSelarasPersentase: "10%",
+    },
+    {
+      tahun: "2023",
+      jenjang: "S1",
+      programStudy: "Teknik Informatika",
+      selarasJumlah: 120,
+      selarasPersentase: "80%",
+      tidakSelarasJumlah: 30,
+      tidakSelarasPersentase: "20%",
+    },
+    {
+      tahun: "2020",
+      jenjang: "D3",
+      programStudy: "Sistem Informasi",
+      selarasJumlah: 100,
+      selarasPersentase: "100%",
+      tidakSelarasJumlah: 0,
+      tidakSelarasPersentase: "0%",
+    },
+    {
+      tahun: "2021",
+      jenjang: "S1",
+      programStudy: "Teknik Mesin",
+      selarasJumlah: 70,
+      selarasPersentase: "75%",
+      tidakSelarasJumlah: 25,
+      tidakSelarasPersentase: "25%",
+    },
+  ]);
 
   return (
     <div className="container mt-4">
       {/* Header Section */}
       <div className="row mb-4">
-        <div className='d-flex flex-wrap gap-md-4 gap-sm-2 gap-2 justify-content-between p-sm-2 p-md-2 p-4'>
+        {/* Wrapper for all cards with gap */}
+        <div className="d-flex flex-wrap gap-md-4 gap-sm-2 gap-2 justify-content-between p-sm-2 p-md-2 p-4">
+          {/* Card Welcome Super Admin */}
           <div className="card col-md-12 col-lg-3 col-sm-12 col-12 d-flex align-items-center shadow-sm p-3">
             <div className="d-flex justify-content-between align-items-center w-100">
               <div className="text-start">
                 <span className='text-dark'>Welcome,</span>
                 <h5 className='text-dark'>{roleName}</h5>
               </div>
-              <img src="/vektor.png" alt="Profile" width="80" className="rounded" />
+              <img src="/vektor.png" alt="Profile" width="80" className="rounded"/>
             </div>
           </div>
-        </div>
-        {/* Wrapper for all cards with gap */}
-        <div className="d-flex flex-wrap gap-md-4 gap-sm-2 gap-2 justify-content-between p-sm-2 p-md-2 p-4">
-          {/* Card Welcome Super Admin */}
-          {/* <div className="card col-md-12 col-lg-3 col-sm-12 col-12 d-flex align-items-center shadow-sm p-3">
-            <div className="d-flex justify-content-between align-items-center w-100">
-              <div className="text-start">
-                <span className='text-dark'>Welcome,</span>
-                <h5 className='text-dark'>{roleName}</h5>
-              </div>
-              <img src="/vektor.png" alt="Profile" width="80" className="rounded" />
-            </div>
-          </div> */}
 
           {/* Card Total Responden */}
           <div className="card col-md-3 col-lg-2 col-sm-12 col-12 d-flex align-items-center justify-content-center p-3 shadow-sm">
@@ -442,64 +298,61 @@ export default function Dashboard() {
               <i className="bi bi-person display-6 me-3" style={{ fontSize: '2rem' }}></i>
               <div className="text-start">
                 <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Total Responden</h6>
-                <p className="mb-0 text-dark">{totalResponden}</p>
+                <p className="mb-0 text-dark">100</p>
                 <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Responden</h6>
               </div>
             </div>
           </div>
 
           {/* Card Bekerja */}
-          {kondisi.length > 0 &&
-            kondisi.map((item) => (
-              <div key={item._id} className="card col-md-2 col-sm-12 col-12 d-flex align-items-center justify-content-center p-3 shadow-sm">
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-briefcase display-6 me-3"></i>
-                  <div className="text-start">
-                    <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Total Responden</h6>
-                    <p className="mb-0 text-dark">{item.total}</p> {/* Menampilkan total responden */}
-                    <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>{item.kondisi}</h6> {/* Menampilkan kondisi */}
-                  </div>
-                </div>
+          <div className="card col-md-3 col-lg-2 col-sm-12 col-12 d-flex align-items-center justify-content-center p-3 shadow-sm">
+            <div className="d-flex align-items-center">
+              <i className="bi bi-briefcase display-6 me-3"></i>
+              <div className="text-start">
+                <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Total Responden</h6>
+                <p className="mb-0 text-dark">45</p>
+                <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Bekerja</h6>
               </div>
-            ))
-          }
+            </div>
+          </div>
 
           {/* Card Wiraswasta */}
-          {/* <div className="card col-md-3 col-lg-2 col-sm-12 col-12 d-flex align-items-center justify-content-center p-3 shadow-sm">
+          <div className="card col-md-3 col-lg-2 col-sm-12 col-12 d-flex align-items-center justify-content-center p-3 shadow-sm">
             <div className="d-flex align-items-center">
               <i className="bi bi-person-workspace display-6 me-3" style={{ fontSize: '2rem' }}></i>
               <div className="text-start">
                 <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Total Responden</h6>
-                <p className="mb-0 text-dark">{kondisi}</p>
+                <p className="mb-0 text-dark">45</p>
                 <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Wiraswasta</h6>
               </div>
             </div>
-          </div> */}
+          </div>
 
           {/* Card Mencari Kerja */}
-          {/* <div className="card col-md-3 col-lg-2 col-sm-12 col-12 d-flex align-items-center justify-content-center p-3 shadow-sm">
+          <div className="card col-md-3 col-lg-2 col-sm-12 col-12 d-flex align-items-center justify-content-center p-3 shadow-sm">
             <div className="d-flex align-items-center">
               <i className="bi bi-person-plus display-6 me-3" style={{ fontSize: '2rem' }}></i>
               <div className="text-start">
                 <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Total Responden</h6>
-                <p className="mb-0 text-dark">{kondisi}</p>
+                <p className="mb-0 text-dark">10</p>
                 <h6 className="mb-0 text-dark" style={{ fontSize: '14px' }}>Mencari Kerja</h6>
               </div>
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
       <div className="d-flex justify-content-center">
         {/* Info di Kiri */}
         <div
-          className="d-flex bg-white p-2 rounded me-3 flex-column mb-3 mb-md-0"
-          style={{ width: '370px', height: '400px' }}
-        >
-          <h6 className="text-dark">Program Study</h6>
-          <div className="ms-4 p-2" style={{ height: '100%', maxWidth: '320px' }}>
-            {donutsData.labels.length > 0 && (
-              <Doughnut data={donutsData} options={options} height={350} width={350} />
-            )}
+          className="d-md-flex bg-white p-2 rounded me-3 flex-column d-none" style={{ width: '400px', height: '400px' }}>
+          <h6 className='text-dark'>Program Study</h6>
+          <div className='ms-4 p-2' style={{ height: '100%', maxWidth: '320px' }}> {/* Wadah untuk diagram */}
+            <Doughnut
+              data={donugsData}
+              options={options}
+              height={350}
+              width={350}
+            />
           </div>
         </div>
 
@@ -556,25 +409,22 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {dataHorizontal.length > 0 ? (
-              dataHorizontal.map((item, index) => (
-                <tr key={index}>
-                  <td className="text-dark">{item.tahun}</td>
-                  <td className="text-dark">{item.jenjang}</td>
-                  <td className="text-dark text-truncate">{item.programStudy}</td>
-                  <td className="text-center text-dark">{item.selarasJumlah}</td>
-                  <td className="text-center text-dark">{item.selarasPersentase}</td>
-                  <td className="text-center text-dark">{item.tidakSelarasJumlah}</td>
-                  <td className="text-center text-dark">{item.tidakSelarasPersentase}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="text-center text-dark">
-                  Tidak ada data Table Keselarasan Horizontal.
-                </td>
+          {dataHorizontal.map((item, index) => (
+              <tr key={index}>
+                <td className="text-dark">{item.tahun}</td>
+                <td className="text-dark">{item.jenjang}</td>
+                <td className="text-dark text-truncate">{item.programStudy}</td>
+                <td className="text-center text-dark">{item.selarasJumlah}</td>
+                <td className="text-center text-dark">{item.selarasPersentase}</td>
+                <td className="text-center text-dark">{item.tidakSelarasJumlah}</td>
+                <td className="text-center text-dark">{item.tidakSelarasPersentase}</td>
               </tr>
-            )}
+            ))}
+            {/* <tr>
+              <td colSpan="8" className="text-center">
+                Tidak ada data Table Keselarasan Horizontal.
+              </td>
+            </tr> */}
           </tbody>
         </table>
       </div>
@@ -608,27 +458,24 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {dataVertical.length > 0 ? (
-              dataVertical.map((item, index) => (
-                <tr key={index}>
-                  <td className="text-dark">{item.tahun}</td>
-                  <td className="text-dark">{item.jenjang}</td>
-                  <td className="text-dark text-truncate">{item.program}</td>
-                  <td className="text-center text-dark">{item.tinggiJumlah}</td>
-                  <td className="text-center text-dark">{item.tinggiPersen}</td>
-                  <td className="text-center text-dark">{item.samaJumlah}</td>
-                  <td className="text-center text-dark">{item.samaPersen}</td>
-                  <td className="text-center text-dark">{item.rendahJumlah}</td>
-                  <td className="text-center text-dark">{item.rendahPersen}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="9" className="text-center text-dark">
-                  Tidak ada data Table Keselarasan Vertical.
-                </td>
+          {data.map((item, index) => (
+              <tr key={index}>
+                <td className="text-dark">{item.tahun}</td>
+                <td className="text-dark">{item.jenjang}</td>
+                <td className="text-dark text-truncate">{item.program}</td>
+                <td className="text-center text-dark">{item.tinggiJumlah}</td>
+                <td className="text-center text-dark">{item.tinggiPersen}</td>
+                <td className="text-center text-dark">{item.samaJumlah}</td>
+                <td className="text-center text-dark">{item.samaPersen}</td>
+                <td className="text-center text-dark">{item.rendahJumlah}</td>
+                <td className="text-center text-dark">{item.rendahPersen}</td>
               </tr>
-            )}
+            ))}
+            {/* <tr>
+              <td colSpan="10" className="text-center">
+                Tidak ada data Table Keselarasan Vertical.
+              </td>
+            </tr> */}
           </tbody>
         </table>
       </div>

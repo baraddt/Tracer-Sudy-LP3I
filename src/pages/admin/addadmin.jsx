@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
 import _ from 'lodash';
 import ModalSuccess from '../../components/compModals/modalsuccess';
 import ModalFailed from '../../components/compModals/modalFailed';
@@ -18,6 +19,15 @@ export default function User() {
         email: '',
         password: '',
         roleId: '',
+        tentang: '',
+        alamat: {
+            detail: '',
+            kelurahan: '',
+            kecamatan: '',
+            kota: '',
+            provinsi: '',
+            kode_pos: '',
+        }
     });
 
     const [showModal, setShowModal] = useState(false);
@@ -42,10 +52,60 @@ export default function User() {
     const [totalUsers, setTotalUsers] = useState(0);
     const [pageSize] = useState(10);
 
+    const [provinces, setProvinces] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [villages, setVillages] = useState([]);
+
+    // Fetch Provinsi
+    const fetchProvinces = async () => {
+        try {
+            const response = await axios.get('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            // console.log("response:", response.data); // Log response data
+            setProvinces(response.data); // Set state dengan data yang diterima
+        } catch (error) {
+            console.error('Error fetching provinces:', error.message);
+        }
+    };
+
+    // Fetch Kota/Kabupaten berdasarkan Provinsi
+    const fetchCities = async (provinceId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`);
+            setCities(response.data); // Set state dengan data kota
+        } catch (error) {
+            console.error('Error fetching cities:', error.message);
+        }
+    };
+
+    // Fetch Kecamatan berdasarkan Kota/Kabupaten
+    const fetchDistricts = async (cityId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${cityId}.json`);
+            setDistricts(response.data); // Set state dengan data kecamatan
+        } catch (error) {
+            console.error('Error fetching districts:', error.message);
+        }
+    };
+
+    // Fetch Kelurahan/Desa berdasarkan Kecamatan
+    const fetchVillages = async (districtId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${districtId}.json`);
+            setVillages(response.data);
+        } catch (error) {
+            console.error('Error fetching villages:', error.message);
+        }
+    };
+
+    useEffect(() => {
+        fetchProvinces();
+    }, []);
+
 
     const fetchSearchResults = async (query) => {
         try {
-            const response = await axios.get(`https://api.example.com/mahasiswa?q=${query}`);
+            const response = await axiosClient.get(`https://api.example.com/mahasiswa?q=${query}`);
             setSearchResults(response.data.results);
         } catch (error) {
             console.error("Error saat mencari data:", error);
@@ -70,20 +130,29 @@ export default function User() {
 
     const fetchUsers = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.223:5000/users/all');
-            const response = await axios.get('http://192.168.18.223:5000/users/all');
 
-            // const data = response.data.data;
-            // const totalUsers = response.data.meta.totalUsers;
-            // const totalPages = response.data.meta.totalPages;
+            const storedData = localStorage.getItem("usersData");
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
+                setUsersList(parsedData.data);
+                // setTotalPages(parsedData.meta.totalPages);
+                // setTotalUsers(parsedData.meta.totalUsers);
+                // setCurrentPage(parsedData.meta.currentPage);
+                console.log("data loaded from localStorage:", parsedData);
+                return;
+
+            }
+            // const response = await axiosClient.get('/users/all');
+            const response = await axiosClient.get('/users/all');
 
             setUsersList(response.data.data);
-            console.log(response.data.data);
-            
             setCurrentAvatar(response.data.avatar);
-            setTotalPages(response.data.meta.totalPages);
-            setTotalUsers(response.data.meta.totalMahasiswa);
-            setCurrentPage(response.data.meta.currentPage);
+            // setTotalPages(response.data.meta.totalPages);
+            // setTotalUsers(response.data.meta.totalUsers);
+            // setCurrentPage(response.data.meta.currentPage);
+            console.log("Data fetched from API:", response.data);
+            localStorage.setItem("usersData", JSON.stringify(response.data));
+
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
@@ -100,8 +169,8 @@ export default function User() {
     // Fungsi API untuk mendapatkan data Role ID
     const fetchRoleId = async () => {
         try {
-            // const response = await axios.get('http://192.168.18.223:5000/users/role/all');
-            const response = await axios.get('http://192.168.18.223:5000/users/role/all');
+            // const response = await axiosClient.get('/users/role/all');
+            const response = await axiosClient.get('/role/role_admin');
             setRoleIdOptions(response.data.data); // Update state dengan data Role ID
         } catch (error) {
             console.error("Error fetching RoleId:", error.message);
@@ -129,22 +198,22 @@ export default function User() {
         }
     };
 
-    // useEffect untuk memanggil data API saat komponen pertama kali dirender
+    
     useEffect(() => {
-        fetchUsers();  // Memanggil data pengguna pertama kali
-        fetchRoleId(); // Memanggil data Role ID
-    }, []); // [] memastikan hanya sekali saat komponen pertama kali dirender
+        fetchUsers();  
+        fetchRoleId(); 
+    }, []); // arti [] tuh hanya sekali dirender nya boy ga loop
 
     // Fungsi menambah data pengguna baru menggunakan API
     const addUser = async () => {
         try {
-            // const response = await axios.post('http://192.168.18.223:5000/users/adduser', newUser);
-            const response = await axios.post('http://192.168.18.223:5000/users/adduser', newUser);
+            // const response = await axiosClient.post('/users/adduser', newUser);
+            const response = await axiosClient.post('/users/adduser', newUser);
 
             setUsersList((prevList) => [...prevList, response.data]);
             fetchUsers();
             setNewUser({
-                nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: ''
+                nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: '', tentang: '', alamat: { detail: '', kelurahan: '', kecamatan: '', kota: '', provinsi: '', kode_pos: '' }
             });
 
             setShowModal(false);
@@ -161,9 +230,9 @@ export default function User() {
     const handleEditSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.put(
-                // `http://192.168.18.223:5000/users/edituser/${editUsers._id}`, editUsers
-                `http://192.168.18.223:5000/users/edituser/${editUsers._id}`, editUsers
+            const response = await axiosClient.put(
+                // `/users/edituser/${editUsers._id}`, editUsers
+                `/users/edituser/${editUsers._id}`, editUsers
             );
             console.log('Users updated successfully:', response.data);
             setShowModalEdit(false);
@@ -179,7 +248,7 @@ export default function User() {
     // Fungsi untuk menghapus data pengguna
     const deleteUser = async (userId) => {
         try {
-            const response = await axios.delete(`http://192.168.18.223:5000/users/deleteuser/${userId}`);
+            const response = await axiosClient.delete(`/users/deleteuser/${userId}`);
             // Hapus user dari daftar setelah berhasil dihapus
             setUsersList((prevList) => prevList.filter((user) => user._id !== userId));
             console.log('User deleted successfully:', response.data);
@@ -195,8 +264,8 @@ export default function User() {
     // fungsi melihat detail pengguna
     const getUserById = async (id) => {
         try {
-            // const response = await axios.get(`http://192.168.18.223:5000/users/${userId}`);
-            const response = await axios.get(`http://192.168.18.223:5000/users/${id}`);
+            // const response = await axiosClient.get(`/users/${userId}`);
+            const response = await axiosClient.get(`/users/${id}`);
             setPreviewData(response.data.data);
             setShowModalPreview(true);
 
@@ -220,11 +289,40 @@ export default function User() {
     // Fungsi untuk menangani perubahan pada form input
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setNewUser((prevUser) => ({
-            ...prevUser,
-            [name]: value,
-        }));
+
+        setNewUser((prevUser) => {
+            if (["provinsi", "kota", "kecamatan", "kelurahan", "detail", "kode_pos"].includes(name)) {
+                return {
+                    ...prevUser,
+                    alamat: {
+                        ...prevUser.alamat,
+                        [name]: value,
+                    },
+                };
+            } else {
+                return {
+                    ...prevUser,
+                    [name]: value,
+                };
+            }
+        });
+
+        // Handle fetching data berdasarkan input
+        if (name === "provinsi") {
+            fetchCities(value); // Fetch kota berdasarkan ID provinsi
+            setCities([]); // Reset kota
+            setDistricts([]); // Reset kecamatan
+            setVillages([]); // Reset kelurahan
+        } else if (name === "kota") {
+            fetchDistricts(value); // Fetch kecamatan berdasarkan ID kota
+            setDistricts([]); // Reset kecamatan
+            setVillages([]); // Reset kelurahan
+        } else if (name === "kecamatan") {
+            fetchVillages(value); // Fetch kelurahan berdasarkan ID kecamatan
+            setVillages([]); // Reset kelurahan
+        }
     };
+
 
     // Fungsi untuk menangani pengiriman form
     const handleSubmit = async (e) => {
@@ -319,16 +417,16 @@ export default function User() {
             {/* Tabel data pengguna */}
             <div className="table-responsive-sm table-responsive-md rounded mt-4 bg-white p-3">
                 <table className="table">
-                    <thead className='table-secondary'>
+                    <thead className='table'>
                         <tr>
-                            <th className='fw-semibold text-dark text-center' scope="col">#ID</th>
-                            <th className='fw-semibold text-dark' scope="col">Avatar</th>
-                            <th className='fw-semibold text-dark' scope="col">Nama</th>
-                            <th className='fw-semibold text-dark' scope="col">Jabatan</th>
-                            <th className='fw-semibold text-dark' scope="col">Pendidikan</th>
-                            <th className='fw-semibold text-dark' scope="col">Email</th>
-                            <th className='fw-semibold text-dark text-center' scope="col">Status</th>
-                            <th className='fw-semibold text-dark text-center' scope="col">Aksi</th>
+                            <th className='cstm-bg fw-semibold text-dark text-center' scope="col">#ID</th>
+                            <th className='cstm-bg fw-semibold text-dark' scope="col">Avatar</th>
+                            <th className='cstm-bg fw-semibold text-dark' scope="col">Nama</th>
+                            <th className='cstm-bg fw-semibold text-dark' scope="col">Jabatan</th>
+                            <th className='cstm-bg fw-semibold text-dark' scope="col">Pendidikan</th>
+                            <th className='cstm-bg fw-semibold text-dark' scope="col">Email</th>
+                            <th className='cstm-bg fw-semibold text-dark text-center' scope="col">Status</th>
+                            <th className='cstm-bg fw-semibold text-dark text-center' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -450,7 +548,7 @@ export default function User() {
             </div>
 
             {/* Modal untuk menambah pengguna */}
-            <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ position: 'fixed', top: '60%', left: '45%', transform: 'translate(-50%, -50%)', display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden={!showModal}>
+            <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ position: 'fixed', top: '50%', left: '45%', transform: 'translate(-50%, -50%)', display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden={!showModal}>
                 <div className="modal-dialog">
                     <div className="modal-content" style={{ width: '600px' }}>
                         <div className="modal-header">
@@ -524,6 +622,125 @@ export default function User() {
                                         />
                                     </div>
                                 </div>
+                                <div className="d-flex justify-content-between">
+                                    <div className="w-50 me-4">
+                                        <label htmlFor="provinsi" className="form-label">Provinsi</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="provinsi"
+                                                value={newUser.alamat.provinsi}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Provinsi</option>
+                                                {provinces.map((province) => (
+                                                    <option key={province.id} value={province.id}>
+                                                        {province.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="w-50">
+                                        <label htmlFor="kota" className="form-label">Kota/Kabupaten</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="kota"
+                                                value={newUser.alamat.kota}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Kota/Kabupaten</option>
+                                                {cities.map((city) => (
+                                                    <option key={city.id} value={city.id}>
+                                                        {city.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="d-flex justify-content-between">
+                                    <div className="w-50 me-4">
+                                        <label htmlFor="kecamatan" className="form-label">Kecamatan</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="kecamatan"
+                                                value={newUser.alamat.kecamatan}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Kecamatan</option>
+                                                {districts.map((district) => (
+                                                    <option key={district.id} value={district.id}>
+                                                        {district.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="w-50">
+                                        <label htmlFor="kelurahan" className="form-label">Kelurahan</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="kelurahan"
+                                                value={newUser.alamat.kelurahan}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Kelurahan</option>
+                                                {villages.map((village) => (
+                                                    <option key={village.id} value={village.id}>
+                                                        {village.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="d-flex justify-content-between">
+                                    <div className="w-100 me-4">
+                                        <label htmlFor="tanggal_sk" className="form-label">Detail</label>
+                                        <input
+                                            type="text"
+                                            name="detail"
+                                            value={newUser.alamat.detail}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="e.g Jl, Sukarno Hatta No 12"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="w-50">
+                                        <label htmlFor="tanggal_sk" className="form-label">Kode POS</label>
+                                        <input
+                                            type="text"
+                                            name="kode_pos"
+                                            value={newUser.alamat.kode_pos}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="e.g 403924"
+                                            required
+                                        />
+                                    </div>
+                                </div>
                                 <div className='d-flex justify-content-between mb-3'>
                                     <div className='w-50 me-2'>
                                         <label htmlFor="email" className='mb-2'>Email :</label>
@@ -576,6 +793,18 @@ export default function User() {
                                         ))}
                                     </select>
                                 </div>
+                                <div className='w-50 mb-4'>
+                                    <label htmlFor="tentang" className='mb-2'>About :</label>
+                                    <input
+                                        type="text"
+                                        name="tentang"
+                                        value={newUser.tentang}
+                                        onChange={handleInputChange}
+                                        className="form-control"
+                                        placeholder="Tentang"
+                                        required
+                                    />
+                                </div>
                                 <button type="submit" className="btn btn-success" onClick={() => handleSaveData(usersList)}>Tambah</button>
                             </form>
                         </div>
@@ -601,15 +830,22 @@ export default function User() {
                             <div className="modal-body">
                                 <form onSubmit={handleEditSubmit}>
                                     <div className="form-group mt-3 mb-2">
-                                        <label>Avatar</label>
-                                        <div>
-                                            {currentAvatar && !selectedFile && (
-                                                <img
-                                                    src={currentAvatar}
-                                                    alt="Current Avatar"
-                                                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                                                />
+                                        <div className='form-group'>
+                                            {editUsers.avatar && (
+                                                <div className="preview-container mb-2" style={{ marginTop: "10px" }}>
+                                                    <img
+                                                        src={editUsers.avatar}
+                                                        alt="Avatar Preview"
+                                                        style={{
+                                                            maxWidth: "150px",
+                                                            maxHeight: "150px",
+                                                            borderRadius: "8px",
+                                                            border: "1px solid #ddd",
+                                                        }}
+                                                    />
+                                                </div>
                                             )}
+                                            <label>Avatar</label>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -662,7 +898,7 @@ export default function User() {
                                             />
                                         </div>
                                     </div>
-                                    <div className='d-flex gap-2'>
+                                    <div className='d-flex gap-2 mb-3'>
                                         <div className="mb-2">
                                             <label htmlFor="email">Email</label>
                                             <input
@@ -694,7 +930,7 @@ export default function User() {
                                         </div>
                                     </div>
 
-                                    <div className="mb-2">
+                                    {/* <div className="mb-2">
                                         <label>Status</label>
                                         <select
                                             name="status"
@@ -707,7 +943,7 @@ export default function User() {
                                             <option value="Aktif">Aktif</option>
                                             <option value="Non Aktif">Non-Aktif</option>
                                         </select>
-                                    </div>
+                                    </div> */}
 
                                     <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(usersList)}>
                                         Update

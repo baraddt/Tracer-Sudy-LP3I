@@ -2,12 +2,18 @@ import { useEffect, useState } from 'react';
 import axiosClient from '../../services/axiosClient';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import ModalSuccess from '../../components/compModals/modalsuccess';
+import ModalFailed from '../../components/compModals/modalFailed';
+import ModalSuccessDraft from '../../components/compModals/draftModals';
 
 const TracerStudyDetail = () => {
     const navigate = useNavigate();
-    const [tracerList, setTracerList] = useState(null);  // Menyimpan data tracer
-    const [dataTracerId, setDataTracerId] = useState(null);  // Menyimpan ID tracer yang diambil dari localStorage
-    const [error, setError] = useState(null);  // Menyimpan error jika ada
+    const [tracerList, setTracerList] = useState(null);
+    const [dataTracerId, setDataTracerId] = useState(null);
+    const [error, setError] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showSuccessDraftModal, setShowSuccessDraftModal] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
 
     // Fungsi untuk mengambil data utama dari API (optional jika ingin mengambil data tracer lain)
     const fetchData = async () => {
@@ -66,12 +72,22 @@ const TracerStudyDetail = () => {
                     status: "Berlangsung",
                 }));
 
+                const response = await axiosClient.get('/tracerstudy/all');
+                const updatedTracerData = response.data;
+
+                // Update localStorage
+                localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+                console.log("Tracer data updated in localStorage:", updatedTracerData);
+
                 // Navigasi ke halaman Tracer Study
-                navigate('/super_admin/tracerstudy');
+                setShowSuccessModal(true);
+                // navigate('/super_admin/tracerstudy');
             } else {
+                setShowFailedModal(true);
                 console.error("Gagal mengubah status. Respons:", response);
             }
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Terjadi kesalahan saat mengubah status:", error.message);
         }
     };
@@ -99,12 +115,32 @@ const TracerStudyDetail = () => {
                 }));
 
                 // Navigasi ke halaman Tracer Study
-                navigate('/super_admin/tracerstudy');
+                setShowSuccessModal(true);
+                // navigate('/super_admin/tracerstudy');
             } else {
+                setShowFailedModal(true);
                 console.error("Gagal mengubah status. Respons:", response);
             }
         } catch (error) {
+            setShowFailedModal(true);
             console.error("Terjadi kesalahan saat mengubah status:", error.message);
+        }
+    };
+
+    const handleNavigateAndUpdate = async () => {
+        try {
+            // Fetch data terbaru
+            const response = await axiosClient.get('/tracerstudy/all');
+            const updatedTracerData = response.data;
+
+            // Update localStorage
+            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+            console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+            // Redirect ke halaman /super_admin/tracerstudy
+            navigate('/super_admin/tracerstudy');
+        } catch (error) {
+            console.error("Error updating tracer data:", error.message);
         }
     };
 
@@ -123,7 +159,7 @@ const TracerStudyDetail = () => {
                             {tracerList.id_detail.nama_kegiatan}
                         </p>
                         <p className="text-secondary" style={{ fontSize: '15px' }}>
-                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerList.createdAt).toLocaleString()}
+                            Dibuat oleh | {tracerList.id_pembuat.nama} | {new Date(tracerList.createdAt).toLocaleString()}
                         </p>
                     </div>
 
@@ -228,7 +264,7 @@ const TracerStudyDetail = () => {
 
                             >
                                 {tracerList?.status === "Dibatalkan" ? "Sudah Dibatalkan" : "Batalkan"}
-                                </button>
+                            </button>
 
                             {/* Tombol Publish */}
                             <button
@@ -244,6 +280,33 @@ const TracerStudyDetail = () => {
             ) : (
                 <p>Loading...</p>
             )}
+
+            {/* Modal Success */}
+            <ModalSuccess
+                show={showSuccessModal}
+                message="Action Success !"
+                onClose={() => {
+                    setShowSuccessModal(false);
+                    handleNavigateAndUpdate();
+                }}
+            />
+
+            {/* Modal Draft */}
+            <ModalSuccessDraft
+                show={showSuccessDraftModal}
+                message="Tracer to Draft Is Success !"
+                onClose={() => {
+                    setShowSuccessDraftModal(false);
+                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
+                }}
+            />
+
+            {/* Modal Failed */}
+            <ModalFailed
+                show={showFailedModal}
+                message="Action Failed ! Try Again."
+                onClose={() => setShowFailedModal(false)}
+            />
         </div>
     );
 };

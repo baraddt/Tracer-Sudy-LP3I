@@ -1,6 +1,27 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import axiosClient from '../../services/axiosClient';
+import { useEffect } from 'react';
 
 export default function () {
+    const [trackRecord, setTrackRecord] = useState(null);
+
+    const fetchRecord = async () => {
+        try {
+            const response = await axiosClient.get('');
+            setTrackRecord(response.data)
+            console.log("track record:", response.data);
+
+        } catch (error) {
+            console.error("error feching track:", error.message);
+
+        }
+    };
+
+    useEffect(() => {
+        fetchRecord();
+    }, []);
+
     const questions = [
         {
             question: "Apakah materi kampus relevan dengan kebutuhan industri?",

@@ -76,6 +76,8 @@ export default function () {
                 throw new Error("ID tracer tidak ditemukan.");
             }
 
+            console.log("Data yang akan dikirim ke API:", newAtensi);
+
             const response = await axiosClient.post(
                 `/tracerstudy/atensi/apply/${dataTracerId}`,
                 newAtensi
@@ -85,7 +87,7 @@ export default function () {
             console.log("Atensi yang berhasil ditambahkan:", response.data);
         } catch (error) {
             setShowFailedModal(true);
-            console.error("Error adding atensi:", error.message);
+            console.error("Error edit atensi:", error.message);
         }
     };
 
@@ -100,9 +102,6 @@ export default function () {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const tracerIdFromLocalStorage = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
-        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
-        console.log("ID yang akan diedit:", dataTracerId);
 
         // Masukkan semua ID atensi_horizontal dan atensi_vertikal ke state newAtensi
         setNewAtensi({
@@ -110,9 +109,34 @@ export default function () {
             atensi_vertikal: dataAtensi.map((item) => item._id), // Mengambil ID dari data vertikal
         });
 
-        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID di console untuk memeriksa
-        // Panggil fungsi AddAtensi untuk mengirim data
-        AddAtensi();
+        // Debugging log untuk memastikan data sudah terisi
+        console.log("Data yang akan dikirim:", {
+            atensi_horizontal: dataHorizontal.map((item) => item._id),
+            atensi_vertikal: dataAtensi.map((item) => item._id),
+        });
+    };
+
+    useEffect(() => {
+        if (newAtensi.atensi_horizontal.length > 0 || newAtensi.atensi_vertikal.length > 0) {
+            AddAtensi();
+        }
+    }, [newAtensi]);
+
+    const handleNavigateAndUpdate = async () => {
+        try {
+            // Fetch data terbaru
+            const response = await axiosClient.get('/tracerstudy/all');
+            const updatedTracerData = response.data;
+
+            // Update localStorage
+            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+            console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+            // Redirect ke halaman /super_admin/tracerstudy
+            navigate('/super_admin/tracerstudy');
+        } catch (error) {
+            console.error("Error updating tracer data:", error.message);
+        }
     };
 
 
@@ -367,7 +391,10 @@ export default function () {
             <ModalSuccessDraft
                 show={showSuccessDraftModal}
                 message="Tracer to Draft Is Success !"
-                onClose={() => setShowSuccessDraftModal(false)}
+                onClose={() => {
+                    setShowSuccessDraftModal(false);
+                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
+                }}
             />
 
             {/* Modal Failed */}

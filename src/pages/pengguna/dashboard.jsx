@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
 import axiosClient from '../../services/axiosClient';
 
 export default function () {
@@ -10,7 +10,7 @@ export default function () {
     // Mengambil data event dari API
     const fetchEvent = async () => {
         try {
-            const response = await axiosClient.get('/mahasiswa/tracer_mahasiswa/all')
+            const response = await axiosClient.get('/mahasiswa/tracer_mahasiswa')
             setEvents(response.data.data);
             console.log(response.data.data);
 
@@ -49,21 +49,16 @@ export default function () {
     });
     const fetchPekerjaan = async () => {
         try {
-            const response = await axios.get('http://10.12.1.41:5000/pekerjaan/all');
-
-            setJenisOptions(response.data.data);
+            const response = await axiosClient.get('/pekerjaan/all');
             setPosisiOptions(response.data.data);
-            console.log(response.data.data);
-
         } catch (err) {
             console.error("Error feching data:", err.message);
-
         }
     };
 
     const fetchBidang = async () => {
         try {
-            const response = await axios.get('http://10.12.1.41:5000/pekerjaan/bidang');
+            const response = await axiosClient.get('/pekerjaan/bidang');
             setBidangOptions(response.data.data)
             console.log(response.data);
 
@@ -75,7 +70,7 @@ export default function () {
 
     const fetchKondisi = async () => {
         try {
-            const response = await axios.get('http://10.12.1.41:5000/mahasiswa/get/kondisi');
+            const response = await axiosClient.get('/mahasiswa/get/kondisi');
             setKondisiOptions(response.data.data);
             console.log(response.data);
 
@@ -112,7 +107,8 @@ export default function () {
     useEffect(() => {
         const fetchJenisPekerjaan = async () => {
             try {
-                const response = await axios.get('http://10.12.1.41:5000/pekerjaan/jenis');
+                const response = await axiosClient.get('/pekerjaan/jenis');
+                console.log("Data Jenis:", response.data); // Cek data yang diterima
                 if (response.status === 200) {
                     setJenisOptions(response.data.data); // Menyimpan jenis pekerjaan dalam state
                 } else {
@@ -125,6 +121,7 @@ export default function () {
 
         fetchJenisPekerjaan();
     }, []);
+
 
     const handleClickOutside = (event) => {
         const modalElement = document.querySelector('.modal-dialog');
@@ -172,7 +169,7 @@ export default function () {
             // Simpan ke localStorage jika diperlukan
             localStorage.setItem("formData", JSON.stringify(formData));
 
-            const accessToken = localStorage.getItem('accessToken');
+            const accessToken = sessionStorage.getItem('accessToken');
             console.log('Token yang ditemukan:', accessToken);
             if (!accessToken) {
                 console.error('Token tidak ditemukan');
@@ -181,20 +178,22 @@ export default function () {
 
             console.log("Data yang akan dikirim:", formData);
 
-
-            const response = await axios.post(`http://10.12.1.41:5000/mahasiswa/addmahasiswakondisi`, formData, {
-                headers: {
-                    'Content-Type': "application/json",
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-
-            if (response.status === 200) {
-                console.log("Data berhasil dikirim ke API:", response.data);
-                setIsModalOpen(false);  // Tutup modal setelah submit
-            } else {
-                console.log("Terjadi kesalahan di API:", response.data);
+            // Ambil data user dari localStorage
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || !user.id) {
+                console.error('ID Mahasiswa tidak ditemukan');
+                return;
             }
+
+            const mahasiswaId = user.id;  // Ambil ID mahasiswa dari localStorage
+
+            // Kirim data ke API dengan ID mahasiswa di URL
+            const response = await axiosClient.post(`/mahasiswa/add_kondisi/${mahasiswaId}`, formData);
+
+            setIsModalOpen(false);
+            console.log("data berhasil", response.data);
+            
+
         } catch (error) {
             if (error.response) {
                 console.error("Gagal mengirim data ke API:", error.response.data);
@@ -203,6 +202,7 @@ export default function () {
             }
         }
     };
+
 
     return (
         <div className="container mt-1">
@@ -314,33 +314,32 @@ export default function () {
                                             <select
                                                 className="form-select"
                                                 id="jenispekerjaan"
-                                                name="jenispekerjaan"
+                                                name="jenis"
                                                 value={formData.pekerjaan[0]?.jenis_pekerjaan[0]?.jenis || ""}
-                                                onChange={(e) => {
-                                                    setFormData(prevData => ({
-                                                        ...prevData,
-                                                        pekerjaan: [
-                                                            {
-                                                                ...prevData.pekerjaan[0],
-                                                                jenis_pekerjaan: [
-                                                                    {
-                                                                        ...prevData.pekerjaan[0].jenis_pekerjaan[0],
-                                                                        jenis: e.target.value
-                                                                    }
-                                                                ]
-                                                            }
-                                                        ]
-                                                    }));
-                                                }}
+                                                onChange={(e) => setFormData(prevData => ({
+                                                    ...prevData,
+                                                    pekerjaan: Array.isArray(prevData.pekerjaan)
+                                                        ? prevData.pekerjaan.map((item, index) =>
+                                                            index === 0
+                                                                ? {
+                                                                    ...item,
+                                                                    jenis_pekerjaan: [{
+                                                                        ...item.jenis_pekerjaan[0],
+                                                                        jenis: e.target.value // Update jenis pekerjaan
+                                                                    }]
+                                                                }
+                                                                : item
+                                                        )
+                                                        : [] // Jika pekerjaan bukan array, set ke array kosong
+                                                }))}
                                             >
-                                                <option value="">Pilih Jenis</option>
+                                                <option value="">Pilih Jenis Pekerjaan</option>
                                                 {Array.isArray(jenisOptions) && jenisOptions.map((jenis, index) => (
                                                     <option key={index} value={jenis}>
                                                         {jenis}
                                                     </option>
                                                 ))}
                                             </select>
-
                                             <label className='mt-2 mb-2'>Posisi Pekerjaan :</label>
                                             <select
                                                 className="form-select"
@@ -351,23 +350,21 @@ export default function () {
                                                     ...prevData,
                                                     pekerjaan: Array.isArray(prevData.pekerjaan)
                                                         ? prevData.pekerjaan.map((item, index) =>
-                                                            index === 0 // Memastikan kita hanya memodifikasi pekerjaan pertama
+                                                            index === 0
                                                                 ? {
                                                                     ...item,
                                                                     jenis_pekerjaan: [{
-                                                                        ...item.jenis_pekerjaan[0], // Salin objek jenis_pekerjaan pertama
-                                                                        posisi: e.target.value // Update posisi
+                                                                        ...item.jenis_pekerjaan[0],
+                                                                        posisi: e.target.value
                                                                     }]
                                                                 }
                                                                 : item
                                                         )
-                                                        : [] // Jika pekerjaan bukan array, set ke array kosong
+                                                        : []
                                                 }))}
                                             >
                                                 <option value="">Pilih Posisi</option>
                                                 {Array.isArray(posisiOptions) && posisiOptions.map((option, optionIdx) => (
-                                                    // Log untuk memeriksa data 'option' yang sedang diproses
-                                                    console.log("Option Data:", option),
                                                     option.pekerjaan?.[0]?.jenisPekerjaan?.map((jenis, jenisIdx) => (
                                                         jenis.posisi.map((posisi, posisiIdx) => (
                                                             <option key={posisiIdx} value={posisi}>

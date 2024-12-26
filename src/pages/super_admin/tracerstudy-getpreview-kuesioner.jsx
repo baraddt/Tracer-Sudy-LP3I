@@ -25,7 +25,7 @@ export default function TracerStudyPreview() {
 
     const fetchBankSoal = async () => {
         try {
-            const response = await axios.get(
+            const response = await axiosClient.get(
                 `/tracerstudy/bank_soal/get/${id}`);
             if (response.data && response.data.data) {
                 console.log("Data soal berhasil diambil:", response.data.data);
@@ -57,7 +57,7 @@ export default function TracerStudyPreview() {
                             {tracerDetail.id_detail.nama_kegiatan}
                         </p>
                         <p className="text-secondary" style={{ fontSize: '15px' }}>
-                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerDetail.createdAt).toLocaleString()}
+                            Dibuat oleh | {tracerDetail.id_pembuat.nama} | {new Date(tracerDetail.createdAt).toLocaleString()}
                         </p>
                     </div>
 

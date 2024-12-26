@@ -185,9 +185,6 @@ export default function Dashboard() {
     fetchGraphic();
   }, []);
 
-
-  // ini API data donut
-
   const [donutsData, setDonutsData] = useState({
     labels: [],
     datasets: [
@@ -209,38 +206,22 @@ export default function Dashboard() {
           pointStyle: 'circle',
         },
       },
-      tooltip: {
-        callbacks: {
-          label: function (tooltipItem) {
-            const dataset = tooltipItem.dataset;
-            const index = tooltipItem.dataIndex;
-            return `Tinggi: ${dataset.tinggi[index]}, Sama: ${dataset.sama[index]}, Rendah: ${dataset.rendah[index]}`;
-          },
-        },
-      },
     },
   });
 
   const fetchChartData = async () => {
     try {
       const response = await axiosClient.get('/dashboard/data_cycle');
-      const chartData = response.data.data;
+      const chartData = response.data.data[0].keselarasan;
 
-      const labels = chartData.map((item) => item.prodi); // Labels = nama prodi
-      const tinggi = chartData.map((item) => item.keselarasan.tinggi.jumlah);
-      const sama = chartData.map((item) => item.keselarasan.sama.jumlah);
-      const rendah = chartData.map((item) => item.keselarasan.rendah.jumlah);
-
+      // Format data untuk Doughnut Chart
       setDonutsData({
-        labels,
+        labels: ['Tinggi', 'Sama', 'Rendah'],
         datasets: [
           {
-            data: tinggi, // Data utama (tinggi)
-            backgroundColor: ['#4CAF50', '#FF9800', '#F44336'], // Warna sesuai indeks
-            hoverBackgroundColor: ['#388E3C', '#FB8C00', '#D32F2F'],
-            tinggi, // Tambahkan data tinggi untuk tooltip
-            sama, // Tambahkan data sama untuk tooltip
-            rendah, // Tambahkan data rendah untuk tooltip
+            data: [chartData.tinggi.jumlah, chartData.sama.jumlah, chartData.rendah.jumlah],
+            backgroundColor: ['#4CAF50', '#FF9800', '#F44336'], // Warna setiap bagian
+            hoverBackgroundColor: ['#388E3C', '#FB8C00', '#D32F2F'], // Warna saat hover
           },
         ],
       });
@@ -729,70 +710,6 @@ export default function Dashboard() {
   //   },
   // ]);
 
-  useEffect(() => {
-    setFilteredHorizontal(dataHorizontal); // Set default horizontal
-    setFilteredVertical(dataVertical); // Set default vertical
-  }, [dataHorizontal, dataVertical]);
-
-  // buat filter data table yg di horizontal chawchibe  
-  const [filteredHorizontal, setFilteredHorizontal] = useState(dataHorizontal);
-  const [filteredVertical, setFilteredVertical] = useState(dataVertical);
-  const [selectedYear, setSelectedYear] = useState("");
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
-
-
-
-  const handleFilterHorizontalYear = (year) => {
-    setSelectedYear(year); // Simpan tahun yang dipilih untuk horizontal
-    if (year === "") {
-      // Tampilkan semua data jika "Semua" dipilih
-      setFilteredHorizontal(dataHorizontal);
-    } else {
-      // Filter berdasarkan tahun untuk dataHorizontal
-      const filteredHorizontalData = dataHorizontal.filter(
-        (item) => new Date(item.tahun_lulusan).getFullYear().toString() === year
-      );
-      setFilteredHorizontal(filteredHorizontalData);
-    }
-  };
-
-  const handleFilterVerticalYear = (year) => {
-    setSelectedYear(year); // Simpan tahun yang dipilih untuk vertical
-    if (year === "") {
-      // Tampilkan semua data jika "Semua" dipilih
-      setFilteredVertical(dataVertical);
-    } else {
-      // Filter berdasarkan tahun untuk dataVertical
-      const filteredVerticalData = dataVertical.filter(
-        (item) => new Date(item.tahun_lulusan).getFullYear().toString() === year
-      );
-      setFilteredVertical(filteredVerticalData);
-    }
-  };
-
-  const toggleFilterVisibility = () => {
-    setIsFilterVisible((prev) => !prev);
-  };
-
-  const [listTahunLulusan, setListTahunLulusan] = useState([]);
-
-  // Fetch data tahun lulusan
-  useEffect(() => {
-    const fetchTahunLulusan = async () => {
-      try {
-        const response = await axiosClient.get('/mahasiswa/tahun_lulusan/all');
-        const tahunLulusan = response.data.data.map(item => new Date(item.tahun_lulusan).getFullYear());
-        setListTahunLulusan(tahunLulusan); // Menyimpan hanya tahun
-        console.log("tahun data:", tahunLulusan);
-      } catch (error) {
-        console.error('Error fetching tahun lulusan:', error);
-      }
-    };
-
-    fetchTahunLulusan();
-  }, []);
-
-
 
 
   return (
@@ -911,34 +828,11 @@ export default function Dashboard() {
             <button className='bi bi-printer bg-info bg-opacity-10 border p-2 rounded text-info'> Generate Report</button>
           </Link>
         </div>
+
         <table className="table mt-4">
           <thead className="table">
             <tr>
-              <th rowSpan="2" className="cstm-bg fw-semibold text-dark">
-                <span
-                  onClick={toggleFilterVisibility}
-                  className="cstm-bg fw-semibold text-dark"
-                  style={{ cursor: "pointer" }}
-                >
-                  Tahun Lulusan <i className="bi bi-filter"></i>
-                </span>
-
-                {isFilterVisible && (
-                  <div className="mt-2">
-                    <select
-                      className="form-select form-select-sm w-auto"
-                      onChange={(e) => handleFilterHorizontalYear(e.target.value)}
-                    >
-                      <option value="">Semua</option>
-                      {listTahunLulusan.map((tahun, index) => (
-                        <option key={index} value={tahun}>
-                          {tahun}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </th>
+              <th rowSpan="2" className='cstm-bg fw-semibold text-dark text-truncate'>Tahun Lulusan</th>
               <th rowSpan="2" className='cstm-bg fw-semibold text-dark'>Jenjang</th>
               <th rowSpan="2" className='cstm-bg fw-semibold text-dark text-truncate'>Program Studi</th>
               <th colSpan="4" className='cstm-bg text-center fw-semibold text-dark'>Keselarasan Horizontal</th>
@@ -956,12 +850,10 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {filteredHorizontal.length > 0 ? (
-              filteredHorizontal.map((item, index) => (
+            {dataHorizontal.length > 0 ? (
+              dataHorizontal.map((item, index) => (
                 <tr key={index}>
-                  <td className="text-dark">
-                    {new Date(item.tahun_lulusan).getFullYear()}
-                  </td>
+                  <td className="text-dark">{item.tahun_lulusan}</td>
                   <td className="text-dark">{item.jenjang}</td>
                   <td className="text-dark text-truncate">{item.prodi?.nama}</td>
                   <td className="text-center text-dark">{item.keselarasan.selaras?.jumlah}</td>
@@ -991,31 +883,7 @@ export default function Dashboard() {
         <table className="table mt-4">
           <thead className="table">
             <tr>
-              <th rowSpan="2" className="cstm-bg fw-semibold text-dark">
-                <span
-                  onClick={toggleFilterVisibility}
-                  className="cstm-bg fw-semibold text-dark"
-                  style={{ cursor: "pointer" }}
-                >
-                  Tahun Lulusan <i className="bi bi-filter"></i>
-                </span>
-
-                {isFilterVisible && (
-                  <div className="mt-2">
-                    <select
-                      className="form-select form-select-sm w-auto"
-                      onChange={(e) => handleFilterVerticalYear(e.target.value)}
-                    >
-                      <option value="">Semua</option>
-                      {listTahunLulusan.map((tahun, index) => (
-                        <option key={index} value={tahun}>
-                          {tahun}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </th>
+              <th rowSpan="2" className='cstm-bg fw-semibold text-dark text-truncate'>Tahun Lulusan</th>
               <th rowSpan="2" className='cstm-bg fw-semibold text-dark'>Jenjang</th>
               <th rowSpan="2" className='cstm-bg fw-semibold text-dark text-truncate'>Program Studi</th>
               <th colSpan="6" className='cstm-bg text-center fw-semibold text-dark'>Keselarasan Vertical</th>
@@ -1036,12 +904,10 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {filteredVertical.length > 0 ? (
-              filteredVertical.map((item, index) => (
+            {dataVertical.length > 0 ? (
+              dataVertical.map((item, index) => (
                 <tr key={index}>
-                  <td className="text-dark">
-                    {new Date(item.tahun_lulusan).getFullYear()}
-                  </td>
+                  <td className="text-dark">{item.tahun_lulusan}</td>
                   <td className="text-dark">{item.jenjang}</td>
                   <td className="text-dark text-truncate">{item.prodi?.nama}</td>
                   <td className="text-center text-dark">{item.keselarasan.tinggi?.jumlah}</td>
@@ -1054,8 +920,8 @@ export default function Dashboard() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center text-dark">
-                  Tidak ada data Table Keselarasan Horizontal.
+                <td colSpan="9" className="text-center text-dark">
+                  Tidak ada data Table Keselarasan Vertical.
                 </td>
               </tr>
             )}

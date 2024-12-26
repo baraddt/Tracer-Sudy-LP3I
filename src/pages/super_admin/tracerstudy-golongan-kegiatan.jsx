@@ -60,6 +60,8 @@ export default function () {
             // const response = await axiosClient.get('/kampus/all');
             const response = await axiosClient.get('/kampus/all');
             setPsdkuList(response.data.data);
+            console.log("ini data nya :", response.data.data);
+
 
         } catch (error) {
             console.error("Error feching data:", error.message);
@@ -95,10 +97,17 @@ export default function () {
                 throw new Error("ID tracer tidak ditemukan.");
             }
 
+            // Ambil hanya prodiId dari kombinasi
+            const prodiIds = newSkala.prodi.map((id) => id.split('-')[1]);
+
+            const payload = {
+                ...newSkala,
+                prodi: prodiIds // Ganti prodi dengan array prodiId saja
+            };
 
             const response = await axiosClient.put(
                 `/tracerstudy/skalakegiatan/add/${dataTracerId}`,
-                newSkala
+                payload
             );
 
             console.log("Data skala kegiatan berhasil ditambahkan:", response.data);
@@ -112,28 +121,6 @@ export default function () {
     };
 
 
-    // const addSkala = async () => {
-    //     try {
-    //         const response = await axiosClient.put(`/tracerstudy/skalakegiatan/add/${dataTracerId._id}`, newSkala);
-    //         if (response.data && response.data.data) {
-    //             setDataTracerId(response.data.data);
-    //         }
-    //         setNewSkala({
-    //             skala_kegiatan: '',
-    //             tahun_lulusan: '',
-    //             kampus: [],
-    //             prodi: [],
-    //         });
-    //         console.log("Data kegiatan yang berhasil ditambahkan:", response.data);
-    //         navigate('/super_admin/tracerstudy-bank-soal');
-    //     } catch (error) {
-    //         console.error("Error adding skala:", error.message);
-    //         setError("Failed to add kegiatan. Please try again.");
-    //     }
-    // };
-
-
-
     useEffect(() => {
         if (tahunOptions.length > 0) {
             setNewSkala(prevState => ({
@@ -145,11 +132,39 @@ export default function () {
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setNewSkala((prevState) => ({
-            ...prevState,
-            [name]: value
-        }));
+
+        if (name === "skala_kegiatan" && value === "Nasional") {
+            // Ambil semua ID PSDKU
+            const allKampusIds = psdkuList.map((psdku) => psdku._id);
+            // Ambil semua kombinasi ID PSDKU dan Prodi
+            const allProdiIds = psdkuList.flatMap((psdku) =>
+                psdku.prodi.map((prodi) => `${psdku._id}-${prodi._id}`)
+            );
+
+            setNewSkala((prevState) => ({
+                ...prevState,
+                skala_kegiatan: value,
+                kampus: allKampusIds, // Masukkan semua ID PSDKU
+                prodi: allProdiIds,  // Masukkan semua kombinasi ID PSDKU-Prodi
+            }));
+        } else if (name === "skala_kegiatan" && value === "PSDKU") {
+            // Reset pilihan untuk manual check
+            setNewSkala((prevState) => ({
+                ...prevState,
+                skala_kegiatan: value,
+                kampus: [],
+                prodi: [],
+            }));
+        } else {
+            // Update field lainnya
+            setNewSkala((prevState) => ({
+                ...prevState,
+                [name]: value,
+            }));
+        }
     };
+
+
 
     // Fungsi untuk menangani perubahan checkbox kampus
     const handleKampusChange = (e, kampusId) => {
@@ -162,14 +177,16 @@ export default function () {
     };
 
     // Fungsi untuk menangani perubahan checkbox prodi
-    const handleProdiChange = (e, prodiId) => {
+    const handleProdiChange = (e, psdkuId, prodiId) => {
+        const uniqueId = `${psdkuId}-${prodiId}`;
         setNewSkala((prevState) => {
-            const prodi = prevState.prodi.includes(prodiId)
-                ? prevState.prodi.filter((id) => id !== prodiId) // Hapus jika sudah ada
-                : [...prevState.prodi, prodiId]; // Tambahkan jika belum ada
+            const prodi = prevState.prodi.includes(uniqueId)
+                ? prevState.prodi.filter((id) => id !== uniqueId) // Hapus jika sudah ada
+                : [...prevState.prodi, uniqueId]; // Tambahkan jika belum ada
             return { ...prevState, prodi };
         });
     };
+
 
 
 
@@ -181,6 +198,23 @@ export default function () {
 
         // Proses selanjutnya
         addSkala();
+    };
+
+    const handleNavigateAndUpdate = async () => {
+        try {
+            // Fetch data terbaru
+            const response = await axiosClient.get('/tracerstudy/all');
+            const updatedTracerData = response.data;
+
+            // Update localStorage
+            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+            console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+            // Redirect ke halaman /super_admin/tracerstudy
+            navigate('/super_admin/tracerstudy');
+        } catch (error) {
+            console.error("Error updating tracer data:", error.message);
+        }
     };
 
 
@@ -318,15 +352,18 @@ export default function () {
                                         </td>
                                         <td>
                                             <div className="d-flex flex-column">
-                                                {Array.isArray(psdku.prodi) && psdku.prodi.map((prodiItem) => (
-                                                    <label key={prodiItem._id}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={newSkala.prodi.includes(prodiItem._id)} // Gunakan checked untuk status terpilih
-                                                            onChange={(e) => handleProdiChange(e, prodiItem._id)} // Panggil fungsi handleProdiChange
-                                                        /> {prodiItem.nama}
-                                                    </label>
-                                                ))}
+                                                {Array.isArray(psdku.prodi) && psdku.prodi.map((prodiItem) => {
+                                                    const uniqueId = `${psdku._id}-${prodiItem._id}`; // Kombinasi unik
+                                                    return (
+                                                        <label key={uniqueId}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={newSkala.prodi.includes(uniqueId)} // Cek status unik
+                                                                onChange={(e) => handleProdiChange(e, psdku._id, prodiItem._id)} // Kirim kombinasi unik
+                                                            /> {prodiItem.nama}
+                                                        </label>
+                                                    );
+                                                })}
                                             </div>
                                         </td>
                                     </tr>
@@ -358,6 +395,7 @@ export default function () {
                     </div>
                 </div>
             </form>
+            
             {/* Modal Success */}
             <ModalSuccess
                 show={showSuccessModal}
@@ -369,7 +407,10 @@ export default function () {
             <ModalSuccessDraft
                 show={showSuccessDraftModal}
                 message="Tracer to Draft Is Success !"
-                onClose={() => setShowSuccessDraftModal(false)}
+                onClose={() => {
+                    setShowSuccessDraftModal(false);
+                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
+                }}
             />
 
             {/* Modal Failed */}

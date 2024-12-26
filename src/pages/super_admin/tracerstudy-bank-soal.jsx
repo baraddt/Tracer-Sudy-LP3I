@@ -306,6 +306,23 @@ export default function () {
         setIsEditMode(false);  // Reset mode ke tambah
     };
 
+    const handleNavigateAndUpdate = async () => {
+        try {
+            // Fetch data terbaru
+            const response = await axiosClient.get('/tracerstudy/all');
+            const updatedTracerData = response.data;
+
+            // Update localStorage
+            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+            console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+            // Redirect ke halaman /super_admin/tracerstudy
+            navigate('/super_admin/tracerstudy');
+        } catch (error) {
+            console.error("Error updating tracer data:", error.message);
+        }
+    };
+
 
 
 
@@ -506,7 +523,10 @@ export default function () {
             <ModalSuccessDraft
                 show={showSuccessDraftModal}
                 message="Tracer to Draft Is Success !"
-                onClose={() => setShowSuccessDraftModal(false)}
+                onClose={() => {
+                    setShowSuccessDraftModal(false);
+                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
+                }}
             />
 
             {/* Modal Failed */}

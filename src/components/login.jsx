@@ -73,7 +73,7 @@ export default function Login() {
               </div>
 
               <div className="d-flex">
-                <Link to="/super_admin/forgot-password">
+                <Link to="/forgot-password">
                   <button type="button" className="btn btn-link p-0 text-primary">Lupa Kata Sandi?</button>
                 </Link>
               </div>

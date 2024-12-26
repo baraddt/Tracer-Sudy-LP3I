@@ -32,8 +32,8 @@ export default function Login() {
       console.log('Respons dari server:', response.data);
 
       if (response.data && response.data.message === 'Login berhasil') {
-        // localStorage.setItem('accessToken', response.data.token.accessToken);
-        // localStorage.setItem('refreshToken', response.data.token.refreshToken);
+        sessionStorage.setItem('accessToken', response.data.token.accessToken);
+        sessionStorage.setItem('refreshToken', response.data.token.refreshToken);
         localStorage.setItem('role', response.data.user.role);
         localStorage.setItem('user', JSON.stringify(response.data.user));
 

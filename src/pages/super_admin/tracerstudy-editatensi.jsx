@@ -4,8 +4,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import ModalSuccess from "../../components/compModals/modalsuccess";
 import ModalFailed from "../../components/compModals/modalFailed";
 import ModalSuccessDraft from "../../components/compModals/draftModals";
+import { useParams } from "react-router-dom";
 
 export default function () {
+    const { id } = useParams();
     const navigate = useNavigate();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showSuccessDraftModal, setShowSuccessDraftModal] = useState(false);
@@ -18,35 +20,29 @@ export default function () {
         atensi_vertikal: [],
     });
 
-    // useEffect(() => {
-    //     const tracerId = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
-    //     if (!tracerId) {
-    //         console.error("Tracer ID tidak ditemukan di localStorage.");
-    //         navigate('/super_admin/tracerstudy-bank-soal'); // Redirect ke step 1 jika ID tidak ditemukan
-    //     } else {
-    //         setDataTracerId(tracerId); // Simpan ke state
-    //         console.log("Tracer ID diambil dari localStorage:", tracerId);
-    //     }
-    // }, [navigate]);
+    const handleNavigateAndUpdate = async () => {
+        try {
+            // Fetch data terbaru
+            const response = await axiosClient.get('/tracerstudy/all');
+            const updatedTracerData = response.data;
 
-    // const fetchTracer = async () => {
-    //     try {
-    //         const response = await axiosClient.get('/tracerstudy/all');
-    //         if (response.data.data && response.data.data.length > 0) {
-    //             setDataTracerId(response.data.data[0]._id); // Mengambil ID dari data tracer pertama
-    //             console.log("ID tracer yang diambil:", response.data.data[0]._id); // Memastikan ID sudah benar
-    //         } else {
-    //             console.error("Data tracer kosong atau tidak ditemukan");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error fetching data:", error.message);
-    //     }
-    // };
+            // Update localStorage
+            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+            console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+            // Redirect ke halaman /super_admin/tracerstudy
+            navigate('/super_admin/tracerstudy');
+        } catch (error) {
+            console.error("Error updating tracer data:", error.message);
+        }
+    };
 
     const fetchVertikal = async () => {
         try {
             const response = await axiosClient.get('/tracerstudy/atensi_vertikal/all');
             setDataAtensi(response.data.data);
+            console.log("data atensi vertikal", response.data.data);
+
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
@@ -56,6 +52,8 @@ export default function () {
         try {
             const response = await axiosClient.get('/tracerstudy/atensi_horizontal/all');
             setDataHorizontal(response.data.data);
+            console.log("atensi horizontal:", response.data.data);
+
 
         } catch (error) {
             console.error("Error feching data:", error.message);
@@ -72,22 +70,25 @@ export default function () {
     // mengirim atensi ke API tracerSTudy
     const AddAtensi = async () => {
         try {
-            if (!dataTracerId) {
+            if (!id) {
                 throw new Error("ID tracer tidak ditemukan.");
             }
 
+            console.log("Data yang akan dikirim ke API:", newAtensi);
+
             const response = await axiosClient.post(
-                `/tracerstudy/atensi/apply/${dataTracerId}`,
+                `/tracerstudy/atensi/apply/${id}`,
                 newAtensi
             );
 
             setShowSuccessModal(true);
-            console.log("Atensi yang berhasil ditambahkan:", response.data);
+            console.log("Atensi yang berhasil diedit:", response.data);
         } catch (error) {
             setShowFailedModal(true);
-            console.error("Error adding atensi:", error.message);
+            console.error("Error edit atensi:", error.message);
         }
     };
+
 
 
     const handleInputChange = (event) => {
@@ -100,9 +101,6 @@ export default function () {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const tracerIdFromLocalStorage = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
-        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
-        console.log("ID yang akan diedit:", dataTracerId);
 
         // Masukkan semua ID atensi_horizontal dan atensi_vertikal ke state newAtensi
         setNewAtensi({
@@ -110,10 +108,20 @@ export default function () {
             atensi_vertikal: dataAtensi.map((item) => item._id), // Mengambil ID dari data vertikal
         });
 
-        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID di console untuk memeriksa
-        // Panggil fungsi AddAtensi untuk mengirim data
-        AddAtensi();
+        // Debugging log untuk memastikan data sudah terisi
+        console.log("Data yang akan dikirim:", {
+            atensi_horizontal: dataHorizontal.map((item) => item._id),
+            atensi_vertikal: dataAtensi.map((item) => item._id),
+        });
     };
+
+    useEffect(() => {
+        if (newAtensi.atensi_horizontal.length > 0 || newAtensi.atensi_vertikal.length > 0) {
+            AddAtensi();  
+        }
+    }, [newAtensi]); 
+
+
 
 
     return (
@@ -122,21 +130,27 @@ export default function () {
             <div className="row mb-4">
                 <div className="col">
                     <ul className="nav mt-3 mb-4 justify-content-center gap-2">
-                        <li className="nav-item">
-                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
-                                Detail Kegiatan
-                            </span>
-                        </li>
-                        <li className="nav-item mx-2">
-                            <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
-                                Skala Kegiatan
-                            </span>
-                        </li>
-                        <li className="nav-item">
-                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
-                                Bank soal
-                            </span>
-                        </li>
+                        <Link to={`/super_admin/tracerstudy-edit/${id}`}>
+                            <li className="nav-item">
+                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                    Detail Kegiatan
+                                </span>
+                            </li>
+                        </Link>
+                        <Link to={`/super_admin/tracerstudy-editskala/${id}`}>
+                            <li className="nav-item mx-2">
+                                <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
+                                    Skala Kegiatan
+                                </span>
+                            </li>
+                        </Link>
+                        <Link to={`/super_admin/tracerstudy-editbank/${id}`}>
+                            <li className="nav-item">
+                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                    Bank soal
+                                </span>
+                            </li>
+                        </Link>
                         <li className="nav-item">
                             <span className="badge btn-primary px-4 py-2 rounded-pill">
                                 Kriteria Atensi
@@ -351,7 +365,7 @@ export default function () {
                     <Link to='/super_admin/tracerstudy-bank-soal'>
                         <button type="button" className="btn btn-danger mb-3 me-3">Sebelumnnya</button>
                     </Link>
-                    <Link to='/super_admin/tracerstudy-preview'>
+                    <Link to={`/super_admin/tracerstudy-getpreview/${id}`}>
                         <button type="submit" className="btn btn-success mb-3">Selanjutnya</button>
                     </Link>
                 </div>
@@ -367,7 +381,10 @@ export default function () {
             <ModalSuccessDraft
                 show={showSuccessDraftModal}
                 message="Tracer to Draft Is Success !"
-                onClose={() => setShowSuccessDraftModal(false)}
+                onClose={() => {
+                    setShowSuccessDraftModal(false);
+                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
+                }}
             />
 
             {/* Modal Failed */}

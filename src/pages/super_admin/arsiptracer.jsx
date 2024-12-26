@@ -1,6 +1,6 @@
 import axiosClient from "../../services/axiosClient";
 import _ from 'lodash';
-import axios from 'axios';
+// import axios from 'axios';
 import { useState, useEffect } from "react";
 import ModalFilter from "../../components/compModals/modalFilter";
 
@@ -49,8 +49,10 @@ export default function () {
     const fetchArsip = async () => {
         try {
             // const response = await axios.get('http://192.168.18.223:5000/users/role/all');
-            const response = await axios.get('http://192.168.18.223:5000/arsip/all');
+            const response = await axiosClient.get('/arsip/all');
             setArsipList(response.data.data); // Update state dengan data Role ID
+            console.log("data arsip:", response.data.data);
+            
         } catch (error) {
             console.error("Error fetching arsip:", error.message);
         }
@@ -92,15 +94,12 @@ export default function () {
             </div>
             <div className="table-responsive-sm table-responsive-md rounded mt-4 bg-white p-3">
                 <table className="table">
-                    <thead className="table-secondary">
+                    <thead className="table">
                         <tr>
-                            <th className='text-dark text-center fw-semibold' scope="col">#ID</th>
-                            <th className='text-dark text-center fw-semibold text-truncate' scope="col">Nama Kegiatan</th>
-                            <th className='text-dark text-center fw-semibold text-truncate' scope="col">Tanggal Mulai</th>
-                            <th className='text-dark text-center fw-semibold text-truncate' scope="col">Tanggal Berakhir</th>
-                            <th className='text-dark text-center fw-semibold text-truncate' scope="col">Skala Kegiatan</th>
-                            <th className='text-dark text-center fw-semibold text-truncate' scope="col">Tahun Lulusan</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Aksi</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold' scope="col">#ID</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold text-truncate' scope="col">Nama Kegiatan</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold text-truncate' scope="col">Tahun Lulusan</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,12 +108,9 @@ export default function () {
                             searchResults.length > 0 ? (
                                 searchResults.map((arsip) => (
                                     <tr key={arsip._id}>
-                                        <td>{`#AT${index + 201}`}</td>
-                                        <td>{arsip.kegiatan}</td>
-                                        <td>{arsip.tanggal_mulai || 'N/A'}</td>
-                                        <td>{arsip.tanggal_berakhir || 'N/A'}</td>
-                                        <td>{arsip.skala}</td>
-                                        <td>{arsip.tahun_lulusan}</td>
+                                        <td className="text-center">{`#AT${index + 201}`}</td>
+                                        <td className="text-center">{arsip.detail_kegiatan?.nama_kegiatan}</td>
+                                        <td className="text-center">{arsip.tahun_lulusan}</td>
                                         <td className='text-center'>
                                             <button className="btn-sm me-2 border-0 bg-transparent">
                                                 <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(arsip._id)}></i>
@@ -135,18 +131,12 @@ export default function () {
                             arsipList.length > 0 ? (
                                 arsipList.map((arsip, index) => (
                                     <tr key={arsip._id}>
-                                        <td>{`#AT${index + 201}`}</td>
-                                        <td>{arsip.kegiatan}</td>
-                                        <td>{arsip.tanggal_mulai || 'N/A'}</td>
-                                        <td>{arsip.tanggal_berakhir || 'N/A'}</td>
-                                        <td>{arsip.skala}</td>
-                                        <td>{arsip.tahun_lulusan}</td>
+                                        <td className="text-center">{`#AT${index + 201}`}</td>
+                                        <td className="text-center">{arsip.detail_kegiatan?.nama_kegiatan}</td>
+                                        <td className="text-center">{arsip.tahun_lulusan}</td>
                                         <td className='text-center'>
                                             <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(arsip._id)}></i>
-                                            </button>
-                                            <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(arsip._id)}></i>
+                                                <i className="bi bi-file-earmark-pdf-fill text-danger" onClick={() => handlePreviewUser(arsip._id)}></i>
                                             </button>
                                         </td>
                                     </tr>

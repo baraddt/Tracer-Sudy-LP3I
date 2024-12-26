@@ -23,13 +23,13 @@ export default function () {
             </div>
             <div className="table-responsive-sm table-responsive-md rounded mt-4 bg-white p-3">
                 <table className="table">
-                    <thead className="table-secondary">
+                    <thead className="table">
                         <tr>
-                            <th className='text-dark text-center fw-semibold' scope="col">#ID</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Pengguna</th>
-                            <th className='text-dark text-center fw-semibold text-truncate' scope="col">Judul Permasalahan</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Status</th>
-                            <th className='text-dark text-center fw-semibold' scope="col">Aksi</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold' scope="col">#ID</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold' scope="col">Pengguna</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold text-truncate' scope="col">Judul Permasalahan</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold' scope="col">Status</th>
+                            <th className='text-dark text-center cstm-bg fw-semibold' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

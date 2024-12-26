@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom';
+import getRoleName from '../../services/roleCheck';
 
 export default function () {
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userRoleId = user ? user.role : ''; // Ambil role ID dari user di localStorage
+
+    // Dapatkan nama role berdasarkan ID
+    const userRole = getRoleName(userRoleId);
+
     return (
         <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
             <div
@@ -47,8 +55,8 @@ export default function () {
                 <div className="mt-5 d-row d-sm-flex d-md-flex justify-content-md-between justify-content-sm-between">
                     <div>
                         <button className="me-2 border rounded bg-secondary bg-opacity-50 p-2 text-light" type="button">Overview</button>
-                        <Link to="/admin/programstudy" className='me-5'>
-                            <button className="border rounded p-2  bg-dark bg-opacity-50 text-light" type="button">Program Study</button>
+                        <Link to={userRole === 'Admin' ? '/admin/programstudy' : '/PA/paprogramstudy'} className='me-5'>
+                            <button className="border rounded p-2 bg-dark bg-opacity-50 text-light" type="button">Program Study</button>
                         </Link>
                     </div>
                     <div>
@@ -93,7 +101,7 @@ export default function () {
                     </div>
 
                     {/* About di Kanan */}
-                    <div className="bg-light p-2 rounded" style={{ flex: 2}}>
+                    <div className="bg-light p-2 rounded" style={{ flex: 2 }}>
                         <h4 className="mt-2 text-dark">About</h4>
                         <p
                             className="fw-normal text-secondary"

@@ -25,6 +25,57 @@ export default function () {
         }
     }, [id]);
 
+    const [respondents, setRespondents] = useState([]);
+
+    // Fungsi untuk fetch data (dummy API)
+    const fetchResponden = async () => {
+        try {
+            // Simulasi API call
+            const response = {
+                data: [
+                    {
+                        no: 1,
+                        responden: "John Doe",
+                        perguruanTinggi: "Universitas Indonesia",
+                        programStudy: "Teknik Informatika",
+                        status: "Submitted"
+                    },
+                    {
+                        no: 2,
+                        responden: "Jane Smith",
+                        perguruanTinggi: "Institut Teknologi Bandung",
+                        programStudy: "Manajemen Bisnis",
+                        status: "Submitted"
+                    },
+                    {
+                        no: 3,
+                        responden: "Michael Johnson",
+                        perguruanTinggi: "Universitas Gadjah Mada",
+                        programStudy: "Sistem Informasi",
+                        status: "Submitted"
+                    },
+                    {
+                        no: 4,
+                        responden: "Emily Davis",
+                        perguruanTinggi: "Universitas Airlangga",
+                        programStudy: "Psikologi",
+                        status: "Submitted"
+                    }
+                ]
+            };
+
+            // Simulasi API response (kamu bisa ganti dengan axios.get() untuk API nyata)
+            setRespondents(response.data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    // useEffect untuk memanggil fetchData ketika komponen pertama kali dimuat
+    useEffect(() => {
+        fetchResponden();
+    }, []);
+
 
 
 
@@ -42,7 +93,7 @@ export default function () {
                             {tracerDetail.id_detail.nama_kegiatan}
                         </p>
                         <p className="text-secondary" style={{ fontSize: '15px' }}>
-                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerDetail.createdAt).toLocaleString()}
+                            Dibuat oleh | {tracerDetail.id_pembuat.nama} | {new Date(tracerDetail.createdAt).toLocaleString()}
                         </p>
                     </div>
 
@@ -84,9 +135,21 @@ export default function () {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td colSpan="7" className="text-center bg-danger bg-opacity-50">Belum ada data Responden.</td>
-                                </tr>
+                                {respondents.length > 0 ? (
+                                    respondents.map((data, index) => (
+                                        <tr key={data.no}>
+                                            <td>{data.no}</td>
+                                            <td>{data.responden}</td>
+                                            <td>{data.perguruanTinggi}</td>
+                                            <td>{data.programStudy}</td>
+                                            <td className='text-success'>{data.status}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="text-center bg-danger bg-opacity-50">Belum ada data Responden.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

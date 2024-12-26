@@ -21,7 +21,7 @@ export default function User() {
         },
         kampus: {
             prodi: '',
-            kampus: '',
+            // kampus: '',
             tahun_lulusan: '',
         },
         akun: {
@@ -35,7 +35,8 @@ export default function User() {
     const [tahunOptions, setTahunOptions] = useState([]);
     const [roleIdOptions, setRoleIdOptions] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
+    const [searchResults, setSearchResults] = useState(null);
+    const [searchType, setSearchType] = useState("nama");
     const [editMahasiswa, setEditMahasiswa] = useState(null);
     const [selectedMahasiswa, setSelectedMahasiswa] = useState(null);
     const [previewData, setPreviewData] = useState(null);
@@ -47,20 +48,37 @@ export default function User() {
     const [showFailedModal, setShowFailedModal] = useState(false);
     const [showModalDelete, setShowModalDelete] = useState(false);
     const [showFiltersModal, setShowFiltersModal] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1); // Halaman aktif
-    const [totalPages, setTotalPages] = useState(0); // Total halaman
-    const [totalMahasiswa, setTotalMahasiswa] = useState(0); // Total mahasiswa
-    const [pageSize] = useState(10); // Ukuran halaman (jumlah data per halaman)
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalMahasiswa, setTotalMahasiswa] = useState(0);
+    const [pageSize] = useState(10);
 
     const fetchSearchResults = async (query) => {
         try {
-            const response = await axios.get(`https://api.example.com/mahasiswa?q=${query}`);
-            setSearchResults(response.data.results);
+            const params = {};
+
+            if (/^\d+$/.test(query)) {
+                params.nim = query;
+            } else if (query.includes("@")) {
+                // Jika query mengandung "@" (format email)
+                params.email = query.trim(); 
+            } else {
+                params.nama = query;
+            }
+
+            const response = await axiosClient.get("/mahasiswa/search", {
+                params: params,
+            });
+
+            console.log("Full response:", response.data.data);
+            setSearchResults(response.data.data || []); 
         } catch (error) {
             console.error("Error saat mencari data:", error);
-            setSearchResults([]);
+            setSearchResults([]); 
         }
     };
+
+
 
     const debouncedSearch = _.debounce((query) => {
         fetchSearchResults(query);
@@ -81,7 +99,16 @@ export default function User() {
     // Fungsi API Memanggil Data mahasiswa
     const fetchMahasiswa = async (page = 1) => {
         try {
-
+            const storedData = localStorage.getItem("mhsData");
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
+                setMahasiswaList(parsedData.data);
+                setTotalPages(parsedData.meta.totalPages);
+                setTotalMahasiswa(parsedData.meta.totalMahasiswa);
+                setCurrentPage(parsedData.meta.currentPage);
+                console.log("data loaded from localStorage:", parsedData);
+                return;
+            }
             const response = await axiosClient.get('/mahasiswa/all', {
                 params: {  // Kirim parameter untuk pagination
                     page: page,
@@ -94,8 +121,8 @@ export default function User() {
             setTotalPages(response.data.meta.totalPages);
             setTotalMahasiswa(response.data.meta.totalMahasiswa);
             setCurrentPage(response.data.meta.currentPage);
-
-            console.log(response.data.data);  // Menampilkan data mahasiswa di console
+            console.log("Data fetched from API:", response.data);
+            localStorage.setItem("mhsData", JSON.stringify(response.data));
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
@@ -114,28 +141,32 @@ export default function User() {
     // Fetch Prodi
     const fetchProdi = async () => {
         try {
-
             const response = await axiosClient.get('/prodi/all');
 
+            // Jika response.data.data adalah array prodi
             setProdiOptions(response.data.data);
+            console.log("data prodi:", response.data.data); // Periksa data yang diterima
 
         } catch (err) {
             console.error("Error Fetching Data:", err.message);
         }
     };
+
 
     // Fetch Kampus
-    const fetchKampus = async () => {
-        try {
+    // const fetchKampus = async () => {
+    //     try {
 
-            const response = await axiosClient.get('/kampus/all');
+    //         const response = await axiosClient.get('/kampus/all');
 
-            setKampusOptions(response.data.data);
+    //         setKampusOptions(response.data.data);
+    //         console.log(response.data.data);
 
-        } catch (err) {
-            console.error("Error Fetching Data:", err.message);
-        }
-    };
+
+    //     } catch (err) {
+    //         console.error("Error Fetching Data:", err.message);
+    //     }
+    // };
 
     // Fetch Tahun Lulusan
     const fetchTahun = async () => {
@@ -192,7 +223,7 @@ export default function User() {
     useEffect(() => {
         fetchMahasiswa();
         fetchProdi();
-        fetchKampus();
+        // fetchKampus();
         fetchTahun();
         // fetchRoleId();
     }, []);
@@ -214,7 +245,7 @@ export default function User() {
             // Reset form setelah berhasil menambahkan data
             setNewMahasiswa({
                 pribadi: { avatar: '', nim: '', nama: '', jk: '', ttl: '' },
-                kampus: { prodi: '', kampus: '', tahun_lulusan: '' },
+                kampus: { prodi: '', tahun_lulusan: '' },
                 akun: { email: '', password: '' },
             });
 
@@ -274,8 +305,8 @@ export default function User() {
             const response = await axiosClient.get(`/mahasiswa/${id}`);
 
             console.log('Data mahasiswa berhasil dimuat:', response.data);
-            setPreviewData(response.data.data); 
-            setShowModalPreview(true); 
+            setPreviewData(response.data.data);
+            setShowModalPreview(true);
         } catch (error) {
             console.error('Gagal memuat data mahasiswa:', error.response?.data || error.message);
         }
@@ -328,7 +359,7 @@ export default function User() {
             },
             kampus: {
                 prodi: kampus.prodi || "",
-                kampus: kampus.kampus || "",
+                // kampus: kampus.kampus || "",
                 tahun_lulusan: kampus.tahun_lulusan || "",
             },
             akun: {
@@ -338,9 +369,6 @@ export default function User() {
         });
         setShowModalEdit(true);
     };
-
-
-
 
     const handleEditChange = (e, section) => {
         const { name, value } = e.target;
@@ -373,7 +401,7 @@ export default function User() {
                     <input
                         type="search"
                         className="form-control me-2"
-                        placeholder="Cari User"
+                        placeholder="Cari User e.g. (Nama, NIM, E-mail)"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)} // Update query saat mengetik
                     />
@@ -386,59 +414,57 @@ export default function User() {
             {/* Tabel data pengguna */}
             <div className="table-responsive-sm table-responsive-md rounded mt-4 bg-white p-3">
                 <table className="table">
-                    <thead className='table-secondary'>
+                    <thead className='table'>
                         <tr>
-                            <th className='text-dark fw-semibold text-center' scope="col">NIM</th>
-                            <th className='text-dark fw-semibold text-truncate' scope="col">Nama Lengkap</th>
-                            <th className='text-dark fw-semibold text-truncate' scope="col">Jenis Kelamin</th>
-                            <th className='text-dark fw-semibold text-truncate' scope="col">Program Study</th>
-                            {/* <th className='text-dark fw-semibold' scope="col">Tahun Lulusan</th> */}
-                            <th className='text-dark fw-semibold text-center' scope="col">Status</th>
-                            <th className='text-dark fw-semibold text-center' scope="col">Aksi</th>
+                            <th className='text-dark cstm-bg fw-semibold text-center' scope="col">NIM</th>
+                            <th className='text-dark cstm-bg fw-semibold text-truncate' scope="col">Nama Lengkap</th>
+                            <th className='text-dark cstm-bg fw-semibold text-truncate' scope="col">Jenis Kelamin</th>
+                            <th className='text-dark cstm-bg fw-semibold text-truncate' scope="col">Program Study</th>
+                            <th className='text-dark cstm-bg fw-semibold' scope="col">Tahun Lulusan</th>
+                            <th className='text-dark cstm-bg fw-semibold text-center' scope="col">Status</th>
+                            <th className='text-dark cstm-bg fw-semibold text-center' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {searchQuery && searchQuery.length > 0 ? (
-                            // Jika ada query pencarian, tampilkan hasil pencarian (searchResults)
-                            searchResults.length > 0 ? (
-                                searchResults.map((mahasiswa) => (
-                                    <tr key={mahasiswa._id}>
-                                        <td>{mahasiswa.pribadi?.nim || 'N/A'}</td>
-                                        <td>{mahasiswa.pribadi?.nama || 'N/A'}</td>
-                                        <td>{mahasiswa.pribadi?.jk || 'N/A'}</td>
-                                        <td>{mahasiswa.kampus?.prodi?.nama || 'N/A'}</td>
-                                        <td className={`text-center ${mahasiswa.status ? 'text-success' : 'text-danger'}`}>
-                                            {mahasiswa.status ? 'Aktif' : 'Tidak Aktif'}
-                                        </td>
-                                        <td className="text-center">
-                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => handlePreviewMahasiswa(mahasiswa._id)}>
-                                                <i className="bi bi-eye-fill text-info"></i>
-                                            </button>
-                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(mahasiswa)}>
-                                                <i className="bi bi-pencil-fill text-primary"></i>
-                                            </button>
-                                            <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(mahasiswa._id)}>
-                                                <i className="bi bi-trash-fill text-danger"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
+                            searchResults && searchResults._id ? (
+                                <tr>
+                                    <td>{searchResults.pribadi?.nim || "N/A"}</td>
+                                    <td>{searchResults.pribadi?.nama || "N/A"}</td>
+                                    <td>{searchResults.pribadi?.jk || "N/A"}</td>
+                                    <td>{searchResults.kampus?.prodi?._id || "N/A"}</td>
+                                    <td>{searchResults.kampus?.tahun_lulusan|| "N/A"}</td>
+                                    <td className={`text-center ${searchResults.status === "Aktif" ? "text-success" : "text-danger"}`}>
+                                        {searchResults.status || "Tidak Aktif"}
+                                    </td>
+                                    <td className="text-center">
+                                        <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => handlePreviewMahasiswa(searchResults._id)}>
+                                            <i className="bi bi-eye-fill text-info"></i>
+                                        </button>
+                                        <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(searchResults)}>
+                                            <i className="bi bi-pencil-fill text-primary"></i>
+                                        </button>
+                                        <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(searchResults._id)}>
+                                            <i className="bi bi-trash-fill text-danger"></i>
+                                        </button>
+                                    </td>
+                                </tr>
                             ) : (
                                 <tr>
                                     <td colSpan="7" className="text-center text-dark">Tidak ada hasil pencarian.</td>
                                 </tr>
                             )
                         ) : (
-                            // Jika tidak ada query pencarian, tampilkan data awal (mahasiswaList)
                             mahasiswaList.length > 0 ? (
                                 mahasiswaList.map((mahasiswa) => (
                                     <tr key={mahasiswa._id}>
-                                        <td>{mahasiswa.pribadi?.nim || 'N/A'}</td>
-                                        <td>{mahasiswa.pribadi?.nama || 'N/A'}</td>
-                                        <td>{mahasiswa.pribadi?.jk || 'N/A'}</td>
-                                        <td>{mahasiswa.kampus?.prodi?.nama || 'N/A'}</td>
-                                        <td className={`text-center ${mahasiswa.status ? 'text-success' : 'text-danger'}`}>
-                                            {mahasiswa.status ? 'Aktif' : 'Tidak Aktif'}
+                                        <td>{mahasiswa.pribadi?.nim || "N/A"}</td>
+                                        <td>{mahasiswa.pribadi?.nama || "N/A"}</td>
+                                        <td>{mahasiswa.pribadi?.jk || "N/A"}</td>
+                                        <td>{mahasiswa.kampus?.prodi?.nama || "N/A"}</td>
+                                        <td>{mahasiswa.kampus?.tahun_lulusan?.tahun_lulusan || "N/A"}</td>
+                                        <td className={`text-center ${mahasiswa.status ? "text-success" : "text-danger"}`}>
+                                            {mahasiswa.status ? "Aktif" : "Tidak Aktif"}
                                         </td>
                                         <td className="text-center">
                                             <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => handlePreviewMahasiswa(mahasiswa._id)}>
@@ -496,47 +522,49 @@ export default function User() {
                         </div>
                         <div className="modal-body">
                             <form onSubmit={handleSubmit}>
-                                <div className="row">
+                                <div className="row g-3">
                                     {/* Kolom 1: Data Pribadi */}
                                     <div className="col-md-4">
-                                        <h4>Data Pribadi</h4>
-                                        <div className="form-group">
-                                            <label>Avatar</label>
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Avatar</label>
                                             <input
                                                 type="file"
+                                                accept="image/*"
                                                 name="avatar"
                                                 className="form-control"
                                                 value={newMahasiswa.pribadi.avatar}
                                                 onChange={(e) => handleInputChange(e, 'pribadi')}
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label>NIM</label>
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">NIM</label>
                                             <input
                                                 type="text"
                                                 name="nim"
                                                 className="form-control"
+                                                placeholder='e.g. 202202001'
                                                 value={newMahasiswa.pribadi.nim}
                                                 onChange={(e) => handleInputChange(e, 'pribadi')}
                                                 minLength={6}
                                                 maxLength={12}
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label>Nama</label>
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Nama</label>
                                             <input
                                                 type="text"
                                                 name="nama"
                                                 className="form-control"
+                                                placeholder='e.g. Atep Riandi'
                                                 value={newMahasiswa.pribadi.nama}
                                                 onChange={(e) => handleInputChange(e, 'pribadi')}
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label>Jenis Kelamin</label>
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Jenis Kelamin</label>
                                             <select
                                                 name="jk"
-                                                className="form-control"
+                                                className="form-select"
                                                 value={newMahasiswa.pribadi.jk}
                                                 onChange={(e) => handleInputChange(e, 'pribadi')}
                                             >
@@ -545,12 +573,13 @@ export default function User() {
                                                 <option value="Perempuan">Perempuan</option>
                                             </select>
                                         </div>
-                                        <div className="form-group">
-                                            <label>Tempat, Tanggal Lahir</label>
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Tempat, Tanggal Lahir</label>
                                             <input
                                                 type="text"
                                                 name="ttl"
                                                 className="form-control"
+                                                placeholder='e.g. Tasik, 20 April 2000'
                                                 value={newMahasiswa.pribadi.ttl}
                                                 onChange={(e) => handleInputChange(e, 'pribadi')}
                                             />
@@ -559,87 +588,70 @@ export default function User() {
 
                                     {/* Kolom 2: Data Kampus */}
                                     <div className="col-md-4">
-                                        <h4>Data Kampus</h4>
-                                        <div className="form-group mb-4">
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Prodi</label>
                                             <select
                                                 name="prodi"
                                                 value={newMahasiswa.kampus.prodi}
                                                 onChange={(e) => handleInputChange(e, 'kampus')}
-                                                className="form-control mb-2"
+                                                className="form-select"
                                                 required
                                             >
                                                 <option value="">Pilih prodi</option>
-                                                {Array.isArray(prodiOptions) && prodiOptions.map((option) => (
-                                                    <option key={option._id} value={option._id}>
-                                                        {option.nama} {/* Menampilkan nama akreditasi */}
+                                                {Array.isArray(prodiOptions.prodiData) && prodiOptions.prodiData.map((prodi) => (
+                                                    <option key={prodi._id} value={prodi._id}>
+                                                        {prodi.nama}
                                                     </option>
                                                 ))}
                                             </select>
                                         </div>
-                                        <div className="form-group mt-4">
-                                            <select
-                                                name="kampus"
-                                                value={newMahasiswa.kampus.psdku}
-                                                onChange={(e) => handleInputChange(e, 'kampus')}
-                                                className="form-control mb-2"
-                                                required
-                                            >
-                                                <option value="">Pilih kampus</option>
-                                                {Array.isArray(kampusOptions) && kampusOptions.map((option) => (
-                                                    <option key={option._id} value={option._id}>
-                                                        {option.psdku}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="form-group mt-4">
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Tahun Lulusan</label>
                                             <select
                                                 name="tahun_lulusan"
                                                 value={newMahasiswa.kampus.tahun_lulusan}
                                                 onChange={(e) => handleInputChange(e, 'kampus')}
-                                                className="form-control mb-2"
+                                                className="form-select"
                                                 required
                                             >
                                                 <option value="">Pilih Tahun</option>
                                                 {Array.isArray(tahunOptions) && tahunOptions.map((option) => (
                                                     <option key={option._id} value={option._id}>
-                                                        {option.tahun_lulusan} {/* Menampilkan nama akreditasi */}
+                                                        {option.tahun_lulusan}
                                                     </option>
                                                 ))}
                                             </select>
                                         </div>
-
                                     </div>
 
                                     {/* Kolom 3: Data Akun */}
                                     <div className="col-md-4">
-                                        <h4>Data Akun</h4>
-                                        <div className="form-group">
-                                            <label>Email</label>
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Email</label>
                                             <input
                                                 type="email"
                                                 name="email"
                                                 className="form-control"
+                                                placeholder='e.g. example@gmail.com'
                                                 value={newMahasiswa.akun.email}
                                                 onChange={(e) => handleInputChange(e, 'akun')}
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label>Password</label>
+                                        <div className="form-group mb-3">
+                                            <label className="form-label fw-bold">Password</label>
                                             <input
                                                 type="password"
                                                 name="password"
                                                 className="form-control"
+                                                placeholder='******'
                                                 value={newMahasiswa.akun.password}
                                                 onChange={(e) => handleInputChange(e, 'akun')}
                                             />
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Tombol Submit */}
-                                <div className="text-center mt-4">
-                                    <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(mahasiswaList)}>Tambah Mahasiswa</button>
+                                <div className="text-end mt-4">
+                                    <button type="submit" className="btn btn-success">Tambah Mahasiswa</button>
                                 </div>
                             </form>
                         </div>
@@ -661,16 +673,30 @@ export default function User() {
                                         {/* Kolom 1: Data Pribadi */}
                                         <div className="col-md-4">
                                             <h4>Data Pribadi</h4>
-                                            {/* <div className="form-group">
+                                            <div className="form-group">
+                                                {editMahasiswa.pribadi.avatar && (
+                                                    <div className="preview-container" style={{ marginTop: "10px" }}>
+                                                        <img
+                                                            src={editMahasiswa.pribadi.avatar}
+                                                            alt="Avatar Preview"
+                                                            style={{
+                                                                maxWidth: "150px",
+                                                                maxHeight: "150px",
+                                                                borderRadius: "8px",
+                                                                border: "1px solid #ddd",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
                                                 <label>Avatar</label>
                                                 <input
-                                                    type="string"
+                                                    type="file"
                                                     name="avatar"
                                                     className="form-control"
-                                                    value={editMahasiswa.pribadi.avatar}
+                                                    // value={editMahasiswa.pribadi.avatar}
                                                     onChange={handleEditChange}
                                                 />
-                                            </div> */}
+                                            </div>
                                             <div className="form-group">
                                                 <label>NIM</label>
                                                 <input
@@ -742,7 +768,7 @@ export default function User() {
                                                     <option value="">Pilih Prodi</option> {/* Menambahkan opsi default */}
                                                     {Array.isArray(prodiOptions) && prodiOptions.map((option) => (
                                                         <option key={option._id} value={option._id}>
-                                                            {option.nama} {/* Menampilkan nama prodi */}
+                                                            {option.nama} 
                                                         </option>
                                                     ))}
                                                 </select>
@@ -759,7 +785,7 @@ export default function User() {
                                                     <option value="">Pilih Kampus</option> {/* Menambahkan opsi default */}
                                                     {Array.isArray(kampusOptions) && kampusOptions.map((option) => (
                                                         <option key={option._id} value={option._id}>
-                                                            {option.psdku} {/* Menampilkan nama prodi */}
+                                                            {option.psdku}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -773,16 +799,14 @@ export default function User() {
                                                     className="form-control mb-2"
                                                     required
                                                 >
-                                                    <option value="">Pilih Tahun</option> {/* Menambahkan opsi default */}
+                                                    <option value="">Pilih Tahun</option>
                                                     {Array.isArray(tahunOptions) && tahunOptions.map((option) => (
                                                         <option key={option._id} value={option._id}>
-                                                            {option.tahun_lulusan} {/* Menampilkan nama prodi */}
+                                                            {option.tahun_lulusan} 
                                                         </option>
                                                     ))}
                                                 </select>
                                             </div>
-
-
                                         </div>
 
                                         {/* Kolom 3: Data Akun */}

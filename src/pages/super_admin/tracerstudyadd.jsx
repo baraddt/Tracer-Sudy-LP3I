@@ -104,11 +104,6 @@ export default function () {
         addKegiatan();  // Kirimkan data tanpa memuat data lainnya
     };
 
-
-
-
-
-
     return (
         <div className="container rounded my-4 bg-white">
             {/* Progress Steps */}
@@ -301,6 +296,7 @@ export default function () {
             {/* Modal Draft */}
             <ModalSuccessDraft
                 show={showSuccessDraftModal}
+                navigate='/super_admin/tracerstudy'
                 message="Tracer to Draft Is Success !"
                 onClose={() => setShowSuccessDraftModal(false)}
             />

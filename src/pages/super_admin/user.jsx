@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-// import axios from 'axios';
+import axios from 'axios';
 import axiosClient from '../../services/axiosClient';
 import _ from 'lodash';
 import ModalSuccess from '../../components/compModals/modalsuccess';
@@ -8,18 +8,77 @@ import ModalConfirmDelete from '../../components/compModals/userDelete';
 import ModalFilter from '../../components/compModals/modalFilter';
 
 export default function User() {
-    const [usersList, setUsersList] = useState([]); // State untuk menyimpan data pengguna
-    const [error, setError] = useState(null); // State untuk menangani error
+    const [usersList, setUsersList] = useState([]);
+    const [error, setError] = useState(null);
     const [newUser, setNewUser] = useState({
         nama: '',
         avatar: '',
         nip: '',
         jabatan: '',
         pendidikan: '',
+        alamat: {
+            detail: '',
+            kelurahan: '',
+            kecamatan: '',
+            kota: '',
+            provinsi: '',
+            kode_pos: '',
+        },
+        tentang: '',
         email: '',
         password: '',
         roleId: '',
     });
+
+    const [provinces, setProvinces] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [villages, setVillages] = useState([]);
+
+    // Fetch Provinsi
+    const fetchProvinces = async () => {
+        try {
+            const response = await axios.get('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            // console.log("response:", response.data); // Log response data
+            setProvinces(response.data); // Set state dengan data yang diterima
+        } catch (error) {
+            console.error('Error fetching provinces:', error.message);
+        }
+    };
+
+    // Fetch Kota/Kabupaten berdasarkan Provinsi
+    const fetchCities = async (provinceId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`);
+            setCities(response.data); // Set state dengan data kota
+        } catch (error) {
+            console.error('Error fetching cities:', error.message);
+        }
+    };
+
+    // Fetch Kecamatan berdasarkan Kota/Kabupaten
+    const fetchDistricts = async (cityId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${cityId}.json`);
+            setDistricts(response.data); // Set state dengan data kecamatan
+        } catch (error) {
+            console.error('Error fetching districts:', error.message);
+        }
+    };
+
+    // Fetch Kelurahan/Desa berdasarkan Kecamatan
+    const fetchVillages = async (districtId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${districtId}.json`);
+            setVillages(response.data);
+        } catch (error) {
+            console.error('Error fetching villages:', error.message);
+        }
+    };
+
+    useEffect(() => {
+        fetchProvinces();
+    }, []);
 
     const [showModal, setShowModal] = useState(false);
     const [editUsers, setEditUsers] = useState(null);
@@ -45,8 +104,23 @@ export default function User() {
 
     const fetchSearchResults = async (query) => {
         try {
-            const response = await axiosClient.get(`https://api.example.com/mahasiswa?q=${query}`);
-            setSearchResults(response.data.results);
+            const params = {};
+
+            if (/^\d+$/.test(query)) {
+                params.nip = query;
+            } else if (query.includes("@")) {
+                // Jika query mengandung "@" (format email)
+                params.email = query.trim();
+            } else {
+                params.nama = query;
+            }
+
+            const response = await axiosClient.get("/users/search", {
+                params: params,
+            });
+
+            console.log("Full response:", response.data.data);
+            setSearchResults(response.data.data || []);
         } catch (error) {
             console.error("Error saat mencari data:", error);
             setSearchResults([]);
@@ -69,40 +143,54 @@ export default function User() {
     }, [searchQuery]);
 
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 1) => {
         try {
-            // const response = await axiosClient.get('/users/all');
-            const response = await axiosClient.get('/users/all');
+            const storedData = localStorage.getItem(`usersData_page_${page}`);
 
-            // const data = response.data.data;
-            // const totalUsers = response.data.meta.totalUsers;
-            // const totalPages = response.data.meta.totalPages;
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
 
-            setUsersList(response.data.data);
-            console.log(response.data.data);
+                if (parsedData && Array.isArray(parsedData.data)) {
+                    setUsersList(parsedData.data);
+                    console.log("Data loaded from Local:", parsedData);
+                } else {
+                    console.log("Data in localStorage tidak sesuai format yang diharapkan.");
+                }
+                return;
+            }
 
-            setCurrentAvatar(response.data.avatar);
-            setTotalPages(response.data.meta.totalPages);
-            setTotalUsers(response.data.meta.totalMahasiswa);
-            setCurrentPage(response.data.meta.currentPage);
+            const response = await axiosClient.get(`/users/all?page=${page}&size=${pageSize}`);
+            const { data, meta } = response.data;
+
+            setUsersList(data);
+            setTotalPages(meta.totalPages);
+            setTotalUsers(meta.totalUsers);
+            setCurrentPage(meta.currentPage);
+
+            console.log("Data fetched from API:", response.data);
+
+            // Simpan data ke localStorage
+            localStorage.setItem("usersData", JSON.stringify(response.data));
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
     };
 
+
     const goToPage = (page) => {
         if (page < 1 || page > totalPages) return;
+        setCurrentPage(page); // Trigger useEffect buat fetch data
     };
 
     useEffect(() => {
-        fetchUsers(currentPage);
+        fetchUsers(currentPage); // Panggil fetchUsers dengan currentPage
     }, [currentPage]);
 
     // Fungsi API untuk mendapatkan data Role ID
     const fetchRoleId = async () => {
         try {
             // const response = await axiosClient.get('/users/role/all');
-            const response = await axiosClient.get('/users/role/all');
+            const response = await axiosClient.get('/role/all');
             setRoleIdOptions(response.data.data); // Update state dengan data Role ID
         } catch (error) {
             console.error("Error fetching RoleId:", error.message);
@@ -132,9 +220,9 @@ export default function User() {
 
     // useEffect untuk memanggil data API saat komponen pertama kali dirender
     useEffect(() => {
-        fetchUsers();  
-        fetchRoleId(); 
-    }, []); 
+        fetchUsers();
+        fetchRoleId();
+    }, []);
 
     // Fungsi menambah data pengguna baru menggunakan API
     const addUser = async () => {
@@ -142,10 +230,23 @@ export default function User() {
             // const response = await axiosClient.post('/users/adduser', newUser);
             const response = await axiosClient.post('/users/adduser', newUser);
 
+            setUsersList((prevList) => {
+                const updatedList = [...prevList, response.data];
+
+                // Sync data terbaru ke localStorage
+                localStorage.setItem("usersData", JSON.stringify(updatedList));
+
+                return updatedList;
+            });
+
+            const updatedData = JSON.parse(localStorage.getItem("usersData"));
+            console.log("Data after add in localStorage:", updatedData);
+
+
             setUsersList((prevList) => [...prevList, response.data]);
             fetchUsers();
             setNewUser({
-                nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', email: '', password: '', roleId: ''
+                nama: '', avatar: '', nip: '', jabatan: '', pendidikan: '', alamat: { detail: '', kelurahan: '', kecamatan: '', kota: '', provinsi: '', kode_pos: '' }, email: '', password: '', roleId: ''
             });
 
             setShowModal(false);
@@ -213,8 +314,9 @@ export default function User() {
     };
 
 
-    const handleDeleteClick = (user) => {
-        setUserToDelete(user); // Menyimpan data pengguna yang akan dihapus
+    const handleDeleteClick = (userId) => {
+        console.log("User ID to delete:", userId);
+        setUserToDelete(userId); // Menyimpan data pengguna yang akan dihapus
         setShowConfirmDeleteModal(true); // Menampilkan modal konfirmasi
     };
 
@@ -223,10 +325,37 @@ export default function User() {
     // Fungsi untuk menangani perubahan pada form input
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setNewUser((prevUser) => ({
-            ...prevUser,
-            [name]: value,
-        }));
+
+        if (["provinsi", "kota", "kecamatan", "kelurahan", "detail", "kode_pos"].includes(name)) {
+            setNewUser((prevUser) => ({
+                ...prevUser,
+                alamat: {
+                    ...prevUser.alamat, // Copy data alamat sebelumnya
+                    [name]: value, // Update field tertentu di alamat
+                },
+            }));
+
+            // Handle cascading dropdown
+            if (name === "provinsi") {
+                fetchCities(value); // Fetch kota berdasarkan ID provinsi
+                setCities([]);
+                setDistricts([]);
+                setVillages([]);
+            } else if (name === "kota") {
+                fetchDistricts(value); // Fetch kecamatan berdasarkan ID kota
+                setDistricts([]);
+                setVillages([]);
+            } else if (name === "kecamatan") {
+                fetchVillages(value); // Fetch kelurahan berdasarkan ID kecamatan
+                setVillages([]);
+            }
+        } else {
+            // Update field lain di newUser (bukan alamat)
+            setNewUser((prevUser) => ({
+                ...prevUser,
+                [name]: value,
+            }));
+        }
     };
 
     // Fungsi untuk menangani pengiriman form
@@ -304,41 +433,40 @@ export default function User() {
             {/* Tabel data pengguna */}
             <div className="rounded table-reponsive-sm table-responsive-md mt-4 bg-white p-3">
                 <table className="table">
-                    <thead className='table-secondary'>
+                    <thead className='table'>
                         <tr>
-                            <th className='fw-semibold text-dark text-center' scope="col">#ID</th>
-                            <th className='fw-semibold text-dark' scope="col">Avatar</th>
-                            <th className='fw-semibold text-dark text-truncate' scope="col">Nama</th>
-                            <th className='fw-semibold text-dark text-truncate' scope="col">Jabatan</th>
-                            <th className='fw-semibold text-dark text-truncate' scope="col">Pendidikan</th>
-                            <th className='fw-semibold text-dark text-truncate' scope="col">Email</th>
-                            <th className='fw-semibold text-dark text-center' scope="col">Status</th>
-                            <th className='fw-semibold text-dark text-center' scope="col">Aksi</th>
+                            <th className='cstm-bg fw-semibold text-dark text-center' scope="col">#ID</th>
+                            <th className='cstm-bg fw-semibold text-dark' scope="col">Avatar</th>
+                            <th className='cstm-bg fw-semibold text-dark text-truncate' scope="col">Nama</th>
+                            <th className='cstm-bg fw-semibold text-dark text-truncate' scope="col">Jabatan</th>
+                            <th className='cstm-bg fw-semibold text-dark text-truncate' scope="col">Pendidikan</th>
+                            <th className='cstm-bg fw-semibold text-dark text-truncate' scope="col">Email</th>
+                            <th className='cstm-bg fw-semibold text-dark text-center' scope="col">Status</th>
+                            <th className='cstm-bg fw-semibold text-dark text-center' scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {searchQuery && searchQuery.length > 0 ? (
-                            // Jika ada query pencarian, tampilkan hasil pencarian (searchResults)
-                            searchResults.length > 0 ? (
-                                searchResults.map((users) => (
-                                    <tr key={users._id}>
+                        {searchQuery && searchQuery.length > 0 ? (
+                            searchResults && searchResults.length > 0 ? (
+                                searchResults.map((result, index) => (
+                                    <tr key={result._id}>
                                         <td>{`#U${index + 201}`}</td>
-                                        <td><img className='rounded-circle' src={users.avatar} alt="Avatar" width="50" height="50" /></td>
-                                        <td className='text-truncate'>{users.nama}</td>
-                                        <td className='text-truncate'>{users.jabatan || 'N/A'}</td>
-                                        <td className='text-truncate'>{users.pendidikan || 'N/A'}</td>
-                                        <td className='text-truncate'>{users.email}</td>
-                                        <td className={`text-center ${users.is_active ? 'text-success' : 'text-danger'}`}>
-                                            {users.is_active ? 'Aktif' : 'Tidak Aktif'}
+                                        <td><img className='rounded-circle' src={result.avatar} alt="Avatar" width="50" height="50" /></td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{result.nama}</td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{result.jabatan || 'N/A'}</td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{result.pendidikan || 'N/A'}</td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{result.email}</td>
+                                        <td className={`text-center ${result.is_active ? "text-success" : "text-danger"}`}>
+                                            {result.is_active ? "Aktif" : "Tidak Aktif"}
                                         </td>
-                                        <td className='text-center'>
-                                            <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-eye-fill text-info" onClick={() => handlePreviewUser(users._Id)}></i>
+                                        <td className="text-center">
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => handlePreviewMahasiswa(result._id)}>
+                                                <i className="bi bi-eye-fill text-info"></i>
                                             </button>
-                                            <button className="btn-sm me-2 border-0 bg-transparent">
-                                                <i className="bi bi-pencil-fill text-primary" onClick={() => openEditModal(users)}></i>
+                                            <button className="btn-sm me-2 border-0 bg-transparent" onClick={() => openEditModal(result)}>
+                                                <i className="bi bi-pencil-fill text-primary"></i>
                                             </button>
-                                            <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(users._id)}>
+                                            <button className="btn-sm border-0 bg-transparent" onClick={() => handleDeleteClick(result._id)}>
                                                 <i className="bi bi-trash-fill text-danger"></i>
                                             </button>
                                         </td>
@@ -356,10 +484,10 @@ export default function User() {
                                     <tr key={users._id}>
                                         <td>{`#U${index + 201}`}</td>
                                         <td><img className='rounded-circle' src={users.avatar} alt="Avatar" width="50" height="50" /></td>
-                                        <td>{users.nama}</td>
-                                        <td>{users.jabatan || 'N/A'}</td>
-                                        <td>{users.pendidikan || 'N/A'}</td>
-                                        <td>{users.email}</td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{users.nama}</td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{users.jabatan || 'N/A'}</td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{users.pendidikan || 'N/A'}</td>
+                                        <td className='text-truncate' style={{ maxWidth: '200px' }}>{users.email}</td>
                                         <td className={`text-center ${users.is_active ? 'text-success' : 'text-danger'}`}>
                                             {users.is_active ? 'Aktif' : 'Tidak Aktif'}
                                         </td>
@@ -413,18 +541,26 @@ export default function User() {
                 {/* pagination default */}
                 <nav>
                     <ul className="pagination justify-content-end">
+                        {/* Tombol Previous */}
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                             <button className="page-link" onClick={() => goToPage(currentPage - 1)}>
                                 <i className="bi bi-chevron-left"></i>
                             </button>
                         </li>
+
+                        {/* Generate Halaman */}
                         {Array.from({ length: totalPages }, (_, i) => (
-                            <li key={i} className={`page-item ${currentPage === i + 1 ? 'active bg-success text-white' : ''}`}>
+                            <li
+                                key={i}
+                                className={`page-item ${currentPage === i + 1 ? 'active bg-success text-white' : ''}`}
+                            >
                                 <button className="page-link" onClick={() => goToPage(i + 1)}>
                                     {i + 1}
                                 </button>
                             </li>
                         ))}
+
+                        {/* Tombol Next */}
                         <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
                             <button className="page-link" onClick={() => goToPage(currentPage + 1)}>
                                 <i className="bi bi-chevron-right"></i>
@@ -435,9 +571,9 @@ export default function User() {
             </div>
 
             {/* Modal untuk menambah pengguna */}
-            <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ position: 'fixed', top: '60%', left: '45%', transform: 'translate(-50%, -50%)', display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden={!showModal}>
+            <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ position: 'fixed', top: '50%', left: '40%', transform: 'translate(-50%, -50%)', display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden={!showModal}>
                 <div className="modal-dialog">
-                    <div className="modal-content" style={{ width: '600px' }}>
+                    <div className="modal-content" style={{ width: '800px' }}>
                         <div className="modal-header">
                             <h5 className="modal-title" id="exampleModalLabel">Tambah Pengguna</h5>
                             <button type="button" className="btn-close" onClick={() => setShowModal(false)} aria-label="Close"></button>
@@ -509,6 +645,126 @@ export default function User() {
                                         />
                                     </div>
                                 </div>
+                                <div className="d-flex justify-content-between">
+                                    <div className="w-50 me-4">
+                                        <label htmlFor="provinsi" className="form-label">Provinsi</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="provinsi"
+                                                value={newUser.alamat.provinsi}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Provinsi</option>
+                                                {provinces.map((province) => (
+                                                    <option key={province.id} value={province.id}>
+                                                        {province.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="w-50">
+                                        <label htmlFor="kota" className="form-label">Kota/Kabupaten</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="kota"
+                                                value={newUser.alamat.kota}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Kota/Kabupaten</option>
+                                                {cities.map((city) => (
+                                                    <option key={city.id} value={city.id}>
+                                                        {city.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="d-flex justify-content-between">
+                                    <div className="w-50 me-4">
+                                        <label htmlFor="kecamatan" className="form-label">Kecamatan</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="kecamatan"
+                                                value={newUser.alamat.kecamatan}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Kecamatan</option>
+                                                {districts.map((district) => (
+                                                    <option key={district.id} value={district.id}>
+                                                        {district.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="w-50">
+                                        <label htmlFor="kelurahan" className="form-label">Kelurahan</label>
+                                        <div className="input-group mb-2">
+                                            <select
+                                                name="kelurahan"
+                                                value={newUser.alamat.kelurahan}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Pilih Kelurahan</option>
+                                                {villages.map((village) => (
+                                                    <option key={village.id} value={village.id}>
+                                                        {village.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span className="input-group-text">
+                                                <i className="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="d-flex justify-content-between">
+                                    <div className="w-100 me-4">
+                                        <label htmlFor="tanggal_sk" className="form-label">Detail</label>
+                                        <input
+                                            type="text"
+                                            name="detail"
+                                            value={newUser.alamat.detail}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="e.g Jl, Sukarno Hatta No 12"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="w-50">
+                                        <label htmlFor="tanggal_sk" className="form-label">Kode POS</label>
+                                        <input
+                                            type="text"
+                                            name="kode_pos"
+                                            value={newUser.alamat.kode_pos}
+                                            onChange={handleInputChange}
+                                            className="form-control mb-2"
+                                            placeholder="e.g 403924"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className='d-flex justify-content-between mb-3'>
                                     <div className='w-50 me-2'>
                                         <label htmlFor="email" className='mb-2'>Email :</label>
@@ -561,6 +817,18 @@ export default function User() {
                                         ))}
                                     </select>
                                 </div>
+                                <div className='w-50 me-2'>
+                                    <label htmlFor="nama" className='mb-2'>Tentang :</label>
+                                    <input
+                                        type="text"
+                                        name="tentang"
+                                        value={newUser.tentang}
+                                        onChange={handleInputChange}
+                                        className="form-control"
+                                        placeholder="e.g. Seorang Dosen Mata Kuliah Inggris"
+                                        required
+                                    />
+                                </div>
                                 <button type="submit" className="btn btn-success" onClick={() => handleSaveData(usersList)}>Tambah</button>
                             </form>
                         </div>
@@ -586,15 +854,22 @@ export default function User() {
                             <div className="modal-body">
                                 <form onSubmit={handleEditSubmit}>
                                     <div className="form-group mt-3 mb-2">
-                                        <label>Avatar</label>
-                                        <div>
-                                            {currentAvatar && !selectedFile && (
-                                                <img
-                                                    src={currentAvatar}
-                                                    alt="Current Avatar"
-                                                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                                                />
+                                        <div className='form-group'>
+                                            {editUsers.avatar && (
+                                                <div className="preview-container mb-2" style={{ marginTop: "10px" }}>
+                                                    <img
+                                                        src={editUsers.avatar}
+                                                        alt="Avatar Preview"
+                                                        style={{
+                                                            maxWidth: "150px",
+                                                            maxHeight: "150px",
+                                                            borderRadius: "8px",
+                                                            border: "1px solid #ddd",
+                                                        }}
+                                                    />
+                                                </div>
                                             )}
+                                            <label>Avatar</label>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -679,7 +954,7 @@ export default function User() {
                                         </div>
                                     </div>
 
-                                    <div className="mb-2">
+                                    {/* <div className="mb-2">
                                         <label>Status</label>
                                         <select
                                             name="status"
@@ -692,7 +967,7 @@ export default function User() {
                                             <option value="Aktif">Aktif</option>
                                             <option value="Non Aktif">Non-Aktif</option>
                                         </select>
-                                    </div>
+                                    </div> */}
 
                                     <button type="submit" className="btn btn-primary" onClick={() => handleSaveData(usersList)}>
                                         Update
@@ -778,7 +1053,7 @@ export default function User() {
                     show={showConfirmDeleteModal}
                     onClose={() => setShowConfirmDeleteModal(false)}
                     message="Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak bisa dibatalkan."
-                    users={userToDelete}
+                    userId={userToDelete}
                     deleteUser={deleteUser} // Mengirimkan fungsi deleteUser ke modal
                 />
             )}

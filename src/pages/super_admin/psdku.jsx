@@ -1,22 +1,99 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Swal from "sweetalert2";
 import axiosClient from '../../services/axiosClient';
-// import axios from 'axios';
+import axios from 'axios';
 import PsdkuDelete from '../../components/compModals/psdkuDelete';
 import ModalFailed from '../../components/compModals/modalFailed';
 import ModalSuccess from '../../components/compModals/modalsuccess';
 
+const dummyData = {
+    provinsi: [
+        { id: 1, nama: 'Jawa Barat' },
+        { id: 2, nama: 'Jawa Tengah' }
+    ],
+    kota: {
+        1: [
+            { id: 1, nama: 'Bandung' },
+            { id: 2, nama: 'Bogor' }
+        ],
+        2: [
+            { id: 3, nama: 'Semarang' },
+            { id: 4, nama: 'Solo' }
+        ]
+    },
+    kecamatan: {
+        1: [
+            { id: 1, nama: 'Cipedes' },
+            { id: 2, nama: 'Tegalega' }
+        ],
+        2: [
+            { id: 3, nama: 'Tembalang' },
+            { id: 4, nama: 'Candisari' }
+        ],
+        3: [
+            { id: 5, nama: 'Jejeke' },
+            { id: 6, nama: 'Cipedes' }
+        ],
+        4: [
+            { id: 7, nama: 'Sihapur' },
+            { id: 8, nama: 'Cihupar' }
+        ]
+    },
+    kelurahan: {
+        1: [
+            { id: 1, nama: 'Panglayungan' },
+            { id: 2, nama: 'Sukasari' }
+        ],
+        2: [
+            { id: 3, nama: 'Sidoarum' },
+            { id: 4, nama: 'Kalipancur' }
+        ],
+        3: [
+            { id: 5, nama: 'SIhuhah' },
+            { id: 6, nama: 'Cikalincur' }
+        ],
+        4: [
+            { id: 7, nama: 'Cikucukur' },
+            { id: 8, nama: 'Pangcukur' }
+        ],
+        5: [
+            { id: 7, nama: 'Cikucukur' },
+            { id: 8, nama: 'Pangcukur' }
+        ],
+        6: [
+            { id: 7, nama: 'Kuharipan' },
+            { id: 8, nama: 'Kuhuripan' }
+        ],
+        7: [
+            { id: 7, nama: 'Cukukurur' },
+            { id: 8, nama: 'Jihuas' }
+        ],
+        8: [
+            { id: 7, nama: 'Cihamples' },
+            { id: 8, nama: 'Cihukar' }
+        ]
+    }
+};
+
 export default function Psdku() {
-    const [psdkuList, setPsdkuList] = useState([]); // State untuk menyimpan data PSDKU
-    const [error, setError] = useState(null); // State untuk menangani error
+    const [psdkuList, setPsdkuList] = useState([]);
+    const [error, setError] = useState(null);
     const [newPsdku, setNewPsdku] = useState({
+        banner: '',
+        avatar: '',
         kode_pt: '',
         tanggal_berdiri: '',
         tanggal_sk: '',
-        alamat: '',
+        detail: '',
+        kelurahan: '',
+        kecamatan: '',
+        kota: '',
+        provinsi: '',
+        kode_pos: '',
         psdku: '',
         prodi: [],
-        pengguna: [],
+        // pengguna: [],
         akreditasi: '',
         // status: '',
     });
@@ -25,6 +102,8 @@ export default function Psdku() {
     const [penggunaOptions, setPenggunaOptions] = useState([]); // State untuk menyimpan opsi pengguna
     const [prodiOptions, setProdiOptions] = useState([]); // State untuk menyimpan opsi prodi
     const [psdkuToDelete, setPsdkuToDelete] = useState(null);
+    const [bannerFile, setBannerFile] = useState(null);
+    const [avatarFile, setAvatarFile] = useState(null);
     const [editPsdku, setEditPsdku] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showModalEdit, setShowModalEdit] = useState(false);
@@ -34,16 +113,84 @@ export default function Psdku() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showModalDelete, setShowModalDelete] = useState(false);
 
+    const [provinces, setProvinces] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [villages, setVillages] = useState([]);
+
+    // Fetch Provinsi
+    const fetchProvinces = async () => {
+        try {
+            const response = await axios.get('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            // console.log("response:", response.data); // Log response data
+            setProvinces(response.data); // Set state dengan data yang diterima
+        } catch (error) {
+            console.error('Error fetching provinces:', error.message);
+        }
+    };
+
+    // Fetch Kota/Kabupaten berdasarkan Provinsi
+    const fetchCities = async (provinceId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`);
+            setCities(response.data); // Set state dengan data kota
+        } catch (error) {
+            console.error('Error fetching cities:', error.message);
+        }
+    };
+
+    // Fetch Kecamatan berdasarkan Kota/Kabupaten
+    const fetchDistricts = async (cityId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${cityId}.json`);
+            setDistricts(response.data); // Set state dengan data kecamatan
+        } catch (error) {
+            console.error('Error fetching districts:', error.message);
+        }
+    };
+
+    // Fetch Kelurahan/Desa berdasarkan Kecamatan
+    const fetchVillages = async (districtId) => {
+        try {
+            const response = await axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${districtId}.json`);
+            setVillages(response.data);
+        } catch (error) {
+            console.error('Error fetching villages:', error.message);
+        }
+    };
+
+
     // Fungsi untuk mengambil data dari API
     const fetchData = async () => {
         try {
+            const storedData = localStorage.getItem("psdkuData");
+
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
+
+                if (parsedData && Array.isArray(parsedData.data)) {
+                    setPsdkuList(parsedData.data);
+                    console.log("Data loaded from LS:", parsedData);
+                } else {
+                    console.log("Data in localStorage is not in the expected format.");
+                    const response = await axiosClient.get('/kampus/all');
+                    setPsdkuList(response.data.data);
+                    localStorage.setItem("psdkuData", JSON.stringify(response.data));
+                }
+                return;
+            }
+
+            // fetch data lagi boyy kalo data ga sesuai atau gada di LS
             const response = await axiosClient.get('/kampus/all');
-            // const response = await axiosClient.get('https://9l47d23v-5000.asse.devtunnels.ms/kampus/all');
-            setPsdkuList(response.data.data); // Pastikan untuk mengupdate psdkuList dengan response.data.data
+            setPsdkuList(response.data.data);
+            console.log("Data fetched from API:", response.data);
+            localStorage.setItem("psdkuData", JSON.stringify(response.data));
+
         } catch (error) {
             console.error("Error fetching data:", error.message);
         }
     };
+
 
 
 
@@ -106,6 +253,9 @@ export default function Psdku() {
         }
     };
 
+    useEffect(() => {
+        fetchProvinces();
+    }, []);
 
     useEffect(() => {
         fetchData();
@@ -114,6 +264,27 @@ export default function Psdku() {
         fetchProdi();
     }, []);
 
+
+    const uploadImage = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            // Ganti URL ke /kampus/add
+            const response = await axiosClient.post('/kampus/add', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            return response.data.path; // Kembalikan path gambar yang disimpan
+        } catch (error) {
+            console.error('Error uploading image:', error.message);
+            throw error;
+        }
+    };
+
+
     //Fungsi CRUD
 
     // fungsi untuk menambah data ke API
@@ -121,9 +292,21 @@ export default function Psdku() {
         try {
             const response = await axiosClient.post('/kampus/add', newPsdku);
             // const response = await axiosClient.post('https://9l47d23v-5000.asse.devtunnels.ms/kampus/add', newPsdku);
-            setPsdkuList((prevList) => [...prevList, response.data]); // Update list
+            setPsdkuList((prevList) => {
+                const updatedList = [...prevList, response.data];
+
+                // Sync data terbaru ke localStorage
+                localStorage.setItem("psdkuData", JSON.stringify(updatedList));
+
+                return updatedList;
+            });
+
+            const updatedData = JSON.parse(localStorage.getItem("psdkuData"));
+            console.log("Data after add in localStorage:", updatedData);
+
             fetchData();
-            setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', prodi: [], pengguna: [], akreditasi: '' }); // Reset form
+            // setNewPsdku({ kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', alamat: '', psdku: '', prodi: [], pengguna: [], akreditasi: '' }); // Reset form
+            setNewPsdku({ banner: '', avatar: '', kode_pt: '', tanggal_berdiri: '', tanggal_sk: '', detail: '', kelurahan: '', kecamatan: '', kota: '', provinsi: '', kode_pos: '', psdku: '', prodi: [], akreditasi: '' }); // Reset form
             setShowModal(false);
             setShowSuccessModal(true);
 
@@ -135,6 +318,18 @@ export default function Psdku() {
             setError("Failed to add PSDKU. Please try again.");
         }
     };
+
+    const handleImageChange = (e, type) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (type === 'banner') {
+                setBannerFile(file); // Simpan file banner yang dipilih
+            } else if (type === 'avatar') {
+                setAvatarFile(file); // Simpan file avatar yang dipilih
+            }
+        }
+    };
+
 
     // Fungsi untuk menambahkan pengguna ke dalam array pengguna
     const handleAddPengguna = (penggunaId) => {
@@ -164,7 +359,19 @@ export default function Psdku() {
             const response = await axiosClient.put(
                 `/kampus/edit/${editPsdku._id}`, editPsdku);
 
-            console.log("data yang di kirim :", editPsdku);
+            setPsdkuList((prevList) => {
+                const updatedList = [...prevList, response.data];
+
+                // Sync data terbaru ke localStorage
+                localStorage.setItem("psdkuData", JSON.stringify(updatedList));
+
+                return updatedList;
+            });
+
+            const updatedData = JSON.parse(localStorage.getItem("psdkuData"));
+            console.log("Data after edit in localStorage:", updatedData);
+
+            // console.log("data yang di kirim :", editPsdku);
             console.log('Psdku updated successfully:', response.data);
             setShowModalEdit(false);
             setShowSuccessModal(true);
@@ -179,23 +386,50 @@ export default function Psdku() {
     const deletePsdku = async (psdkuId) => {
         try {
             const response = await axiosClient.delete(`/kampus/delete/${psdkuId}`);
-            // const response = await axiosClient.delete(`https://9l47d23v-5000.asse.devtunnels.ms/kampus/delete/${psdkuId}`);
-
             // Menghapus data psdku dari state setelah dihapus dari API
             setPsdkuList((prevList) => prevList.filter((psdku) => psdku._id !== psdkuId));
 
+
+            localStorage.removeItem("psdkuData")
+
             console.log('Psdku deleted successfully:', response.data);
-            setShowSuccessModal(true);
         } catch (error) {
             setShowFailedModal(true);
             console.error('Error deleting psdku:', error.message);
         }
     };
 
-    const handleDeleteClick = (psdku) => {
-        setPsdkuToDelete(psdku); // Menyimpan data pengguna yang akan dihapus
-        setShowModalDelete(true); // Menampilkan modal konfirmasi
+    const handleRemovePsdkuClick = (psdkuId) => {
+        Swal.fire({
+            title: "Yakin ingin menghapus?",
+            text: "Data PSDKU ini akan dihapus permanen!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Panggil fungsi hapus jika user konfirmasi
+                deletePsdku(psdkuId);
+
+                // Tampilkan alert sukses
+                Swal.fire({
+                    title: "Dihapus!",
+                    text: "Data PSDKU telah dihapus.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
     };
+
+    // const handleDeleteClick = (psdku) => {
+    //     setPsdkuToDelete(psdku); // Menyimpan data pengguna yang akan dihapus
+    //     setShowModalDelete(true); // Menampilkan modal konfirmasi
+    // };
 
     // fungsi melihat detail psdku
     const getPsdkuById = async (psdkuId) => {
@@ -214,11 +448,24 @@ export default function Psdku() {
     // Fungsi untuk menangani perubahan input form
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setNewPsdku((prevPsdku) => ({
-            ...prevPsdku,
-            [name]: value,
-        }));
+        setNewPsdku((prev) => ({ ...prev, [name]: value }));
+
+        // Handle cascading dropdown
+        if (name === 'provinsi') {
+            fetchCities(value); // Fetch kota berdasarkan ID provinsi
+            setCities([]);
+            setDistricts([]);
+            setVillages([]);
+        } else if (name === 'kota') {
+            fetchDistricts(value); // Fetch kecamatan berdasarkan ID kota
+            setDistricts([]);
+            setVillages([]);
+        } else if (name === 'kecamatan') {
+            fetchVillages(value); // Fetch kelurahan berdasarkan ID kecamatan
+            setVillages([]);
+        }
     };
+
 
     // Fungsi untuk menangani pengiriman form
     const handleSubmit = (e) => {
@@ -231,7 +478,7 @@ export default function Psdku() {
         setEditPsdku({
             ...psdku,
             prodi: psdku.prodi?.map((p) => p._id) || [], // Pastikan 'prodi' adalah array
-            pengguna: psdku.pengguna || [], // Pastikan 'pengguna' adalah array
+            // pengguna: psdku.pengguna || [], // Pastikan 'pengguna' adalah array
             akreditasi: psdku.akreditasi?._id || "", // Misalnya ID akreditasi
         });
         setShowModalEdit(true);
@@ -253,12 +500,12 @@ export default function Psdku() {
     };
 
     // Fungsi untuk menghapus pengguna dari array pada saat edit
-    const handleEditRemovePengguna = (penggunaId) => {
-        setEditPsdku((prevPsdku) => ({
-            ...prevPsdku,
-            pengguna: prevPsdku.pengguna.filter((id) => id !== penggunaId),
-        }));
-    };
+    // const handleEditRemovePengguna = (penggunaId) => {
+    //     setEditPsdku((prevPsdku) => ({
+    //         ...prevPsdku,
+    //         pengguna: prevPsdku.pengguna.filter((id) => id !== penggunaId),
+    //     }));
+    // };
     // Fungsi untuk menghapus prodi dari array pada saat edit
     const handleEditRemoveProdi = (prodiId) => {
         setEditPsdku((prevPsdku) => ({
@@ -266,6 +513,60 @@ export default function Psdku() {
             prodi: prevPsdku.prodi.filter((id) => id !== prodiId),
         }));
     };
+
+    const handleRemoveClick = (prodiId) => {
+        Swal.fire({
+            title: "Yakin ingin menghapus?",
+            text: "Data prodi ini akan dihapus permanen!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Panggil fungsi hapus jika user konfirmasi
+                handleNewRemoveProdi(prodiId);
+
+                // Tampilkan alert sukses
+                Swal.fire({
+                    title: "Dihapus!",
+                    text: "Data prodi telah dihapus.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
+    };
+
+    const handleRemovePenggunaClick = (penggunaId) => {
+        Swal.fire({
+            title: "Yakin ingin menghapus?",
+            text: "Data pengguna ini akan dihapus permanen!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Panggil fungsi hapus jika user konfirmasi
+                handleNewRemovePengguna(penggunaId);
+
+                // Tampilkan alert sukses
+                Swal.fire({
+                    title: "Dihapus!",
+                    text: "Data pengguna telah dihapus.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
+    }
 
 
     // fungsi modal preview
@@ -281,6 +582,7 @@ export default function Psdku() {
 
     const handleEditChange = (event) => {
         const { name, value } = event.target;
+
         if (name === 'prodi') {
             // Jika prodi, tambahkan prodi ke dalam array jika belum ada
             setEditPsdku((prevPsdku) => {
@@ -289,98 +591,20 @@ export default function Psdku() {
                     : [...prevPsdku.prodi, value]; // Tambahkan prodi baru
                 return { ...prevPsdku, prodi: updatedProdi };
             });
-        } else if (name === 'pengguna') {
-            // Sama untuk pengguna jika diperlukan
-            setEditPsdku((prevPsdku) => {
-                const updatedPengguna = prevPsdku.pengguna.includes(value)
-                    ? prevPsdku.pengguna
-                    : [...prevPsdku.pengguna, value];
-                return { ...prevPsdku, pengguna: updatedPengguna };
-            });
+        } else if (name === 'detail' || name === 'kode_pos') {
+            // Jika nama field adalah 'detail' atau 'kode_pos', update bagian 'alamat'
+            setEditPsdku((prevPsdku) => ({
+                ...prevPsdku,
+                alamat: {
+                    ...prevPsdku.alamat,
+                    [name]: value, // update hanya field yang diubah
+                },
+            }));
         } else {
+            // Untuk field lain
             setEditPsdku((prevPsdku) => ({ ...prevPsdku, [name]: value }));
         }
     };
-
-
-
-    // const [provinces, setProvinces] = useState([]);
-    // const [regencies, setRegencies] = useState([]);
-    // const [districts, setDistricts] = useState([]);
-    // const [villages, setVillages] = useState([]);
-    // const [selectedProvince, setSelectedProvince] = useState(null);
-    // const [selectedRegency, setSelectedRegency] = useState(null);
-    // const [selectedDistrict, setSelectedDistrict] = useState(null);
-
-    // // Fungsi untuk mengambil kabupaten berdasarkan id provinsi
-    // const fetchProvinces = async () => {
-    //     try {
-    //         const response = await axios.get('/api/provinces.json');
-    //         console.log('API Response:', response);
-    //         setProvinces(response.data);
-    //     } catch (error) {
-    //         console.error('Error fetching provinces:', error.message);
-    //     }
-    // };
-
-
-    // const fetchRegencies = async (provinceId) => {
-    //     try {
-    //         const response = await axios.get(`/api-wilayah-indonesia/api/regencies/${provinceId}.json`);
-    //         setRegencies(response.data);  // Simpan data kabupaten
-    //     } catch (error) {
-    //         console.error("Error fetching regencies:", error.message);
-    //     }
-    // };
-
-    // // Fungsi untuk mengambil kecamatan berdasarkan id kabupaten
-    // const fetchDistricts = async (regencyId) => {
-    //     try {
-    //         const response = await axios.get(`/api-wilayah-indonesia/api/districts/${regencyId}.json`);
-    //         setDistricts(response.data);  // Simpan data kecamatan
-    //     } catch (error) {
-    //         console.error("Error fetching districts:", error.message);
-    //     }
-    // };
-
-    // // Fungsi untuk mengambil kelurahan berdasarkan id kecamatan
-    // const fetchVillages = async (districtId) => {
-    //     try {
-    //         const response = await axios.get(`/api-wilayah-indonesia/api/villages/${districtId}.json`);
-    //         setVillages(response.data);  // Simpan data kelurahan
-    //     } catch (error) {
-    //         console.error("Error fetching villages:", error.message);
-    //     }
-    // };
-
-    // // Mengambil semua data ketika komponen dimuat pertama kali
-    // useEffect(() => {
-    //     fetchProvinces();  // Ambil data provinsi
-    // }, []);
-
-    // // Fungsi untuk menangani perubahan provinsi
-    // const handleProvinceChange = (e) => {
-    //     const provinceId = e.target.value;
-    //     setSelectedProvince(provinceId);  // Simpan id provinsi yang dipilih
-    //     fetchRegencies(provinceId);  // Ambil kabupaten berdasarkan provinsi
-    // };
-
-    // // Fungsi untuk menangani perubahan kabupaten
-    // const handleRegencyChange = (e) => {
-    //     const regencyId = e.target.value;
-    //     setSelectedRegency(regencyId);  // Simpan id kabupaten yang dipilih
-    //     fetchDistricts(regencyId);  // Ambil kecamatan berdasarkan kabupaten
-    // };
-
-    // // Fungsi untuk menangani perubahan kecamatan
-    // const handleDistrictChange = (e) => {
-    //     const districtId = e.target.value;
-    //     setSelectedDistrict(districtId);  // Simpan id kecamatan yang dipilih
-    //     fetchVillages(districtId);  // Ambil kelurahan berdasarkan kecamatan
-    // };
-
-
-
 
     return (
         <div className="container mt-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
@@ -451,14 +675,14 @@ export default function Psdku() {
                         <button className='btn btn-info' onClick={() => setShowModalPreview(true)}>Cek Modal Preview</button> */}
                     </div>
                     <table className="table mt-4">
-                        <thead className='table table-secondary'>
+                        <thead className='table'>
                             <tr>
-                                <th className="fw-semibold text-dark text-start">No</th>
-                                <th className="fw-semibold text-dark text-start">Kode PT</th>
-                                <th className="fw-semibold text-dark text-start text-truncate">PSDKU</th>
-                                <th className="fw-semibold text-dark text-center">Akreditasi</th>
-                                <th className="fw-semibold text-dark text-center">Status</th>
-                                <th className="fw-semibold text-dark text-center">Action</th>
+                                <th className="cstm-bg fw-semibold text-dark text-start">No</th>
+                                <th className="cstm-bg fw-semibold text-dark text-start">Kode PT</th>
+                                <th className="cstm-bg fw-semibold text-dark text-start text-truncate">PSDKU</th>
+                                <th className="cstm-bg fw-semibold text-dark text-center">Akreditasi</th>
+                                <th className="cstm-bg fw-semibold text-dark text-center">Status</th>
+                                <th className="cstm-bg fw-semibold text-dark text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -480,7 +704,7 @@ export default function Psdku() {
                                                 <i className="bi bi-pencil-fill text-primary"></i>
                                             </button>
                                             <button className="btn-sm border-0 bg-transparent">
-                                                <i className="bi bi-trash-fill text-danger" onClick={() => handleDeleteClick(psdku._id)}></i>
+                                                <i className="bi bi-trash-fill text-danger" onClick={() => handleRemovePsdkuClick(psdku._id)}></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -499,7 +723,7 @@ export default function Psdku() {
 
             {/* Modal Tambah PSDKU */}
             {showModal && (
-                <div className="modal fade show d-block" style={{ position: 'fixed', top: '50%', left: '45%', transform: 'translate(-50%, -50%)' }}>
+                <div className="modal fade show d-block" style={{ position: 'fixed', top: '50%', left: '43%', transform: 'translate(-50%, -50%)', animation: 'fadeIn 0.8s ease-out', }}>
                     <div className="modal-dialog">
                         <div className="modal-content" style={{ width: '800px' }}>
                             <div className="modal-header">
@@ -508,6 +732,35 @@ export default function Psdku() {
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit}>
+                                    <div className='d-flex justify-content-between'>
+                                        <div className="form-group">
+                                            <label>Banner</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                name="banner"
+                                                value={newPsdku.banner}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                placeholder="banner"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Avatar</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                name="avatar"
+                                                value={newPsdku.avatar}
+                                                onChange={handleInputChange}
+                                                className="form-control"
+                                                placeholder="avatar"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
                                     <div className='d-flex justify-content-between'>
                                         <div className="w-100 w-80 me-4">
                                             <label htmlFor="kode_pt" className="form-label">Kode PT :</label>
@@ -560,45 +813,45 @@ export default function Psdku() {
                                             />
                                         </div>
                                     </div>
-                                    <div className='d-flex justify-content-between'>
-                                        <div className="w-100 w-80 me-4">
-                                            <label htmlFor="alamat" className="form-label">Provinsi :</label>
+                                    <div className="d-flex justify-content-between">
+                                        <div className="w-50 me-4">
+                                            <label htmlFor="provinsi" className="form-label">Provinsi</label>
                                             <div className="input-group mb-2">
                                                 <select
-                                                    id='provinsi'
-                                                    // value={selectedProvince || ''}
+                                                    name="provinsi"
+                                                    value={newPsdku.provinsi}
+                                                    onChange={handleInputChange}
                                                     className="form-control"
-                                                    // onChange={handleProvinceChange}
                                                     required
                                                 >
                                                     <option value="">Pilih Provinsi</option>
-                                                    {/* Periksa apakah provinces adalah array sebelum menggunakan map */}
-                                                    {/* {Array.isArray(provinces) && provinces.map(province => (
-                                                        <option key={province.id} value={province.id}>{province.name}</option>
-                                                    ))} */}
+                                                    {provinces.map((province) => (
+                                                        <option key={province.id} value={province.id}>
+                                                            {province.name}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                                 <span className="input-group-text">
                                                     <i className="bi bi-chevron-down"></i>
                                                 </span>
                                             </div>
                                         </div>
-
-                                        <div className="w-100">
-                                            <label htmlFor="alamat" className="form-label">Kota :</label>
+                                        <div className="w-50">
+                                            <label htmlFor="kota" className="form-label">Kota/Kabupaten</label>
                                             <div className="input-group mb-2">
                                                 <select
-                                                    id="kota"
-                                                    // value={selectedRegency || ''}
-                                                    className='form-control'
-                                                    // onChange={handleRegencyChange}
-                                                    // disabled={!selectedProvince}
+                                                    name="kota"
+                                                    value={newPsdku.kota}
+                                                    onChange={handleInputChange}
+                                                    className="form-control"
                                                     required
                                                 >
-                                                    <option value="">Pilih Kota</option>
-                                                    {/* Periksa apakah regencies adalah array sebelum menggunakan map */}
-                                                    {/* {Array.isArray(regencies) && regencies.map(regency => (
-                                                        <option key={regency.id} value={regency.id}>{regency.name}</option>
-                                                    ))} */}
+                                                    <option value="">Pilih Kota/Kabupaten</option>
+                                                    {cities.map((city) => (
+                                                        <option key={city.id} value={city.id}>
+                                                            {city.name}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                                 <span className="input-group-text">
                                                     <i className="bi bi-chevron-down"></i>
@@ -607,48 +860,76 @@ export default function Psdku() {
                                         </div>
                                     </div>
 
-                                    <div className='d-flex justify-content-between'>
-                                        <div className="w-100 w-80 me-4">
-                                            <label htmlFor="alamat" className="form-label">Kabupaten :</label>
+                                    <div className="d-flex justify-content-between">
+                                        <div className="w-50 me-4">
+                                            <label htmlFor="kecamatan" className="form-label">Kecamatan</label>
                                             <div className="input-group mb-2">
                                                 <select
-                                                    id="kabupaten"
-                                                    // value={selectedDistrict || ''}
-                                                    className='form-control'
-                                                // onChange={handleDistrictChange}
-                                                // disabled={!selectedRegency}
+                                                    name="kecamatan"
+                                                    value={newPsdku.kecamatan}
+                                                    onChange={handleInputChange}
+                                                    className="form-control"
+                                                    required
                                                 >
-                                                    <option value="">Pilih Kabupaten</option>
-                                                    {/* Periksa apakah districts adalah array sebelum menggunakan map */}
-                                                    {/* {Array.isArray(districts) && districts.map(district => (
-                                                        <option key={district.id} value={district.id}>{district.name}</option>
-                                                    ))} */}
+                                                    <option value="">Pilih Kecamatan</option>
+                                                    {districts.map((district) => (
+                                                        <option key={district.id} value={district.id}>
+                                                            {district.name}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                                 <span className="input-group-text">
                                                     <i className="bi bi-chevron-down"></i>
                                                 </span>
                                             </div>
                                         </div>
-
-                                        <div className="w-100">
-                                            <label htmlFor="alamat" className="form-label">Kelurahan :</label>
-                                            <div className="input-group">
+                                        <div className="w-50">
+                                            <label htmlFor="kelurahan" className="form-label">Kelurahan</label>
+                                            <div className="input-group mb-2">
                                                 <select
-                                                    id="kelurahan"
-                                                    // value={newPsdku.alamat || ''}
-                                                    className='form-control'
-                                                // disabled={!selectedDistrict}
+                                                    name="kelurahan"
+                                                    value={newPsdku.kelurahan}
+                                                    onChange={handleInputChange}
+                                                    className="form-control"
+                                                    required
                                                 >
                                                     <option value="">Pilih Kelurahan</option>
-                                                    {/* Periksa apakah villages adalah array sebelum menggunakan map */}
-                                                    {/* {Array.isArray(villages) && villages.map(village => (
-                                                        <option key={village.id} value={village.id}>{village.name}</option>
-                                                    ))} */}
+                                                    {villages.map((village) => (
+                                                        <option key={village.id} value={village.id}>
+                                                            {village.name}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                                 <span className="input-group-text">
                                                     <i className="bi bi-chevron-down"></i>
                                                 </span>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div className="d-flex justify-content-between">
+                                        <div className="w-100 me-4">
+                                            <label htmlFor="tanggal_sk" className="form-label">Detail</label>
+                                            <input
+                                                type="text"
+                                                name="detail"
+                                                value={newPsdku.detail}
+                                                onChange={handleInputChange}
+                                                className="form-control mb-2"
+                                                placeholder="e.g Jl, Sukarno Hatta No 12"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="w-50">
+                                            <label htmlFor="tanggal_sk" className="form-label">Kode POS</label>
+                                            <input
+                                                type="text"
+                                                name="kode_pos"
+                                                value={newPsdku.kode_pos}
+                                                onChange={handleInputChange}
+                                                className="form-control mb-2"
+                                                placeholder="e.g 403924"
+                                                required
+                                            />
                                         </div>
                                     </div>
                                     <div className='d-flex justify-content-between mb-2'>
@@ -657,6 +938,7 @@ export default function Psdku() {
                                             <div className="input-group mb-2">
                                                 <select
                                                     id="prodi"
+                                                    // multiple
                                                     value={newPsdku.prodi}
                                                     className="form-control"
                                                     onChange={(e) => handleAddProdi(e.target.value)}
@@ -673,19 +955,18 @@ export default function Psdku() {
                                                 </span>
                                             </div>
                                         </div>
-
                                         <div className="mt-2">
-                                            <span>Prodi yang Ditambahkan :</span>
-                                            <ul>
+                                            <span className="fw-semibold mb-2 d-block">Prodi yang Ditambahkan:</span>
+                                            <ul className="list-group">
                                                 {newPsdku.prodi.map((prodiId, index) => {
                                                     const prodi = prodiOptions.find(option => option._id === prodiId);
                                                     return prodi ? (
-                                                        <li key={index}>
-                                                            {prodi.nama}
+                                                        <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                                                            <span className='me-2'>{prodi.nama}</span>
                                                             <button
                                                                 type="button"
-                                                                className="btn btn-sm btn-danger ml-2 ms-5"
-                                                                onClick={() => handleNewRemoveProdi(prodiId)}
+                                                                className="btn btn-sm btn-danger"
+                                                                onClick={() => handleRemoveClick(prodiId)}
                                                             >
                                                                 -
                                                             </button>
@@ -695,7 +976,7 @@ export default function Psdku() {
                                             </ul>
                                         </div>
                                     </div>
-                                    <div className='d-flex justify-content-between mb-2'>
+                                    {/* <div className='d-flex justify-content-between mb-2'>
                                         <div className="form-group w-50 me-4">
                                             <label htmlFor="pengguna" className="form-label">Pilih Pengguna</label>
                                             <div className="input-group mb-2">
@@ -719,17 +1000,17 @@ export default function Psdku() {
                                         </div>
 
                                         <div className="mt-2">
-                                            <span>Pengguna yang Ditambahkan :</span>
-                                            <ul>
+                                            <span className='fw-semibold mb-2 d-block'>Pengguna yang Ditambahkan :</span>
+                                            <ul className='list-group'>
                                                 {newPsdku.pengguna.map((penggunaId, index) => {
                                                     const pengguna = penggunaOptions.find(option => option._id === penggunaId);
                                                     return pengguna ? (
-                                                        <li key={index}>
+                                                        <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                                                             {pengguna.nama}
                                                             <button
                                                                 type="button"
                                                                 className="btn btn-sm btn-danger ml-2 ms-5"
-                                                                onClick={() => handleNewRemovePengguna(penggunaId)}
+                                                                onClick={() => handleRemovePenggunaClick(penggunaId)}
                                                             >
                                                                 -
                                                             </button>
@@ -738,7 +1019,7 @@ export default function Psdku() {
                                                 })}
                                             </ul>
                                         </div>
-                                    </div>
+                                    </div> */}
 
                                     <div className="form-group">
                                         <label htmlFor="akreditasi" className="form-label">Pilih Akreditasi :</label>
@@ -775,7 +1056,7 @@ export default function Psdku() {
                 showModalEdit && (
                     <div className="modal fade show d-block" id="editModal" tabIndex="-1" role="dialog" aria-hidden="true">
                         <div className="modal-dialog" role="document">
-                            <div className="modal-content" style={{ width: '600px' }}>
+                            <div className="modal-content" style={{ width: '800px' }}>
                                 <div className="modal-header">
                                     <h5 className="modal-title">Edit PSDKU</h5>
                                     <button
@@ -787,13 +1068,29 @@ export default function Psdku() {
                                 </div>
                                 <div className="modal-body">
                                     <form onSubmit={handleEditSubmit}>
+                                        <div className="form-group">
+                                            {editPsdku.avatar && (
+                                                <div className="preview-container mb-2" style={{ marginTop: "10px" }}>
+                                                    <img
+                                                        src={editPsdku.avatar}
+                                                        alt="Banner Preview"
+                                                        style={{
+                                                            maxWidth: "150px",
+                                                            maxHeight: "150px",
+                                                            borderRadius: "8px",
+                                                            border: "1px solid #ddd",
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                         <div className='d-flex gap-2'>
                                             <div className="mb-2 w-50">
                                                 <label className='mb-2'>Kode PT</label>
                                                 <input
                                                     type="text"
                                                     name="kode_pt"
-                                                    value={editPsdku.kode_pt} // Mengambil nilai dari state
+                                                    value={editPsdku.kode_pt}
                                                     onChange={handleEditChange}
                                                     className="form-control"
                                                     disabled
@@ -855,18 +1152,18 @@ export default function Psdku() {
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="mt-2">
-                                                <span>Prodi yang Ditambahkan:</span>
-                                                <ul>
+                                            <div className="mt-2 mb-2">
+                                                <span className='fw-semibold mb-2 d-block'>Prodi yang Ditambahkan:</span>
+                                                <ul className='list-group'>
                                                     {editPsdku.prodi.map((prodiId, index) => {
                                                         const prodi = prodiOptions.find(option => option._id === prodiId);
                                                         return prodi ? (
-                                                            <li key={index}>
-                                                                {prodi.nama}
+                                                            <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                                                                <span className='me-2'>{prodi.nama}</span>
                                                                 <button
                                                                     type="button"
                                                                     className="btn btn-sm btn-danger ml-2 ms-4"
-                                                                    onClick={() => handleEditRemoveProdi(prodiId)}
+                                                                    onClick={() => handleRemoveClick(prodiId)}
                                                                 >
                                                                     -
                                                                 </button>
@@ -876,7 +1173,7 @@ export default function Psdku() {
                                                 </ul>
                                             </div>
                                         </div>
-                                        <div className='d-flex justify-content-between'>
+                                        {/* <div className='d-flex justify-content-between'>
                                             <div className="mb-2 w-50">
                                                 <label className='mb-2'>Pengguna</label>
                                                 <div className='input-group'>
@@ -889,7 +1186,7 @@ export default function Psdku() {
                                                     >
                                                         {Array.isArray(penggunaOptions) && penggunaOptions.map((option) => (
                                                             <option key={option._id} value={option._id}>
-                                                                {option.nama} {/* Menampilkan nama pengguna */}
+                                                                {option.nama}
                                                             </option>
                                                         ))}
                                                     </select>
@@ -899,17 +1196,17 @@ export default function Psdku() {
                                                 </div>
                                             </div>
                                             <div className="mt-2">
-                                                <span>Pengguna yang Ditambahkan:</span>
-                                                <ul>
+                                                <span className='fw-semibold mb-2 d-block'>Pengguna yang Ditambahkan:</span>
+                                                <ul className='list-group'>
                                                     {editPsdku.pengguna.map((penggunaId, index) => {
                                                         const pengguna = penggunaOptions.find(option => option._id === penggunaId);
                                                         return pengguna ? (
-                                                            <li key={index}>
-                                                                {pengguna.nama}
+                                                            <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                                                                <span>{pengguna.nama}</span>
                                                                 <button
                                                                     type="button"
                                                                     className="btn btn-sm btn-danger ml-2 ms-4"
-                                                                    onClick={() => handleEditRemovePengguna(penggunaId)}
+                                                                    onClick={() => handleRemovePenggunaClick(penggunaId)}
                                                                 >
                                                                     -
                                                                 </button>
@@ -918,69 +1215,122 @@ export default function Psdku() {
                                                     })}
                                                 </ul>
                                             </div>
+                                        </div> */}
+                                        {/* <div className="d-flex justify-content-between">
+                                            <div className="w-50 me-4">
+                                                <label htmlFor="provinsi" className="form-label">Provinsi</label>
+                                                <div className="input-group mb-2">
+                                                    <select
+                                                        name="provinsi"
+                                                        value={editPsdku.alamat.provinsi}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                        required
+                                                    >
+                                                        <option value="">Pilih Provinsi</option>
+                                                        {provinces.map((province) => (
+                                                            <option key={province.id} value={province.id}>
+                                                                {province.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="w-50">
+                                                <label htmlFor="kota" className="form-label">Kota/Kabupaten</label>
+                                                <div className="input-group mb-2">
+                                                    <select
+                                                        name="kota"
+                                                        value={editPsdku.alamat.kota}
+                                                        onChange={handleEditChange}
+                                                        className="form-control"
+                                                        required
+                                                    >
+                                                        <option value="">Pilih Kota/Kabupaten</option>
+                                                        {cities.map((city) => (
+                                                            <option key={city.id} value={city.id}>
+                                                                {city.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <span className="input-group-text">
+                                                        <i className="bi bi-chevron-down"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className='d-flex justify-content-between'>
-                                            <div className="mb-2 w-50 me-3">
-                                                <label className='mb-2'>Provinsi</label>
-                                                <div className="input-group">
-                                                    <input
-                                                        type="text"
-                                                        name="alamat"
-                                                        value={editPsdku.alamat}
+
+                                        <div className="d-flex justify-content-between">
+                                            <div className="w-50 me-4">
+                                                <label htmlFor="kecamatan" className="form-label">Kecamatan</label>
+                                                <div className="input-group mb-2">
+                                                    <select
+                                                        name="kecamatan"
+                                                        value={editPsdku.alamat.kecamatan}
                                                         onChange={handleEditChange}
                                                         className="form-control"
-                                                    />
+                                                        required
+                                                    >
+                                                        <option value="">Pilih Kecamatan</option>
+                                                        {districts.map((district) => (
+                                                            <option key={district.id} value={district.id}>
+                                                                {district.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                     <span className="input-group-text">
                                                         <i className="bi bi-chevron-down"></i>
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="mb-2 w-50">
-                                                <label className='mb-2'>Kota</label>
-                                                <div className='input-group'>
-                                                    <input
-                                                        type="text"
-                                                        name="alamat"
-                                                        value={editPsdku.alamat}
+                                            <div className="w-50">
+                                                <label htmlFor="kelurahan" className="form-label">Kelurahan</label>
+                                                <div className="input-group mb-2">
+                                                    <select
+                                                        name="kelurahan"
+                                                        value={editPsdku.alamat.kelurahan}
                                                         onChange={handleEditChange}
                                                         className="form-control"
-                                                    />
+                                                        required
+                                                    >
+                                                        <option value="">Pilih Kelurahan</option>
+                                                        {villages.map((village) => (
+                                                            <option key={village.id} value={village.id}>
+                                                                {village.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                     <span className="input-group-text">
                                                         <i className="bi bi-chevron-down"></i>
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className='d-flex justify-content-between'>
-                                            <div className="mb-2 w-50 me-3">
-                                                <label className='mb-2'>Kabupaten</label>
-                                                <div className="input-group">
-                                                    <input
-                                                        type="text"
-                                                        name="alamat"
-                                                        value={editPsdku.alamat}
-                                                        onChange={handleEditChange}
-                                                        className="form-control"
-                                                    />
-                                                    <span className="input-group-text">
-                                                        <i className="bi bi-chevron-down"></i>
-                                                    </span>
-                                                </div>
+                                        </div> */}
+                                        <div className="d-flex justify-content-between">
+                                            <div className="w-100 me-4">
+                                                <label htmlFor="tanggal_sk" className="form-label">Detail</label>
+                                                <input
+                                                    type="text"
+                                                    name="detail"
+                                                    value={editPsdku.alamat.detail}
+                                                    onChange={handleEditChange}
+                                                    className="form-control mb-2"
+                                                    required
+                                                />
                                             </div>
-                                            <div className="mb-2 w-50">
-                                                <label className='mb-2'>Kecamatan</label>
-                                                <div className="input-group">
-                                                    <input
-                                                        type="text"
-                                                        name="alamat"
-                                                        value={editPsdku.alamat}
-                                                        onChange={handleEditChange}
-                                                        className="form-control"
-                                                    />
-                                                    <span className="input-group-text">
-                                                        <i className="bi bi-chevron-down"></i>
-                                                    </span>
-                                                </div>
+                                            <div className="w-50">
+                                                <label htmlFor="tanggal_sk" className="form-label">Kode POS</label>
+                                                <input
+                                                    type="text"
+                                                    name="kode_pos"
+                                                    value={editPsdku.alamat.kode_pos}
+                                                    onChange={handleEditChange}
+                                                    className="form-control mb-2"
+                                                    required
+                                                />
                                             </div>
                                         </div>
                                         <div className="mb-2">
@@ -1044,9 +1394,9 @@ export default function Psdku() {
                                 <div className="modal-body p-4">
                                     <div className="text-center">
                                         {/* Nama */}
-                                        <h5 className="fw-bold mb-1">Politeknik LP3I Bandung</h5>
-                                        {/* Jabatan */}
-                                        <p className="text-muted mb-4">460052</p>
+                                        <h5 className="fw-bold mb-1">{previewPsdku.psdku}</h5>
+                                        {/* Kode PT */}
+                                        <p className="text-muted mb-4">{previewPsdku.kode_pt}</p>
                                     </div>
                                     {/* Info Tambahan */}
                                     <hr />
@@ -1055,32 +1405,38 @@ export default function Psdku() {
                                     </p>
                                     <div className="d-flex justify-content-between">
                                         <span className="fw-bold">Tgl Berdiri</span>
-                                        <span>20 Desember 2024</span>
+                                        <span>{previewPsdku.tanggal_berdiri}</span>
                                     </div>
                                     <div className="d-flex justify-content-between mt-2">
                                         <span className="fw-bold">Tgl SK</span>
-                                        <span>SK/10/19/2004</span>
+                                        <span>{previewPsdku.tanggal_sk}</span>
                                     </div>
                                     <div className="d-flex justify-content-between mt-2">
                                         <span className="fw-bold">Alamat</span>
-                                        <span>Jawa Barat, Bandung, Cibiru, Sukarno Hatta 11</span>
+                                        <span>{previewPsdku.alamat?.detail}</span>
                                     </div>
                                     <hr />
                                     <p className="text-center text-uppercase text-muted fw-bold mb-3">
                                         Prodi And Kaprodi
                                     </p>
-                                    <div className="d-flex justify-content-between">
-                                        <span className="fw-bold">Manajement Informatika</span>
-                                        <span>Rita S.Pd</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between mt-2">
-                                        <span className="fw-bold">Administrasi Bisnis</span>
-                                        <span>Nijar S.Pd</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between mt-2">
-                                        <span className="fw-bold">Manajement Keuangan Perbangkan</span>
-                                        <span>Aripin S.Pd</span>
-                                    </div>
+                                    {previewPsdku.prodi?.length > 0 ? (
+                                        previewPsdku.prodi.map((item, index) => (
+                                            <div key={index} className="d-flex justify-content-between">
+                                                <span className="fw-bold">{item.nama}</span>
+                                                {item.id_pengguna && item.id_pengguna.length > 0 ? (
+                                                    <div>
+                                                        {item.id_pengguna.map((pengguna, idx) => (
+                                                            <span key={idx} className="text-muted">{pengguna.nama}</span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-muted">Belum Menambahkan Kaprodi</span>
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-center text-muted">Tidak ada data prodi</p>
+                                    )}
                                 </div>
                                 <div className="modal-footer border-0">
                                     <button

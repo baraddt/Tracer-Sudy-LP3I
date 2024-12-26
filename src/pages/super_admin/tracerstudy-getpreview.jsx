@@ -12,6 +12,8 @@ export default function TracerStudyPreview() {
             try {
                 const response = await axiosClient.get(`/tracerstudy/${id}`);
                 setTracerDetail(response.data.data); // Simpan detail ke state
+                console.log("detail:", tracerDetail);
+                
             } catch (error) {
                 console.error("Error fetching tracer detail:", error.message);
             }
@@ -35,7 +37,7 @@ export default function TracerStudyPreview() {
                             {tracerDetail.id_detail.nama_kegiatan}
                         </p>
                         <p className="text-secondary" style={{ fontSize: '15px' }}>
-                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerDetail.createdAt).toLocaleString()}
+                            Dibuat oleh | {tracerDetail.id_pembuat.nama} | {new Date(tracerDetail.createdAt).toLocaleString()}
                         </p>
                     </div>
 
@@ -134,7 +136,7 @@ export default function TracerStudyPreview() {
                         </div>
                         <div>
                             <Link to='/super_admin/tracerstudy'>
-                                <button type="button" className="btn btn-danger mb-3 me-3">Kembali</button>
+                                <button type="button" className="btn btn-danger mb-3 me-3">Back</button>
                             </Link>
                             <Link to='/super_admin/tracerstudy'>
                                 <button type="submit" className="btn btn-success mb-3">Publikasi</button>

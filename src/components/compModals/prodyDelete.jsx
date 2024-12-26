@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ModalConfirmDelete = ({ show, onClose, onConfirm, message, program, deleteProgram }) => {
+const ModalConfirmDelete = ({ show, onClose, onConfirm, message, programId, deleteProgram }) => {
     return (
         <div className={`modal fade ${show ? 'show' : ''}`} style={{ display: show ? 'block' : 'none' }} tabIndex="-1" role="dialog">
             <div className="modal-dialog modal-dialog-centered" role="document">
@@ -23,7 +23,7 @@ const ModalConfirmDelete = ({ show, onClose, onConfirm, message, program, delete
                         <button
                             type="button"
                             className="btn btn-danger"
-                            onClick={() => deleteProgram(program._id)} // Menambahkan deleteUser di sini
+                            onClick={() => deleteProgram(programId)} 
                         >
                             Delete
                         </button>

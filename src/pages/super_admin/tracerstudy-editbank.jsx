@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axiosClient from '../../services/axiosClient';
 import ModalSuccess from '../../components/compModals/modalsuccess';
@@ -8,6 +8,7 @@ import ModalSuccessSoal from '../../components/compModals/soalModals';
 
 
 export default function () {
+    const { id } = useParams();
     const navigate = useNavigate();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showFailedModal, setShowFailedModal] = useState(false);
@@ -26,71 +27,56 @@ export default function () {
     const [options, setOptions] = useState(['', '', '', '']);
     const [weights, setWeights] = useState(['1', '1', '1', '1']);
 
-    // useEffect(() => {
-    //     const tracerId = localStorage.getItem('tracerId'); // Ambil ID dari localStorage
-    //     if (!tracerId) {
-    //         console.error("Tracer ID tidak ditemukan di localStorage.");
-    //         navigate('/super_admin/tracerstudy-golongan-kegiatan'); // Redirect ke step 1 jika ID tidak ditemukan
-    //     } else {
-    //         setDataTracerId(tracerId); // Simpan ke state
-    //         console.log("Tracer ID diambil dari localStorage:", tracerId);
-    //     }
-    // }, [navigate]);
-
-    // Fetch Tracer ID
-    // const fetchTracer = async () => {
-    //     try {
-    //         const response = await axiosClient.get('/tracerstudy/all');
-    //         if (response.data.data && response.data.data.length > 0) {
-    //             setDataTracerId(response.data.data[0]._id);
-    //             console.log("ID tracer yang diambil:", response.data.data[0]._id);
-    //         } else {
-    //             console.error("Data tracer kosong atau tidak ditemukan.");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error fetching data:", error.message);
-    //     }
-    // };
-
     // fetch bank soal untuk preview soal
     const fetchBankSoal = async () => {
-        if (!dataTracerId) {
-            console.error("ID Tracer belum tersedia.");
+        if (!id) {
+            setError("ID Tracer belum tersedia.");
             return;
         }
         try {
-            const response = await axiosClient.get(
-                `/tracerstudy/bank_soal/get/${dataTracerId}`
-                ,);
+            const response = await axiosClient.get(`/tracerstudy/bank_soal/get/${id}`);
             if (response.data && response.data.data) {
                 console.log("Data soal berhasil diambil:", response.data.data);
-                setBankSoalList(response.data.data);
+                setBankSoalList(response.data.data);  // Simpan data soal ke state
             } else {
-                console.error("Bank soal kosong atau tidak ditemukan.");
+                setError("Bank soal kosong atau tidak ditemukan.");
             }
         } catch (error) {
-            console.error("Error fetching data:", error.message);
+            console.error("data tidak terpanggil:", error.message);
+
+            setError("Error fetching data: " + error.message);
         }
     };
 
 
-    // Memanggil data tracer
-    // useEffect(() => {
-    //     fetchTracer();
-    // }, []);
-
     // Memanggil bank soal setelah dataTracerId tersedia
     useEffect(() => {
-        if (dataTracerId) {
-            fetchBankSoal();
+        fetchBankSoal();
+    }, []);
+
+
+    const handleNavigateAndUpdate = async () => {
+        try {
+            // Fetch data terbaru
+            const response = await axiosClient.get('/tracerstudy/all');
+            const updatedTracerData = response.data;
+
+            // Update localStorage
+            localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+            console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+            // Redirect ke halaman /super_admin/tracerstudy
+            navigate('/super_admin/tracerstudy');
+        } catch (error) {
+            console.error("Error updating tracer data:", error.message);
         }
-    }, [dataTracerId]);
+    };
 
     // Fungsi untuk menambah soal ke API
     const addSoal = async (soalToSubmit) => {
         try {
             const response = await axiosClient.post(
-                `/tracerstudy/banksoal/add/${dataTracerId}`,
+                `/tracerstudy/banksoal/add/${id}`,
                 soalToSubmit
                 ,);
             setShowSuccessSoal(true);
@@ -159,12 +145,6 @@ export default function () {
             console.error("Error deleting soal:", error.message);
         }
     };
-
-    // const deleteSoal = async (soalId) => {
-    //     try {
-    //         const response = await axiosClient.delete(``)
-    //     }
-    // }
 
     // Menangani perubahan input pertanyaan
     const handleInputChange = (event) => {
@@ -241,9 +221,7 @@ export default function () {
         e.preventDefault();
 
         // Ambil tracerId dari localStorage
-        const tracerIdFromLocalStorage = localStorage.getItem('tracerId');
-        console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage); // Tampilkan ID dari localStorage
-        console.log("ID yang akan diedit:", dataTracerId); // Tampilkan ID yang ada di state
+        console.log("ID yang akan diedit:", id); // Tampilkan ID yang ada di state
 
         // Perbarui jawaban dan bobot
         const updatedJawaban = options.map((option, index) => ({
@@ -257,22 +235,19 @@ export default function () {
             jawaban: updatedJawaban,
         };
 
-        console.log("ID soal yang diambil:", dataTracerId); // Log ID soal yang akan dikirim
+        console.log("ID soal yang diambil:", id); // Log ID soal yang akan dikirim
 
         if (isEditMode) {
-            soalToSubmit.id_soal = dataTracerId; // Gunakan dataTracerId jika dalam mode edit
+            soalToSubmit.id_soal = id; // Gunakan dataTracerId jika dalam mode edit
             updateSoal(soalToSubmit);
         } else {
             addSoal(soalToSubmit);
         }
 
-        // Reset form setelah submit
         resetForm();
+
+        // navigate(`/super_admin/tracerstudy-editatensi/${tracerId}`);
     };
-
-
-
-
 
     const resetForm = () => {
         setNewSoal({
@@ -293,26 +268,32 @@ export default function () {
             <div className="row mb-4">
                 <div className="col">
                     <ul className="nav mt-3 mb-4 justify-content-center gap-2">
-                        <li className="nav-item">
-                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
-                                Detail Kegiatan
-                            </span>
-                        </li>
-                        <li className="nav-item mx-2">
-                            <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
-                                Skala Kegiatan
-                            </span>
-                        </li>
+                        <Link to={`/super_admin/tracerstudy-edit/${id}`}>
+                            <li className="nav-item">
+                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                    Detail Kegiatan
+                                </span>
+                            </li>
+                        </Link>
+                        <Link to={`/super_admin/tracerstudy-editskala/${id}`}>
+                            <li className="nav-item mx-2">
+                                <span className="badge btn-secondary bg-opacity-50 px-4 py-2 rounded-pill">
+                                    Skala Kegiatan
+                                </span>
+                            </li>
+                        </Link>
                         <li className="nav-item">
                             <span className="badge btn-primary px-4 py-2 rounded-pill">
                                 Bank soal
                             </span>
                         </li>
-                        <li className="nav-item">
-                            <span className="badge btn-secondary px-4 py-2 rounded-pill">
-                                Kriteria Atensi
-                            </span>
-                        </li>
+                        <Link to={`/super_admin/tracerstudy-editatensi/${id}`}>
+                            <li className="nav-item">
+                                <span className="badge btn-secondary px-4 py-2 rounded-pill">
+                                    Kriteria Atensi
+                                </span>
+                            </li>
+                        </Link>
                         <li className="nav-item">
                             <span className="badge btn-secondary px-4 py-2 rounded-pill">
                                 Preview
@@ -484,7 +465,10 @@ export default function () {
             <ModalSuccessDraft
                 show={showSuccessDraftModal}
                 message="Tracer to Draft Is Success !"
-                onClose={() => setShowSuccessDraftModal(false)}
+                onClose={() => {
+                    setShowSuccessDraftModal(false);
+                    handleNavigateAndUpdate(); // Fungsi untuk navigate + update localStorage
+                }}
             />
 
             {/* Modal Failed */}

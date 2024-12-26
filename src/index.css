@@ -106,6 +106,10 @@
   color: #0AB39C !important;
 }
 
+.cstm-bg {
+  background-color: #f3f3f9 !important;
+}
+
 
 /* custom table color */
 
@@ -216,6 +220,73 @@ input[type="number"]::-webkit-inner-spin-button {
   color: #00426D;
   font-size: 0.85rem;
 }
+
+
+/* Styling Modal */
+.custom-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050;
+  width: 600px;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+.custom-modal.show {
+  animation-name: modalShow;
+}
+
+.custom-modal.hide {
+  animation-name: modalHide;
+}
+
+/* Animasi untuk munculnya modal */
+@keyframes modalShow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Animasi untuk hilangnya modal */
+@keyframes modalHide {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+}
+
+/* Tambahkan kelas ini untuk efek muncul */
+.custom-modal.show {
+  animation-name: modalShow;
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Tambahkan kelas ini untuk efek hilang */
+.custom-modal.hide {
+  animation-name: modalHide;
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  opacity: 0;
+  visibility: hidden;
+}
+
 
 /* .blinking-color-changing-text {
   animation: blink 1s infinite, colorChange 3s infinite;

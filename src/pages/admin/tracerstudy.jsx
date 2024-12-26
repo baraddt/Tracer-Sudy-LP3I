@@ -207,14 +207,14 @@ export default function () {
             <div className="container mt-4">
                 <div className="row rounded bg-white p-3 align-items-center table-responsive-md">
                     <table className="table mt-4">
-                        <thead className='table table-secondary'>
+                        <thead className='table'>
                             <tr>
-                                <th className="text-dark fw-semibold">#ID</th>
-                                <th className="text-dark fw-semibold">Nama Kegiatan</th>
-                                <th className="text-dark fw-semibold">Tanggal Mulai</th>
-                                <th className="text-dark fw-semibold">Tanggal Berakhir</th>
-                                <th className="text-dark fw-semibold text-center">Status</th>
-                                <th className="text-dark fw-semibold text-center">Action</th>
+                                <th className="cstm-bg text-dark fw-semibold">#ID</th>
+                                <th className="cstm-bg text-dark fw-semibold">Nama Kegiatan</th>
+                                <th className="cstm-bg text-dark fw-semibold">Tanggal Mulai</th>
+                                <th className="cstm-bg text-dark fw-semibold">Tanggal Berakhir</th>
+                                <th className="cstm-bg text-dark fw-semibold cstm-bg text-center">Status</th>
+                                <th className="cstm-bg text-dark fw-semibold text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>

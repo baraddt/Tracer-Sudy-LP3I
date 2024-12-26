@@ -4,11 +4,29 @@ import axiosClient from '../../services/axiosClient';
 
 
 export default function () {
+    const [tracerData, setTracerData] = useState([]);
+    const [progress, setProgress] = useState(50); // Inisialisasi progress dengan 50%
+    const [isCompleted, setIsCompleted] = useState(false);
     const navigate = useNavigate();
     const { id } = useParams();
     const [tracerDetail, setTracerDetail] = useState(null);
     const [error, setError] = useState(null);
 
+    useEffect(() => {
+        const data = [
+            { id: 1, program: "Teknik Informatika", responden: "John Doe", status: "Submitted" },
+            { id: 2, program: "Manajemen Bisnis", responden: "Jane Smith", status: "Submitted" },
+            { id: 3, program: "Sistem Informasi", responden: "Michael Johnson", status: "Submitted" },
+            { id: 4, program: "Psikologi", responden: "Emily Davis", status: "Submitted" }
+        ];
+        setTracerData(data);
+    }, []);
+
+    const handlePrintPdf = () => {
+        navigate('/pdf-viewer', {
+            state: { tracerDetail },  // Mengirim data tracer ke halaman PDF
+        });
+    };
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -24,6 +42,27 @@ export default function () {
             fetchDetail(); // Panggil API jika ID tersedia
         }
     }, [id]);
+
+    useEffect(() => {
+        if (progress === 100) {
+            setIsCompleted(true);
+        }
+    }, [progress]);
+
+    // Simulasi update progress
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setProgress((prevProgress) => {
+                if (prevProgress < 100) {
+                    return prevProgress + 10; // Update progress setiap 1 detik
+                } else {
+                    clearInterval(interval); // Hentikan interval setelah mencapai 100%
+                    return 100;
+                }
+            });
+        }, 1000); // Simulasi update setiap 1 detik
+        return () => clearInterval(interval); // Cleanup interval
+    }, []);
 
 
 
@@ -42,7 +81,7 @@ export default function () {
                             {tracerDetail.id_detail.nama_kegiatan}
                         </p>
                         <p className="text-secondary" style={{ fontSize: '15px' }}>
-                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerDetail.createdAt).toLocaleString()}
+                            Dibuat oleh | {tracerDetail.id_pembuat.nama} | {new Date(tracerDetail.createdAt).toLocaleString()}
                         </p>
                     </div>
 
@@ -72,24 +111,27 @@ export default function () {
 
                     {/* Generate */}
 
-                    <div className="p-4">
-                        <div className="bg-white shadow rounded p-4 text-center" style={{ maxWidth: '600px', width: '100%' }}>
-                            <h5 className="mb-3">Generate in progress...</h5>
-                            <div className="progress mb-3">
-                                <div
-                                    className="progress-bar progress-bar-striped progress-bar-animated"
-                                    role="progressbar"
-                                    style={{ width: '50%' }}
-                                    aria-valuenow="50"
-                                    aria-valuemin="0"
-                                    aria-valuemax="100"
-                                ></div>
-                            </div>
-                            <p className="text-muted">
-                                Proses pembuatan laporan sedang berlangsung. Mohon untuk tidak meninggalkan halaman ini
-                                atau menutup jendela browser hingga proses selesai agar data dapat diproses dengan baik.
-                            </p>
+                    <div className="bg-white shadow rounded p-4 text-center" style={{ maxWidth: '600px', width: '100%' }}>
+                        <h5 className="mb-3">Generate in progress...</h5>
+                        <div className="progress mb-3">
+                            <div
+                                className="progress-bar progress-bar-striped progress-bar-animated"
+                                role="progressbar"
+                                style={{ width: `${progress}%` }}
+                                aria-valuenow={progress}
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                            ></div>
                         </div>
+                        <p className="text-muted">
+                            Proses pembuatan laporan sedang berlangsung. Mohon untuk tidak meninggalkan halaman ini
+                            atau menutup jendela browser hingga proses selesai agar data dapat diproses dengan baik.
+                        </p>
+                        {isCompleted && (
+                            <button className="btn btn-danger mt-3" onClick={handlePrintPdf}>
+                                <i className='bi bi-file-pdf'></i> Cetak PDF
+                            </button>
+                        )}
                     </div>
 
 

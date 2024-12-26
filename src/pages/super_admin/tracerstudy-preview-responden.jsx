@@ -6,37 +6,42 @@ import axiosClient from '../../services/axiosClient';
 export default function () {
     const [tracerList, setTracerList] = useState(null);
     const [respondenList, setRespondenList] = useState([]);
+    const [dataTracerId, setDataTracerId] = useState(null);
     const [error, setError] = useState(null);
 
 
     const fetchData = async () => {
         try {
-            const response = await axiosClient.get(`/tracerstudy/all`);
-            const data = response.data.data;
-
-            if (data.length > 0) {
-                const id = data[0]._id;
-                fetchDetailData(id);
+            const tracerIdFromLocalStorage = localStorage.getItem('tracerId');  // Ambil tracerId dari localStorage
+            if (tracerIdFromLocalStorage) {
+                setDataTracerId(tracerIdFromLocalStorage);  // Set tracerId dari localStorage
+                console.log("Tracer ID yang diambil dari localStorage:", tracerIdFromLocalStorage);
+                // Panggil fetchDetailData dengan tracerId yang diambil
+                await fetchDetailData(tracerIdFromLocalStorage);
             } else {
-                setError('No data Found');
+                console.error("Tracer ID tidak ditemukan di localStorage");
             }
         } catch (error) {
-            console.error("Error feching data:", error.message);
-            setError(error.message);
-
+            console.error("Error fetching data:", error.message);
         }
     };
 
+    // Fungsi untuk mengambil detail berdasarkan _id (tracerId)
     const fetchDetailData = async (id) => {
         try {
+            // Mengambil data detail berdasarkan tracerId
             const response = await axiosClient.get(`/tracerstudy/${id}`);
-            setTracerList(response.data.data);
+            setTracerList(response.data.data);  // Menyimpan data yang diterima ke state
+            console.log("Data tracer detail:", response.data.data);  // Untuk debugging
         } catch (error) {
-            console.error("Error feching detail data:", error.message);
-            setError(error.message);
-
+            console.error("Error fetching detail data:", error.message);
+            setError(error.message);  // Menyimpan error ke state jika terjadi kesalahan
         }
     };
+
+    useEffect(() => {
+        fetchData();  // Panggil fungsi untuk mengambil data utama saat pertama kali render
+    }, []);
 
     const fetchResponden = async () => {
         try {
@@ -44,10 +49,10 @@ export default function () {
             setRespondenList(response.data.data);
 
             console.log(response.data);
-            
+
         } catch (err) {
             console.error("Error Feching Responden :", err.message);
-            
+
         }
     };
 
@@ -56,6 +61,76 @@ export default function () {
         fetchResponden();
     }, []);
 
+    const handlePublish = async () => {
+        try {
+            const tracerId = localStorage.getItem("tracerId");
+            if (!tracerId) {
+                console.error("Tracer ID tidak ditemukan.");
+                return;
+            }
+
+
+            const response = await axiosClient.post(
+                `/tracerstudy/${tracerId}/publish?status=Berlangsung`
+            );
+
+            if (response.status === 200) {
+                console.log("Status berhasil diubah menjadi Berlangsung:", response.data);
+
+                // Perbarui data status lokal
+                setTracerList((prev) => ({
+                    ...prev,
+                    status: "Berlangsung",
+                }));
+
+                const response = await axiosClient.get('/tracerstudy/all');
+                const updatedTracerData = response.data;
+
+                // Update localStorage
+                localStorage.setItem("tracersData", JSON.stringify(updatedTracerData));
+                console.log("Tracer data updated in localStorage:", updatedTracerData);
+
+                // Navigasi ke halaman Tracer Study
+                navigate('/super_admin/tracerstudy');
+            } else {
+                console.error("Gagal mengubah status. Respons:", response);
+            }
+        } catch (error) {
+            console.error("Terjadi kesalahan saat mengubah status:", error.message);
+        }
+    };
+
+
+    const handleCancel = async () => {
+        try {
+            const tracerId = localStorage.getItem("tracerId");
+            if (!tracerId) {
+                console.error("Tracer ID tidak ditemukan.");
+                return;
+            }
+
+            const response = await axiosClient.post(
+                `/tracerstudy/${tracerId}/publish?status=Dibatalkan`
+            );
+
+            if (response.status === 200) {
+                console.log("Status berhasil diubah menjadi Dibatalkan:", response.data);
+
+                // Perbarui data status lokal
+                setTracerList((prev) => ({
+                    ...prev,
+                    status: "Dibatalkan",
+                }));
+
+                // Navigasi ke halaman Tracer Study
+                navigate('/super_admin/tracerstudy');
+            } else {
+                console.error("Gagal mengubah status. Respons:", response);
+            }
+        } catch (error) {
+            console.error("Terjadi kesalahan saat mengubah status:", error.message);
+        }
+    };
 
 
     return (
@@ -72,7 +147,7 @@ export default function () {
                             {tracerList.id_detail.nama_kegiatan}
                         </p>
                         <p className="text-secondary" style={{ fontSize: '15px' }}>
-                            Dibuat oleh | Kampus Utama Politeknik LP3I | {new Date(tracerList.createdAt).toLocaleString()}
+                            Dibuat oleh | {tracerList.id_pembuat.nama} | {new Date(tracerList.createdAt).toLocaleString()}
                         </p>
                     </div>
 
@@ -139,12 +214,24 @@ export default function () {
                             <button type="button" className="btn btn-primary mb-3">Simpan ke Draft</button>
                         </div>
                         <div>
-                            <Link to='/super_admin/tracerstudy-verifikasi-akhir'>
-                                <button type="button" className="btn btn-danger mb-3 me-3">Batalkan</button>
-                            </Link>
-                            <Link to='/super_admin/tracerstudy'>
-                                <button type="submit" className="btn btn-success mb-3">Publikasi</button>
-                            </Link>
+                            <button
+                                type="button"
+                                className="btn btn-danger me-3"
+                                onClick={handleCancel}
+                                disabled={tracerList?.status === "Dibatalkan"}
+
+                            >
+                                {tracerList?.status === "Dibatalkan" ? "Sudah Dibatalkan" : "Batalkan"}
+                            </button>
+
+                            {/* Tombol Publish */}
+                            <button
+                                className="btn btn-primary"
+                                onClick={handlePublish}
+                                disabled={tracerList?.status === "Berlangsung"}
+                            >
+                                {tracerList?.status === "Berlangsung" ? "Sudah Dipublish" : "Publish"}
+                            </button>
                         </div>
                     </div>
                 </>
